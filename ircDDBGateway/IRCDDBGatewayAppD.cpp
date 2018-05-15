@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2015,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -119,9 +119,9 @@ int main(int argc, char** argv)
 
 	wxString pidFileName;
 	if (!name.IsEmpty())
-		pidFileName.Printf(wxT("/var/run/ircddbgateway_%s.pid"), name.c_str());
+		pidFileName.Printf(wxT("/var/run/opendv/ircddbgateway_%s.pid"), name.c_str());
 	else
-		pidFileName = wxT("/var/run/ircddbgateway.pid");
+		pidFileName = wxT("/var/run/opendv/ircddbgateway.pid");
 	pidFileName.Replace(wxT(" "), wxT("_"));
 
 	char fileName[128U];
