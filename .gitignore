@@ -7,4 +7,5 @@ Release
 *~
 *.bak
 .vs
+*.a
 

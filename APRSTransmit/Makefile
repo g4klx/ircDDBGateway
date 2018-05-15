@@ -8,6 +8,9 @@ aprstransmit:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -c -o $@ $<
 
+install:
+		install -g bin -o root -m 0775 aprstransmit $(BINDIR)
+
 clean:
 		$(RM) aprstransmit *.o *.d *.bak *~
 

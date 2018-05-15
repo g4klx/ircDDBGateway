@@ -9,6 +9,9 @@ timeserver:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -c -o $@ $<
 
+install:
+		install -g bin -o root -m 0775 timeserver $(BINDIR)
+
 clean:
 		$(RM) timeserver *.o *.d *.bak *~
 

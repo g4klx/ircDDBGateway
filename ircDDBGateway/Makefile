@@ -9,6 +9,9 @@ ircddbgateway:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../ircDDB -c -o $@ $<
 
+install:
+		install -g bin -o root -m 0775 ircddbgateway $(BINDIR)
+
 clean:
 		$(RM) ircddbgateway *.o *.d *.bak *~
 

@@ -10,6 +10,9 @@ starnetserver:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -I../ircDDB -c -o $@ $<
 
+install:
+		install -g bin -o root -m 0775 starnetserver $(BINDIR)
+
 clean:
 		$(RM) starnetserver *.o *.d *.bak *~
 

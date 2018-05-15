@@ -8,6 +8,9 @@ voicetransmit:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -c -o $@ $<
 
+install:
+		install -g bin -o root -m 0775 voicetransmit $(BINDIR)
+
 clean:
 		$(RM) voicetransmit *.o *.d *.bak *~
 

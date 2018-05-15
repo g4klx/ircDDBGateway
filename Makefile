@@ -1,11 +1,12 @@
-export DATADIR := "/usr/local/etc"
+export DATADIR := "/usr/share/ircddbgateway"
 export LOGDIR  := "/var/log"
 export CONFDIR := "/etc"
+export BINDIR  := "/usr/bin"
 
-export CXX := $(shell wx-config --cxx)
-export CFLAGS := -g -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
-export LIBS := $(shell wx-config --libs adv,core)
-export LDFLAGS := -g
+export CXX     := $(shell wx-config --cxx)
+export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
+export LIBS    := $(shell wx-config --libs adv,core)
+export LDFLAGS := 
 
 all:	ircDDBGateway/ircddbgateway ircDDBGatewayConfig/ircddbgatewayconfig APRSTransmit/aprstransmit RemoteControl/remotecontrol \
 	StarNetServer/starnetserver TextTransmit/texttransmit TimerControl/timercontrol TimeServer/timeserver VoiceTransmit/voicetransmit
@@ -45,6 +46,18 @@ Common/Common.a:
 
 ircDDB/IRCDDB.a:
 	make -C ircDDB
+
+install:	all
+	make -C Data install
+	make -C APRSTransmit install
+	make -C ircDDBGateway install
+	make -C RemoteControl install
+	make -C StarNetServer install
+	make -C TextTransmit install
+	make -C TimerControl install
+	make -C TimeServer install
+	make -C VoiceTransmit install
+	make -C ircDDBGatewayConfig install
 
 clean:
 	make -C Common clean

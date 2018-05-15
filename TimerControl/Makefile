@@ -9,6 +9,9 @@ timercontrol:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -c -o $@ $<
 
+install:
+		install -g bin -o root -m 0775 timercontrol $(BINDIR)
+
 clean:
 		$(RM) timercontrol *.o *.d *.bak *~
 
