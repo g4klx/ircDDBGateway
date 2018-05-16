@@ -1,18 +1,17 @@
-OBJECTS = RemoteControlApp.o RemoteControlCallsignData.o RemoteControlConfig.o RemoteControlFrame.o RemoteControlLinkData.o \
-	  RemoteControlPreferences.o RemoteControlRemoteControlHandler.o RemoteControlRemoteSet.o RemoteControlRepeaterData.o \
-	  RemoteControlRepeaterPanel.o RemoteControlStarNetGroup.o RemoteControlStarNetPanel.o RemoteControlStarNetUser.o
+OBJECTS = RemoteControlAppD.o RemoteControlCallsignData.o RemoteControlConfig.o RemoteControlLinkData.o RemoteControlRemoteControlHandler.o \
+	  RemoteControlRepeaterData.o RemoteControlStarNetGroup.o RemoteControlStarNetUser.o
 
-all:		remotecontrol
+all:		remotecontrold
 
-remotecontrol:	$(OBJECTS)
-		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a $(LDFLAGS) $(LIBS) -o remotecontrol
+remotecontrold:	$(OBJECTS)
+		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o remotecontrold
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -c -o $@ $<
+		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -I../Common -c -o $@ $<
 
 install:
-		install -g bin -o root -m 0775 remotecontrol $(BINDIR)
+		install -g bin -o root -m 0775 remotecontrold $(BINDIR)
 
 clean:
-		$(RM) remotecontrol *.o *.d *.bak *~
+		$(RM) remotecontrold *.o *.d *.bak *~
 

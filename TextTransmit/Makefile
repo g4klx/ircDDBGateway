@@ -1,16 +1,16 @@
 OBJECTS = TextTransmit.o
 
-all:		texttransmit
+all:		texttransmitd
 
-texttransmit:	$(OBJECTS)
-		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o texttransmit
+texttransmitd:	$(OBJECTS)
+		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o texttransmitd
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -I../Common -c -o $@ $<
+		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -I../Common -c -o $@ $<
 
 install:
-		install -g bin -o root -m 0775 texttransmit $(BINDIR)
+		install -g bin -o root -m 0775 texttransmitd $(BINDIR)
 
 clean:
-		$(RM) texttransmit *.o *.d *.bak *~
+		$(RM) texttransmitd *.o *.d *.bak *~
 

@@ -7,7 +7,7 @@ IRCDDB.a:	$(OBJECTS)
 		$(AR) rcs IRCDDB.a $(OBJECTS)
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -c -o $@ $<
+		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -c -o $@ $<
 
 clean:
 		$(RM) IRCDDB.a *.o *.d *.bak *~

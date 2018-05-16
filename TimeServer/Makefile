@@ -1,17 +1,16 @@
-OBJECTS = TimeServerAnnouncementsSet.o TimeServerApp.o TimeServerConfig.o TimeServerFrame.o TimeServerGatewaySet.o TimeServerLogRedirect.o \
-	  TimeServerPreferences.o TimeServerThread.o TimeServerThreadHelper.o
+OBJECTS = TimeServerD.o TimeServerConfig.o TimeServerThread.o TimeServerThreadHelper.o
 
-all:		timeserver
+all:		timeserverd
 
-timeserver:	$(OBJECTS)
-		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a $(LDFLAGS) $(LIBS) -o timeserver
+timeserverd:	$(OBJECTS)
+		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o timeserverd
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -c -o $@ $<
+		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -I../Common -c -o $@ $<
 
 install:
-		install -g bin -o root -m 0775 timeserver $(BINDIR)
+		install -g bin -o root -m 0775 timeserverd $(BINDIR)
 
 clean:
-		$(RM) timeserver *.o *.d *.bak *~
+		$(RM) timeserverd *.o *.d *.bak *~
 

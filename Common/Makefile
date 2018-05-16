@@ -15,7 +15,7 @@ Common.a:	$(OBJECTS)
 		$(AR) rcs Common.a $(OBJECTS)
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -I../ircDDB -c -o $@ $<
+		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -I../ircDDB -c -o $@ $<
 
 clean:
 		$(RM) Common.a *.o *.d *.bak *~

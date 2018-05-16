@@ -1,17 +1,16 @@
-OBJECTS = IRCDDBGatewayApp.o IRCDDBGatewayFrame.o IRCDDBGatewayLogRedirect.o IRCDDBGatewayStatusData.o IRCDDBGatewayThread.o \
-	  IRCDDBGatewayThreadHelper.o
+OBJECTS = IRCDDBGatewayAppD.o IRCDDBGatewayStatusData.o IRCDDBGatewayThread.o IRCDDBGatewayThreadHelper.o
 
-all:		ircddbgateway
+all:		ircddbgatewayd
 
-ircddbgateway:	$(OBJECTS)
-		$(CXX) $(OBJECTS) ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(LIBS) -o ircddbgateway
+ircddbgatewayd:	$(OBJECTS)
+		$(CXX) $(OBJECTS) ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(LIBS) -o ircddbgatewayd
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -I../Common -I../ircDDB -c -o $@ $<
+		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -I../Common -I../ircDDB -c -o $@ $<
 
 install:
-		install -g bin -o root -m 0775 ircddbgateway $(BINDIR)
+		install -g bin -o root -m 0775 ircddbgatewayd $(BINDIR)
 
 clean:
-		$(RM) ircddbgateway *.o *.d *.bak *~
+		$(RM) ircddbgatewayd *.o *.d *.bak *~
 

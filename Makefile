@@ -5,37 +5,38 @@ export BINDIR  := "/usr/bin"
 
 export CXX     := $(shell wx-config --cxx)
 export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
-export LIBS    := $(shell wx-config --libs adv,core)
+export GUILIBS := $(shell wx-config --libs adv,core,base)
+export LIBS    := $(shell wx-config --libs base)
 export LDFLAGS := 
 
-all:	ircDDBGateway/ircddbgateway ircDDBGatewayConfig/ircddbgatewayconfig APRSTransmit/aprstransmit RemoteControl/remotecontrol \
-	StarNetServer/starnetserver TextTransmit/texttransmit TimerControl/timercontrol TimeServer/timeserver VoiceTransmit/voicetransmit
+all:	ircDDBGateway/ircddbgatewayd ircDDBGatewayConfig/ircddbgatewayconfig APRSTransmit/aprstransmitd RemoteControl/remotecontrold \
+	StarNetServer/starnetserverd TextTransmit/texttransmitd TimerControl/timercontrold TimeServer/timeserverd VoiceTransmit/voicetransmitd
 
-ircDDBGateway/ircddbgateway:	Common/Common.a ircDDB/IRCDDB.a
+ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a
 	make -C ircDDBGateway
 
 ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a
 	make -C ircDDBGatewayConfig
 
-APRSTransmit/aprstransmit:	Common/Common.a
+APRSTransmit/aprstransmitd:	Common/Common.a
 	make -C APRSTransmit
 
-RemoteControl/remotecontrol:	Common/Common.a GUICommon/GUICommon.a
+RemoteControl/remotecontrold:	Common/Common.a
 	make -C RemoteControl
 
-StarNetServer/starnetserver:	Common/Common.a ircDDB/IRCDDB.a
+StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a
 	make -C StarNetServer
 
-TextTransmit/texttransmit:	Common/Common.a
+TextTransmit/texttransmitd:	Common/Common.a
 	make -C TextTransmit
 
-TimerControl/timercontrol:	Common/Common.a GUICommon/GUICommon.a
+TimerControl/timercontrold:	Common/Common.a GUICommon/GUICommon.a
 	make -C TimerControl
 
-TimeServer/timeserver:	Common/Common.a GUICommon/GUICommon.a
+TimeServer/timeserverd:	Common/Common.a GUICommon/GUICommon.a
 	make -C TimeServer
 
-VoiceTransmit/voicetransmit:	Common/Common.a
+VoiceTransmit/voicetransmitd:	Common/Common.a
 	make -C VoiceTransmit
 
 GUICommon/GUICommon.a:

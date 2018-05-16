@@ -1,18 +1,16 @@
-OBJECTS = StarNetServerApp.o StarNetServerCallsignSet.o StarNetServerConfig.o StarNetServerFrame.o StarNetServerIrcDDBSet.o \
-	  StarNetServerLogRedirect.o StarNetServerMiscellaneousSet.o StarNetServerPreferences.o StarNetServerThread.o \
-	  StarNetServerThreadHelper.o
+OBJECTS = StarNetServerAppD.o StarNetServerConfig.o StarNetServerThread.o StarNetServerThreadHelper.o
 
-all:		starnetserver
+all:		starnetserverd
 
-starnetserver:	$(OBJECTS)
-		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(LIBS) -o starnetserver
+starnetserverd:	$(OBJECTS)
+		$(CXX) $(OBJECTS) ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(LIBS) -o starnetserverd
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -I../ircDDB -c -o $@ $<
+		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -I../Common -I../ircDDB -c -o $@ $<
 
 install:
-		install -g bin -o root -m 0775 starnetserver $(BINDIR)
+		install -g bin -o root -m 0775 starnetserverd $(BINDIR)
 
 clean:
-		$(RM) starnetserver *.o *.d *.bak *~
+		$(RM) starnetserverd *.o *.d *.bak *~
 
