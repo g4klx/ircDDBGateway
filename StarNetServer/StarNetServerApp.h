@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -167,6 +167,6 @@ private:
 	void createThread();
 };
 
-DECLARE_APP(CStarNetServerApp)
+wxDECLARE_APP(CStarNetServerApp);
 
 #endif
