@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013,2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013,2014,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@ m_ggaValid(false),
 m_rmcData(NULL),
 m_rmcLength(0U),
 m_rmcValid(false),
+m_csData(NULL),
+m_csLength(0U),
+m_csValid(false),
 m_crcData(NULL),
 m_crcLength(0U),
 m_crcValid(false),
@@ -39,10 +42,12 @@ m_txtData(NULL),
 m_txtLength(0U),
 m_txtValid(false),
 m_buffer(NULL),
-m_slowData(SS_FIRST)
+m_slowData(SS_FIRST),
+m_collector()
 {
 	m_ggaData = new unsigned char[APRS_DATA_LENGTH];
 	m_rmcData = new unsigned char[APRS_DATA_LENGTH];
+	m_csData  = new unsigned char[APRS_DATA_LENGTH];
 	m_crcData = new unsigned char[APRS_DATA_LENGTH];
 	m_txtData = new unsigned char[APRS_DATA_LENGTH];
 	m_buffer  = new unsigned char[SLOW_DATA_BLOCK_LENGTH];
@@ -52,6 +57,7 @@ CAPRSCollector::~CAPRSCollector()
 {
 	delete[] m_ggaData;
 	delete[] m_rmcData;
+	delete[] m_csData;
 	delete[] m_crcData;
 	delete[] m_txtData;
 	delete[] m_buffer;
@@ -77,11 +83,17 @@ bool CAPRSCollector::writeData(const unsigned char* data)
 			break;
 	}
 
-	// Is it GPS data, or are we collecting data already?
-	if ((m_buffer[0U] & SLOW_DATA_TYPE_MASK) != SLOW_DATA_TYPE_GPS)
-		return false;
+	CUtils::dump(wxT("Slow data received"), m_buffer, 6U);
 
-	return addData(m_buffer + 1U);
+	// Is it slow text data?
+	if ((m_buffer[0U] & SLOW_DATA_TYPE_MASK) == SLOW_DATA_TYPE_TEXT)
+		addTextData(m_buffer);
+
+	// Is it GPS data?
+	if ((m_buffer[0U] & SLOW_DATA_TYPE_MASK) == SLOW_DATA_TYPE_GPS)
+		return addGPSData(m_buffer + 1U);
+
+	return false;
 }
 
 void CAPRSCollector::reset()
@@ -91,11 +103,14 @@ void CAPRSCollector::reset()
 	m_ggaValid  = false;
 	m_rmcLength = 0U;
 	m_rmcValid  = false;
+	m_csLength  = 0U;
+	m_csValid   = false;
 	m_crcLength = 0U;
 	m_crcValid  = false;
 	m_txtLength = 0U;
 	m_txtValid  = false;
 	m_slowData  = SS_FIRST;
+	m_collector.Clear();
 }
 
 void CAPRSCollector::sync()
@@ -103,11 +118,25 @@ void CAPRSCollector::sync()
 	m_slowData = SS_FIRST;
 }
 
-bool CAPRSCollector::addData(const unsigned char* data)
+bool CAPRSCollector::addGPSData(const unsigned char* data)
 {
 	wxASSERT(data != NULL);
 
-	if (::memcmp(data, "$GPGG", 5U) == 0) {
+	m_collector.Append((char*)data, 5U);
+
+	if (m_state == AS_GGA) {
+		addGGAData();
+		return false;
+	} else if (m_state == AS_RMC) {
+		addRMCData();
+		return false;
+	} else if (m_state == AS_CS) {
+		return addCSData();
+	} else if (m_state == AS_CRC) {
+		return addCRCData();
+	}
+	
+	if (m_state != AS_GGA && m_collector.Find(wxT("$GPGGA")) != wxNOT_FOUND) {
 		m_state     = AS_GGA;
 		m_ggaLength = 0U;
 		m_ggaValid  = false;
@@ -115,181 +144,208 @@ bool CAPRSCollector::addData(const unsigned char* data)
 		m_rmcValid  = false;
 		m_txtLength = 0U;
 		m_txtValid  = false;
-		addGGAData(data);
 		return false;
-	} else if (::memcmp(data, "$GPRM", 5U) == 0) {
+	} else if (m_state != AS_RMC && m_collector.Find(wxT("$GPRMC")) != wxNOT_FOUND) {
 		m_state     = AS_RMC;
 		m_rmcLength = 0U;
 		m_rmcValid  = false;
 		m_txtLength = 0U;
 		m_txtValid  = false;
-		addRMCData(data);
 		return false;
-	} else if (::memcmp(data, "$$CRC", 5U) == 0) {
+	} else if (m_state != AS_CRC && m_collector.Find(wxT("$$CRC")) != wxNOT_FOUND) {
 		m_state     = AS_CRC;
 		m_crcLength = 0U;
 		m_crcValid  = false;
-		return addCRCData(data);
-	} else if (m_state == AS_RMC && m_rmcLength == 0U) {
-		m_state     = AS_TXT;
-		m_txtLength = 0U;
-		m_txtValid  = false;
-		addTXTData(data);
-		return false;
-	} else if (m_state == AS_GGA) {
-		addGGAData(data);
-		return false;
-	} else if (m_state == AS_RMC) {
-		addRMCData(data);
-		return false;
-	} else if (m_state == AS_CRC) {
-		return addCRCData(data);
-	} else if (m_state == AS_TXT) {
-		return addTXTData(data);
 	}
 
 	return false;
 }
 
-void CAPRSCollector::addGGAData(const unsigned char* data)
+void CAPRSCollector::addGGAData()
 {
-	for (unsigned int i = 0U; i < 5U; i++) {
-		unsigned char c = data[i];
+	int n2 = m_collector.Find(wxT('\x0A'), true);
+	if (n2 == wxNOT_FOUND)
+		return;
 
-		m_ggaData[m_ggaLength] = c & 0x7FU;
+	int n1 = m_collector.Find(wxT("$GPGGA"));
+	if (n1 == wxNOT_FOUND)
+		return;
+
+	if (n2 < n1)
+		return;
+
+	unsigned int len = n2 - n1;
+
+	if (len >= APRS_DATA_LENGTH) {
+		m_ggaLength = 0U;
+		m_ggaValid  = false;
+		m_state     = AS_NONE;
+		return;
+	}
+
+	m_ggaLength = 0U;
+	for (int i = n1; i <= n2; i++) {
+		m_ggaData[m_ggaLength]  = m_collector.GetChar(i);
+		m_ggaData[m_ggaLength] &= 0x7FU;
 		m_ggaLength++;
-
-		if (m_ggaLength >= APRS_DATA_LENGTH) {
-			// CUtils::dump(wxT("Missed end of $GPGGA data"), m_ggaData, m_ggaLength);
-			m_ggaLength = 0U;
-			m_ggaValid  = false;
-			m_state     = AS_NONE;
-			return;
-		}
-
-		if (c == 0x0AU) {
-			bool ret = checkXOR(m_ggaData + 1U, m_ggaLength - 1U);
-			if (ret) {
-				// CUtils::dump(wxT("$GPGGA Valid"), m_ggaData, m_ggaLength);
-				m_ggaValid  = true;
-				m_state     = AS_RMC;
-				return;
-			} else {
-				// CUtils::dump(wxT("$GPGGA Bad checksum"), m_ggaData, m_ggaLength);
-				m_ggaLength = 0U;
-				m_ggaValid  = false;
-				m_state     = AS_RMC;
-				return;
-			}
-		}
 	}
+
+	bool ret = checkXOR(m_ggaData + 1U, m_ggaLength - 1U);
+	if (ret) {
+		CUtils::dump(wxT("$GPGGA Valid"), m_ggaData, m_ggaLength);
+		m_ggaValid  = true;
+		m_state     = AS_RMC;
+	} else {
+		CUtils::dump(wxT("$GPGGA Bad checksum"), m_ggaData, m_ggaLength);
+		m_ggaLength = 0U;
+		m_ggaValid  = false;
+		m_state     = AS_RMC;
+	}
+
+	m_collector = m_collector.Mid(n2);
 }
 
-void CAPRSCollector::addRMCData(const unsigned char* data)
+void CAPRSCollector::addRMCData()
 {
-	for (unsigned int i = 0U; i < 5U; i++) {
-		unsigned char c = data[i];
+	int n2 = m_collector.Find(wxT('\x0A'), true);
+	if (n2 == wxNOT_FOUND)
+		return;
 
-		m_rmcData[m_rmcLength] = c & 0x7FU;
+	int n1 = m_collector.Find(wxT("$GPRMC"));
+	if (n1 == wxNOT_FOUND)
+		return;
+
+	if (n2 < n1)
+		return;
+
+	unsigned int len = n2 - n1;
+
+	if (len >= APRS_DATA_LENGTH) {
+		m_rmcLength = 0U;
+		m_rmcValid  = false;
+		m_state     = AS_NONE;
+		return;
+	}
+
+	m_rmcLength = 0U;
+	for (int i = n1; i <= n2; i++) {
+		m_rmcData[m_rmcLength]  = m_collector.GetChar(i);
+		m_rmcData[m_rmcLength] &= 0x7FU;
 		m_rmcLength++;
+	}
 
-		if (m_rmcLength >= APRS_DATA_LENGTH) {
-			// CUtils::dump(wxT("Missed end of $GPRMC data"), m_rmcData, m_rmcLength);
-			m_rmcLength = 0U;
-			m_rmcValid  = false;
+	bool ret = checkXOR(m_rmcData + 1U, m_rmcLength - 1U);
+	if (ret) {
+		CUtils::dump(wxT("$GPRMC Valid"), m_rmcData, m_rmcLength);
+		m_rmcValid = true;
+		m_state    = AS_CS;
+	} else {
+		CUtils::dump(wxT("$GPRMC Bad checksum"), m_rmcData, m_rmcLength);
+		m_rmcLength = 0U;
+		m_rmcValid  = false;
+		m_state     = AS_CS;
+	}
+
+	m_collector = m_collector.Mid(n2);
+}
+
+bool CAPRSCollector::addCSData()
+{
+	int n = m_collector.Find(wxT(' '));
+	if (n == wxNOT_FOUND)
+		return false;
+
+	if (n >= APRS_DATA_LENGTH) {
+		m_csLength = 0U;
+		m_csValid  = false;
+		m_state    = AS_NONE;
+		return false;
+	}
+
+	m_csLength = 0U;
+	for (int i = 1; i < n; i++) {
+		m_csData[m_csLength]  = m_collector.GetChar(i);
+		m_csData[m_csLength] &= 0x7FU;
+		m_csLength++;
+	}
+
+	CUtils::dump(wxT("Callsign Valid"), m_csData, m_csLength);
+	m_csValid = true;
+	m_state   = AS_NONE;
+
+	m_collector = m_collector.Mid(n);
+
+	return true;
+}
+
+bool CAPRSCollector::addCRCData()
+{
+	int n2 = m_collector.Find(wxT('\x0D'), true);
+	if (n2 == wxNOT_FOUND)
+		return false;
+
+	int n1 = m_collector.Find(wxT("$$CRC"));
+	if (n1 == wxNOT_FOUND)
+		return false;
+
+	if (n2 < n1)
+		return false;
+
+	unsigned int len = n2 - n1;
+
+	if (len >= APRS_DATA_LENGTH) {
+		m_crcLength = 0U;
+		m_crcValid  = false;
+		m_state     = AS_NONE;
+		return false;
+	}
+
+	m_crcLength = 0U;
+	for (int i = n1; i <= n2; i++) {
+		m_crcData[m_rmcLength] = m_collector.GetChar(i);
+		m_crcLength++;
+	}
+
+	bool ret = checkCRC(m_crcData, m_crcLength);
+	if (ret) {
+		CUtils::dump(wxT("$$CRC Valid"), m_crcData, m_crcLength);
+		m_crcValid = true;
+		m_state = AS_NONE;
+		m_collector = m_collector.Mid(n2);
+		return true;
+	} else {
+		CUtils::dump(wxT("$$CRC Bad checksum"), m_crcData, m_crcLength);
+		m_crcLength = 0U;
+		m_crcValid  = false;
+		m_state     = AS_NONE;
+		m_collector = m_collector.Mid(n2);
+		return false;
+	}
+}
+
+void CAPRSCollector::addTextData(const unsigned char* data)
+{
+	unsigned char pos = data[0U] & 0x0FU;
+	if (pos > 3U)
+		return;
+
+	pos *= 5U;
+
+	for (unsigned int i = 1U; i < 6U; i++) {
+		unsigned char c = data[i];
+
+		m_txtData[pos] = c & 0x7FU;
+		pos++;
+
+		bool ret = checkXOR(m_txtData, 20U);
+		if (ret) {
+			CUtils::dump(wxT("Text Valid"), m_txtData, 20U);
 			m_state     = AS_NONE;
+			m_txtValid  = true;
+			m_txtLength = 20U;
 			return;
 		}
-
-		if (c == 0x0AU) {
-			bool ret = checkXOR(m_rmcData + 1U, m_rmcLength - 1U);
-			if (ret) {
-				// CUtils::dump(wxT("$GPRMC Valid"), m_rmcData, m_rmcLength);
-				m_rmcValid = true;
-				m_state    = AS_TXT;
-				return;
-			} else {
-				// CUtils::dump(wxT("$GPRMC Bad checksum"), m_rmcData, m_rmcLength);
-				m_rmcLength = 0U;
-				m_rmcValid  = false;
-				m_state     = AS_TXT;
-				return;
-			}
-		}
 	}
-}
-
-bool CAPRSCollector::addCRCData(const unsigned char* data)
-{
-	for (unsigned int i = 0U; i < 5U; i++) {
-		unsigned char c = data[i];
-
-		// m_crcData[m_crcLength] = c & 0x7FU;		// XXX
-		m_crcData[m_crcLength] = c;
-		m_crcLength++;
-
-		if (m_crcLength >= APRS_DATA_LENGTH) {
-			// CUtils::dump(wxT("Missed end of $$CRC data"), m_crcData, m_crcLength);
-			m_state     = AS_NONE;
-			m_crcLength = 0U;
-			m_crcValid  = false;
-			return false;
-		}
-
-		if (c == 0x0DU) {
-			bool ret = checkCRC(m_crcData, m_crcLength);
-			if (ret) {
-				// CUtils::dump(wxT("$$CRC Valid"), m_crcData, m_crcLength);
-				m_state    = AS_NONE;
-				m_crcValid = true;
-				return true;
-			} else {
-				// CUtils::dump(wxT("$$CRC Bad checksum"), m_crcData, m_crcLength);
-				m_state     = AS_NONE;
-				m_crcLength = 0U;
-				m_crcValid  = false;
-				return false;
-			}
-		}
-	}
-
-	return false;
-}
-
-bool CAPRSCollector::addTXTData(const unsigned char* data)
-{
-	for (unsigned int i = 0U; i < 5U; i++) {
-		unsigned char c = data[i];
-
-		m_txtData[m_txtLength] = c & 0x7FU;
-		m_txtLength++;
-
-		if (m_txtLength >= APRS_DATA_LENGTH) {
-			// CUtils::dump(wxT("Missed end of TEXT data"), m_txtData, m_txtLength);
-			m_state     = AS_NONE;
-			m_txtLength = 0U;
-			m_txtValid  = false;
-			return false;
-		}
-
-		if (c == 0x0AU) {
-			bool ret = checkXOR(m_txtData, m_txtLength);
-			if (ret) {
-				// CUtils::dump(wxT("TEXT Valid"), m_txtData, m_txtLength);
-				m_state    = AS_NONE;
-				m_txtValid = true;
-				return true;
-			} else {
-				// CUtils::dump(wxT("TEXT Bad checksum"), m_txtData, m_txtLength);
-				m_state     = AS_NONE;
-				m_txtLength = 0U;
-				m_txtValid  = false;
-				return false;
-			}
-		}
-	}
-
-	return false;
 }
 
 unsigned int CAPRSCollector::getData(unsigned char* data, unsigned int length)
@@ -316,9 +372,11 @@ unsigned int CAPRSCollector::getData(unsigned char* data, unsigned int length)
 
 		m_ggaLength = 0U;
 		m_rmcLength = 0U;
+		m_csLength  = 0U;
 		m_txtLength = 0U;
 		m_ggaValid  = false;
 		m_rmcValid  = false;
+		m_csValid   = false;
 		m_txtValid  = false;
 
 		return len;
@@ -330,9 +388,11 @@ unsigned int CAPRSCollector::getData(unsigned char* data, unsigned int length)
 
 		m_ggaLength = 0U;
 		m_rmcLength = 0U;
+		m_csLength  = 0U;
 		m_txtLength = 0U;
 		m_ggaValid  = false;
 		m_rmcValid  = false;
+		m_csValid   = false;
 		m_txtValid  = false;
 
 		return len;
@@ -556,20 +616,37 @@ unsigned int CAPRSCollector::convertNMEA2(unsigned char* data, unsigned int)
 		::sprintf((char*)data + ::strlen((char*)data), "%03d/%03d", bearing, speed);
 	}
 
-	if (m_txtData[13U] != '*')
+	if (m_txtLength == 20U) {
 		::strcat((char*)data, " ");
 
-	// Insert the message text
-	unsigned int j = ::strlen((char*)data);
-	for (unsigned int i = 13U; i < 29U; i++) {
-		unsigned char c = m_txtData[i];
+		// Insert the message text
+		unsigned int j = ::strlen((char*)data);
+		for (unsigned int i = 2U; i < 20U; i++) {
+			unsigned char c = m_txtData[i];
 
-		if (c == '*') {
-			data[j] = '\0';
-			break;
+			if (c == '*') {
+				data[j] = '\0';
+				break;
+			}
+
+			data[j++] = c;
 		}
+	} else {
+		if (m_txtData[13U] != '*')
+			::strcat((char*)data, " ");
 
-		data[j++] = c;
+		// Insert the message text
+		unsigned int j = ::strlen((char*)data);
+		for (unsigned int i = 13U; i < 29U; i++) {
+			unsigned char c = m_txtData[i];
+
+			if (c == '*') {
+				data[j] = '\0';
+				break;
+			}
+
+			data[j++] = c;
+		}
 	}
 
 	return ::strlen((char*)data);
