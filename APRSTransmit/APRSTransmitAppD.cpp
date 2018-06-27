@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2014,2018 by Jonathan Naylor G4KLX
  *   APRSTransmit Copyright (C) 2015 Geoffrey Merck F4FXL / KC3FRA
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 		::fclose(fp);
 	}
 
-	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsHost, aprsPort, aprsFilter, daemon);
+	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsPassword, aprsHost, aprsPort, aprsFilter, daemon);
 	if (!m_aprsTransmit->init()) {
 		::wxUninitialize();
 		return 1;

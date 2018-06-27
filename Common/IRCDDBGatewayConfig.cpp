@@ -1357,7 +1357,7 @@ m_y(DEFAULT_WINDOW_Y)
 			m_ircddbUsername1 = val;
 		} else if (key.IsSameAs(KEY_IRCDDB_PASSWORD1)) {
 			m_ircddbPassword1 = val;
-		} else if (key.IsSameAs(KEY_IRCDDB_ENABLED21)) {
+		} else if (key.IsSameAs(KEY_IRCDDB_ENABLED2)) {
 			val.ToLong(&temp1);
 			m_ircddbEnabled2 = temp1 == 1L;
 		} else if (key.IsSameAs(KEY_IRCDDB_HOSTNAME2)) {

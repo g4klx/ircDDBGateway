@@ -242,15 +242,15 @@ bool CIRCDDBGatewayAppD::createThread()
 
 	m_thread->setGateway(gatewayType, gatewayCallsign, gatewayAddress);
 
-	wxString aprsHostname;
+	wxString aprsHostname, aprsPassword;
 	unsigned int aprsPort;
 	bool aprsEnabled;
-	config.getDPRS(aprsEnabled, aprsHostname, aprsPort);
+	config.getDPRS(aprsEnabled, aprsPassword, aprsHostname, aprsPort);
 	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsHostname.c_str(), aprsPort);
 
 	CAPRSWriter* aprs = NULL;
 	if (aprsEnabled && !gatewayCallsign.IsEmpty() && !aprsHostname.IsEmpty() && aprsPort != 0U) {
-		aprs = new CAPRSWriter(aprsHostname, aprsPort, gatewayCallsign, gatewayAddress);
+		aprs = new CAPRSWriter(aprsHostname, aprsPort, gatewayCallsign, aprsPassword, gatewayAddress);
 
 		bool res = aprs->open();
 		if (!res)
@@ -638,7 +638,7 @@ bool CIRCDDBGatewayAppD::createThread()
 	wxString ircDDBHostname3, ircDDBUsername3, ircDDBPassword3;
 	wxString ircDDBHostname4, ircDDBUsername4, ircDDBPassword4;
 
-	config.getIrcDDB(ircDDBEnabled1, ircDDBHostname1, ircDDBUsername1, ircDDBPassword1);
+	config.getIrcDDB1(ircDDBEnabled1, ircDDBHostname1, ircDDBUsername1, ircDDBPassword1);
 	wxLogInfo(wxT("ircDDB 1 enabled: %d, host: %s, username: %s"), int(ircDDBEnabled1), ircDDBHostname1.c_str(), ircDDBUsername1.c_str());
 
 	config.getIrcDDB2(ircDDBEnabled2, ircDDBHostname2, ircDDBUsername2, ircDDBPassword2);
