@@ -650,7 +650,7 @@ void CIRCDDBGatewayApp::createThread()
 	wxString ircDDBHostname3, ircDDBUsername3, ircDDBPassword3;
 	wxString ircDDBHostname4, ircDDBUsername4, ircDDBPassword4;
 
-	m_config->getIrcDDB(ircDDBEnabled1, ircDDBHostname1, ircDDBUsername1, ircDDBPassword1);
+	m_config->getIrcDDB1(ircDDBEnabled1, ircDDBHostname1, ircDDBUsername1, ircDDBPassword1);
 	wxLogInfo(wxT("ircDDB 1 enabled: %d, host: %s, username: %s"), int(ircDDBEnabled1), ircDDBHostname1.c_str(), ircDDBUsername1.c_str());
 
 	m_config->getIrcDDB2(ircDDBEnabled2, ircDDBHostname2, ircDDBUsername2, ircDDBPassword2);

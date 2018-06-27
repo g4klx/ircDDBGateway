@@ -178,7 +178,7 @@ m_miscellaneous(NULL)
 
 	bool ircDDBEnabled;
 	wxString ircDDBHostname, ircDDBUsername, ircDDBPassword;
-	m_config->getIrcDDB(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
+	m_config->getIrcDDB1(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	m_ircDDB = new CIRCDDBGatewayConfigIrcDDBSet(noteBook, -1, APPLICATION_NAME, ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	noteBook->AddPage(m_ircDDB, wxT("ircDDB 1st Network"), false);
 
@@ -476,7 +476,7 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	wxString ircDDBHostname	   = m_ircDDB->getHostname();
 	wxString ircDDBUsername    = m_ircDDB->getUsername();
 	wxString ircDDBPassword    = m_ircDDB->getPassword();
-	m_config->setIrcDDB(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
+	m_config->setIrcDDB1(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 
 	ircDDBEnabled			   = m_ircDDB2->getEnabled();
 	ircDDBHostname			   = m_ircDDB2->getHostname();

@@ -49,12 +49,12 @@ public:
 	void getRepeater4(wxString& callsign, wxString& band, HW_TYPE& type, wxString& address, unsigned int& port, unsigned char& band1, unsigned char& band2, unsigned char& band3, wxString& reflector, bool& atStartup, RECONNECT& reconnect, double& frequency, double& offset, double& range, double& latitude, double& longitude, double& agl, wxString& description1, wxString& description2, wxString& url) const;
 	void setRepeater4(const wxString& band, HW_TYPE type, const wxString& address, unsigned int port, unsigned char band1, unsigned char band2, unsigned char band3, const wxString& reflector, bool atStartup, RECONNECT reconnect, double frequency, double offset, double range, double latitude, double longitude, double agl, const wxString& description1, const wxString& description2, const wxString& url);
 
-	void getIrcDDB(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
+	void getIrcDDB1(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 	void getIrcDDB2(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 	void getIrcDDB3(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 	void getIrcDDB4(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 
-	void setIrcDDB(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
+	void setIrcDDB1(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB2(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB3(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB4(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
@@ -215,10 +215,10 @@ private:
 	unsigned char m_repeater4Band1;
 	unsigned char m_repeater4Band2;
 	unsigned char m_repeater4Band3;
-	bool          m_ircddbEnabled;
-	wxString      m_ircddbHostname;
-	wxString      m_ircddbUsername;
-	wxString      m_ircddbPassword;
+	bool          m_ircddbEnabled1;
+	wxString      m_ircddbHostname1;
+	wxString      m_ircddbUsername1;
+	wxString      m_ircddbPassword1;
 	bool          m_ircddbEnabled2;
 	wxString      m_ircddbHostname2;
 	wxString      m_ircddbUsername2;
