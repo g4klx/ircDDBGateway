@@ -33,6 +33,7 @@
 #endif
 
 const wxChar* REPEATER_PARAM   = wxT("Repeater");
+const wxChar* APRS_PASSWORD    = wxT("password");
 const wxChar* APRS_HOST        = wxT("host");
 const wxChar* APRS_PORT        = wxT("port");
 const wxChar* APRS_FILTER      = wxT("filter");
@@ -61,6 +62,7 @@ int main(int argc, char** argv)
 
 	wxCmdLineParser parser(argc, argv);
 	parser.AddParam(REPEATER_PARAM, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
+	parser.AddOption(APRS_PASSWORD, wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(APRS_HOST, wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(APRS_PORT, wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(APRS_FILTER, wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
@@ -73,7 +75,7 @@ int main(int argc, char** argv)
 	}
 
 	if (parser.GetParamCount() < 1U) {
-		::fprintf(stderr, "aprstransmitd: invalid command line usage: aprstransmitd <repeater> [-host <aprs_server>] [-port <aprs_port>] [-filter <aprsis_filter1>[;<aprsis_filter2]] [-daemon] exiting\n");
+		::fprintf(stderr, "aprstransmitd: invalid command line usage: aprstransmitd <repeater> [-password <aprs_password>] [-host <aprs_server>] [-port <aprs_port>] [-filter <aprsis_filter1>[;<aprsis_filter2]] [-daemon] exiting\n");
 		::wxUninitialize();
 		return 1;
 	}
@@ -90,17 +92,20 @@ int main(int argc, char** argv)
 	repeater.Replace(wxT("_"), wxT(" "));
 	repeater.MakeUpper();
 	
+	wxString aprsPassword;
+	if (!parser.Found(APRS_PASSWORD, &aprsPassword))
+		aprsPassword = wxT("00000");
+
 	long aprsPort;
-	if(!parser.Found(APRS_PORT, &aprsPort))
-		aprsPort = 14580;
+	if (!parser.Found(APRS_PORT, &aprsPort))
+		aprsPort = 14580L;
 
 	wxString aprsHost;
-	if(!parser.Found(APRS_HOST, &aprsHost)){
+	if (!parser.Found(APRS_HOST, &aprsHost))
 		aprsHost = wxT("rotate.aprs2.net");
-	}
 
 	wxString aprsFilter;
-	if(!parser.Found(APRS_FILTER, &aprsFilter)) {
+	if (!parser.Found(APRS_FILTER, &aprsFilter)) {
 		/* no filter specified on command line,
 		build one which will tell the APRS server to pass
 		us all stations 50km around our repeater */
@@ -110,7 +115,7 @@ int main(int argc, char** argv)
 	bool daemon = parser.Found(DAEMON_SWITCH);
 
 #if defined(__WINDOWS__)
-	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsHost, aprsPort, aprsFilter, daemon);
+	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsPassword, aprsHost, aprsPort, aprsFilter, daemon);
 	if (!m_aprsTransmit->init()) {
 		::wxUninitialize();
 		return 1;
@@ -162,9 +167,10 @@ int main(int argc, char** argv)
 
 
 
-CAPRSTransmitAppD::CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsHost, unsigned int aprsPort, const wxString& aprsFilter, bool daemon) :
+CAPRSTransmitAppD::CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsPassword, const wxString& aprsHost, unsigned int aprsPort, const wxString& aprsFilter, bool daemon) :
 m_aprsFramesQueue(NULL),
 m_repeater(repeater),
+m_aprsPassword(aprsPassword),
 m_aprsHost(aprsHost),
 m_aprsFilter(aprsFilter),
 m_aprsPort(aprsPort),
@@ -220,7 +226,7 @@ void CAPRSTransmitAppD::run()
 	if(m_run) return;
 
 	m_aprsFramesQueue = new CRingBuffer<wxString*>(30U);
-	m_aprsThread = new CAPRSWriterThread(m_repeater, wxT("0.0.0.0"), m_aprsHost, m_aprsPort, m_aprsFilter, wxT("APRSTransmit 1.1"));
+	m_aprsThread = new CAPRSWriterThread(m_repeater, m_aprsPassword, wxT("0.0.0.0"), m_aprsHost, m_aprsPort, m_aprsFilter, wxT("APRSTransmit 1.1"));
 	m_aprsThread->setReadAPRSCallback(aprsFrameCallback);
 	m_aprsThread->start();
 	

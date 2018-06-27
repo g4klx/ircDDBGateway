@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2014,2018 by Jonathan Naylor G4KLX
  *   APRSTransmit Copyright (C) 2015 Geoffrey Merck F4FXL / KC3FRA
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 class CAPRSTransmitAppD {
 
 public:
-	CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsHost, unsigned int aprsPort, const wxString& aprsFilter, bool daemon);
+	CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsPassword, const wxString& aprsHost, unsigned int aprsPort, const wxString& aprsFilter, bool daemon);
 	~CAPRSTransmitAppD();
 
 	CRingBuffer<wxString*>  * m_aprsFramesQueue;
@@ -41,7 +41,7 @@ public:
 	void kill();
 
 private:
-	wxString m_repeater, m_aprsHost, m_aprsFilter;
+	wxString m_repeater, m_aprsPassword, m_aprsHost, m_aprsFilter;
 	unsigned int m_aprsPort;
 	CAPRSWriterThread *      m_aprsThread;
 	bool m_run;
