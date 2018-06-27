@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,18 +25,20 @@
 
 class CDPRSSet : public wxPanel {
 public:
-	CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& hostname, unsigned int port);
+	CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& password, const wxString& hostname, unsigned int port);
 	virtual ~CDPRSSet();
 
 	virtual bool Validate();
 
 	virtual bool         getEnabled() const;
+	virtual wxString     getPassword() const;
 	virtual wxString     getHostname() const;
 	virtual unsigned int getPort() const;
 
 private:
 	wxString       m_title;
 	wxChoice*      m_enabled;
+	wxTextCtrl*    m_password;
 	wxTextCtrl*    m_hostname;
 	CPortTextCtrl* m_port;
 };

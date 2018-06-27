@@ -25,9 +25,10 @@
 
 const unsigned int APRS_TIMEOUT = 10U;
 
-CAPRSWriterThread::CAPRSWriterThread(const wxString& callsign, const wxString& address, const wxString& hostname, unsigned int port) :
+CAPRSWriterThread::CAPRSWriterThread(const wxString& callsign, const wxString& password, const wxString& address, const wxString& hostname, unsigned int port) :
 wxThread(wxTHREAD_JOINABLE),
 m_username(callsign),
+m_password(password),
 m_ssid(callsign),
 m_socket(hostname, port, address),
 m_queue(20U),
@@ -38,6 +39,7 @@ m_filter(wxT("")),
 m_clientName(wxT("ircDDBGateway"))
 {
 	wxASSERT(!callsign.IsEmpty());
+	wxASSERT(!password.IsEmpty());
 	wxASSERT(!hostname.IsEmpty());
 	wxASSERT(port > 0U);
 
@@ -48,9 +50,10 @@ m_clientName(wxT("ircDDBGateway"))
 	m_ssid = m_ssid.SubString(LONG_CALLSIGN_LENGTH - 1U, 1);
 }
 
-CAPRSWriterThread::CAPRSWriterThread(const wxString& callsign, const wxString& address, const wxString& hostname, unsigned int port, const wxString& filter, const wxString& clientName) :
+CAPRSWriterThread::CAPRSWriterThread(const wxString& callsign, const wxString& password, const wxString& address, const wxString& hostname, unsigned int port, const wxString& filter, const wxString& clientName) :
 wxThread(wxTHREAD_JOINABLE),
 m_username(callsign),
+m_password(password),
 m_ssid(callsign),
 m_socket(hostname, port, address),
 m_queue(20U),
@@ -61,6 +64,7 @@ m_filter(filter),
 m_clientName(clientName)
 {
 	wxASSERT(!callsign.IsEmpty());
+	wxASSERT(!password.IsEmpty());
 	wxASSERT(!hostname.IsEmpty());
 	wxASSERT(port > 0U);
 
@@ -74,6 +78,7 @@ m_clientName(clientName)
 CAPRSWriterThread::~CAPRSWriterThread()
 {
 	m_username.Clear();
+	m_password.Clear();
 }
 
 bool CAPRSWriterThread::start()
@@ -198,8 +203,6 @@ void CAPRSWriterThread::stop()
 
 bool CAPRSWriterThread::connect()
 {
-	unsigned int password = getAPRSPassword(m_username);
-
 	bool ret = m_socket.open();
 	if (!ret)
 		return false;
@@ -217,7 +220,7 @@ bool CAPRSWriterThread::connect()
 
 	wxString filter(m_filter);
 	if (filter.Length() > 0) filter.Prepend(wxT(" filter "));
-	wxString connectString = wxString::Format(wxT("user %s-%s pass %u vers %s%s\n"), m_username.c_str(), m_ssid.c_str(), password,
+	wxString connectString = wxString::Format(wxT("user %s-%s pass %s vers %s%s\n"), m_username.c_str(), m_ssid.c_str(), m_password.c_str(),
 							(m_clientName.Length() ? m_clientName : wxT("ircDDBGateway")).c_str(),
 							filter.c_str());
 	//wxLogMessage(wxT("Connect String : ") + connectString);
@@ -227,7 +230,6 @@ bool CAPRSWriterThread::connect()
 		return false;
 	}
 	
-
 	length = m_socket.readLine(serverResponse, APRS_TIMEOUT);
 	if (length == 0) {
 		wxLogError(wxT("No reply from the APRS server after %u seconds"), APRS_TIMEOUT);
@@ -245,19 +247,4 @@ bool CAPRSWriterThread::connect()
 	wxLogMessage(wxT("Connected to the APRS server"));
 
 	return true;
-}
-
-unsigned int CAPRSWriterThread::getAPRSPassword(wxString callsign) const
-{
-	unsigned int len = callsign.Length();
-
-	wxUint16 hash = 0x73E2U;
-
-	for (unsigned int i = 0U; i < len; i += 2U) {
-		hash ^= (char)callsign.GetChar(i) << 8;
-		if(i + 1 < len)
-			hash ^= (char)callsign.GetChar(i + 1);
-	}
-
-	return hash & 0x7FFFU;
 }

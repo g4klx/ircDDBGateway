@@ -271,14 +271,10 @@ void CIRCDDBGatewayFrame::onTimer(wxTimerEvent&)
 	}
 
 	bool dprsStatus = status->getDPRSStatus();
-	if (dprsStatus) {
-		if (ircDDBStatus == IS_CONNECTED || ircDDBStatus == IS_DISABLED)
-			m_dprsStatus->SetLabel(_("Active"));
-		else
-			m_dprsStatus->SetLabel(_("Waiting"));
-	} else {
+	if (dprsStatus)
+		m_dprsStatus->SetLabel(_("Active"));
+	else
 		m_dprsStatus->SetLabel(_("Inactive"));
-	}
 
 	for (unsigned int i = 0U; i < 4U; i++) {
 		wxString callsign = status->getCallsign(i);

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -59,8 +59,8 @@ public:
 	void setIrcDDB3(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB4(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 
-	void getDPRS(bool& enabled, wxString& hostname, unsigned int& port) const;
-	void setDPRS(bool enabled, const wxString& hostname, unsigned int port);
+	void getDPRS(bool& enabled, wxString& password, wxString& hostname, unsigned int& port) const;
+	void setDPRS(bool enabled, const wxString& password, const wxString& hostname, unsigned int port);
 
 	void getDExtra(bool& enabled, unsigned int& maxDongles) const;
 	void setDExtra(bool enabled, unsigned int maxDongles);
@@ -232,6 +232,7 @@ private:
 	wxString      m_ircddbUsername4;
 	wxString      m_ircddbPassword4;
 	bool          m_aprsEnabled;
+	wxString      m_aprsPassword;
 	wxString      m_aprsHostname;
 	unsigned int  m_aprsPort;
 	bool          m_dextraEnabled;

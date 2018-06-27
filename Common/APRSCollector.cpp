@@ -24,6 +24,9 @@ const unsigned int APRS_CSUM_LENGTH = 4U;
 const unsigned int APRS_DATA_LENGTH = 300U;
 const unsigned int SLOW_DATA_BLOCK_LENGTH = 6U;
 
+const char APRS_OVERLAY = '\\';
+const char APRS_SYMBOL  = 'K';
+
 CAPRSCollector::CAPRSCollector() :
 m_state(AS_NONE),
 m_ggaData(NULL),
@@ -32,24 +35,17 @@ m_ggaValid(false),
 m_rmcData(NULL),
 m_rmcLength(0U),
 m_rmcValid(false),
-m_csData(NULL),
-m_csLength(0U),
-m_csValid(false),
 m_crcData(NULL),
 m_crcLength(0U),
 m_crcValid(false),
-m_txtData(NULL),
-m_txtLength(0U),
-m_txtValid(false),
 m_buffer(NULL),
 m_slowData(SS_FIRST),
-m_collector()
+m_collector(),
+m_callsign()
 {
 	m_ggaData = new unsigned char[APRS_DATA_LENGTH];
 	m_rmcData = new unsigned char[APRS_DATA_LENGTH];
-	m_csData  = new unsigned char[APRS_DATA_LENGTH];
 	m_crcData = new unsigned char[APRS_DATA_LENGTH];
-	m_txtData = new unsigned char[APRS_DATA_LENGTH];
 	m_buffer  = new unsigned char[SLOW_DATA_BLOCK_LENGTH];
 }
 
@@ -57,15 +53,15 @@ CAPRSCollector::~CAPRSCollector()
 {
 	delete[] m_ggaData;
 	delete[] m_rmcData;
-	delete[] m_csData;
 	delete[] m_crcData;
-	delete[] m_txtData;
 	delete[] m_buffer;
 }
 
-bool CAPRSCollector::writeData(const unsigned char* data)
+bool CAPRSCollector::writeData(const wxString& callsign, const unsigned char* data)
 {
 	wxASSERT(data != NULL);
+
+	m_callsign = callsign;
 
 	switch (m_slowData) {
 		case SS_FIRST:
@@ -83,12 +79,6 @@ bool CAPRSCollector::writeData(const unsigned char* data)
 			break;
 	}
 
-	CUtils::dump(wxT("Slow data received"), m_buffer, 6U);
-
-	// Is it slow text data?
-	if ((m_buffer[0U] & SLOW_DATA_TYPE_MASK) == SLOW_DATA_TYPE_TEXT)
-		addTextData(m_buffer);
-
 	// Is it GPS data?
 	if ((m_buffer[0U] & SLOW_DATA_TYPE_MASK) == SLOW_DATA_TYPE_GPS)
 		return addGPSData(m_buffer + 1U);
@@ -103,14 +93,11 @@ void CAPRSCollector::reset()
 	m_ggaValid  = false;
 	m_rmcLength = 0U;
 	m_rmcValid  = false;
-	m_csLength  = 0U;
-	m_csValid   = false;
 	m_crcLength = 0U;
 	m_crcValid  = false;
-	m_txtLength = 0U;
-	m_txtValid  = false;
 	m_slowData  = SS_FIRST;
 	m_collector.Clear();
+	m_callsign.Clear();
 }
 
 void CAPRSCollector::sync()
@@ -128,10 +115,7 @@ bool CAPRSCollector::addGPSData(const unsigned char* data)
 		addGGAData();
 		return false;
 	} else if (m_state == AS_RMC) {
-		addRMCData();
-		return false;
-	} else if (m_state == AS_CS) {
-		return addCSData();
+		return addRMCData();
 	} else if (m_state == AS_CRC) {
 		return addCRCData();
 	}
@@ -142,15 +126,11 @@ bool CAPRSCollector::addGPSData(const unsigned char* data)
 		m_ggaValid  = false;
 		m_rmcLength = 0U;
 		m_rmcValid  = false;
-		m_txtLength = 0U;
-		m_txtValid  = false;
 		return false;
 	} else if (m_state != AS_RMC && m_collector.Find(wxT("$GPRMC")) != wxNOT_FOUND) {
 		m_state     = AS_RMC;
 		m_rmcLength = 0U;
 		m_rmcValid  = false;
-		m_txtLength = 0U;
-		m_txtValid  = false;
 		return false;
 	} else if (m_state != AS_CRC && m_collector.Find(wxT("$$CRC")) != wxNOT_FOUND) {
 		m_state     = AS_CRC;
@@ -192,11 +172,11 @@ void CAPRSCollector::addGGAData()
 
 	bool ret = checkXOR(m_ggaData + 1U, m_ggaLength - 1U);
 	if (ret) {
-		CUtils::dump(wxT("$GPGGA Valid"), m_ggaData, m_ggaLength);
+		// CUtils::dump(wxT("$GPGGA Valid"), m_ggaData, m_ggaLength);
 		m_ggaValid  = true;
 		m_state     = AS_RMC;
 	} else {
-		CUtils::dump(wxT("$GPGGA Bad checksum"), m_ggaData, m_ggaLength);
+		// CUtils::dump(wxT("$GPGGA Bad checksum"), m_ggaData, m_ggaLength);
 		m_ggaLength = 0U;
 		m_ggaValid  = false;
 		m_state     = AS_RMC;
@@ -205,18 +185,18 @@ void CAPRSCollector::addGGAData()
 	m_collector = m_collector.Mid(n2);
 }
 
-void CAPRSCollector::addRMCData()
+bool CAPRSCollector::addRMCData()
 {
 	int n2 = m_collector.Find(wxT('\x0A'), true);
 	if (n2 == wxNOT_FOUND)
-		return;
+		return false;
 
 	int n1 = m_collector.Find(wxT("$GPRMC"));
 	if (n1 == wxNOT_FOUND)
-		return;
+		return false;
 
 	if (n2 < n1)
-		return;
+		return false;
 
 	unsigned int len = n2 - n1;
 
@@ -224,7 +204,7 @@ void CAPRSCollector::addRMCData()
 		m_rmcLength = 0U;
 		m_rmcValid  = false;
 		m_state     = AS_NONE;
-		return;
+		return false;
 	}
 
 	m_rmcLength = 0U;
@@ -236,44 +216,17 @@ void CAPRSCollector::addRMCData()
 
 	bool ret = checkXOR(m_rmcData + 1U, m_rmcLength - 1U);
 	if (ret) {
-		CUtils::dump(wxT("$GPRMC Valid"), m_rmcData, m_rmcLength);
+		// CUtils::dump(wxT("$GPRMC Valid"), m_rmcData, m_rmcLength);
 		m_rmcValid = true;
-		m_state    = AS_CS;
 	} else {
-		CUtils::dump(wxT("$GPRMC Bad checksum"), m_rmcData, m_rmcLength);
+		// CUtils::dump(wxT("$GPRMC Bad checksum"), m_rmcData, m_rmcLength);
 		m_rmcLength = 0U;
 		m_rmcValid  = false;
-		m_state     = AS_CS;
 	}
 
 	m_collector = m_collector.Mid(n2);
-}
 
-bool CAPRSCollector::addCSData()
-{
-	int n = m_collector.Find(wxT(' '));
-	if (n == wxNOT_FOUND)
-		return false;
-
-	if (n >= APRS_DATA_LENGTH) {
-		m_csLength = 0U;
-		m_csValid  = false;
-		m_state    = AS_NONE;
-		return false;
-	}
-
-	m_csLength = 0U;
-	for (int i = 1; i < n; i++) {
-		m_csData[m_csLength]  = m_collector.GetChar(i);
-		m_csData[m_csLength] &= 0x7FU;
-		m_csLength++;
-	}
-
-	CUtils::dump(wxT("Callsign Valid"), m_csData, m_csLength);
-	m_csValid = true;
-	m_state   = AS_NONE;
-
-	m_collector = m_collector.Mid(n);
+	m_state = AS_NONE;
 
 	return true;
 }
@@ -308,43 +261,18 @@ bool CAPRSCollector::addCRCData()
 
 	bool ret = checkCRC(m_crcData, m_crcLength);
 	if (ret) {
-		CUtils::dump(wxT("$$CRC Valid"), m_crcData, m_crcLength);
+		// CUtils::dump(wxT("$$CRC Valid"), m_crcData, m_crcLength);
 		m_crcValid = true;
 		m_state = AS_NONE;
 		m_collector = m_collector.Mid(n2);
 		return true;
 	} else {
-		CUtils::dump(wxT("$$CRC Bad checksum"), m_crcData, m_crcLength);
+		// CUtils::dump(wxT("$$CRC Bad checksum"), m_crcData, m_crcLength);
 		m_crcLength = 0U;
 		m_crcValid  = false;
 		m_state     = AS_NONE;
 		m_collector = m_collector.Mid(n2);
 		return false;
-	}
-}
-
-void CAPRSCollector::addTextData(const unsigned char* data)
-{
-	unsigned char pos = data[0U] & 0x0FU;
-	if (pos > 3U)
-		return;
-
-	pos *= 5U;
-
-	for (unsigned int i = 1U; i < 6U; i++) {
-		unsigned char c = data[i];
-
-		m_txtData[pos] = c & 0x7FU;
-		pos++;
-
-		bool ret = checkXOR(m_txtData, 20U);
-		if (ret) {
-			CUtils::dump(wxT("Text Valid"), m_txtData, 20U);
-			m_state     = AS_NONE;
-			m_txtValid  = true;
-			m_txtLength = 20U;
-			return;
-		}
 	}
 }
 
@@ -366,34 +294,26 @@ unsigned int CAPRSCollector::getData(unsigned char* data, unsigned int length)
 		return len;
 	}
 
-	// Have we got GGA and text data?
-	if (m_ggaValid && m_txtValid) {
+	// Have we got GGA data?
+	if (m_ggaValid) {
 		unsigned int len = convertNMEA1(data, length);
 
 		m_ggaLength = 0U;
 		m_rmcLength = 0U;
-		m_csLength  = 0U;
-		m_txtLength = 0U;
 		m_ggaValid  = false;
 		m_rmcValid  = false;
-		m_csValid   = false;
-		m_txtValid  = false;
 
 		return len;
 	}
 
-	// Have we got RMC and text data?
-	if (m_rmcValid && m_txtValid) {
+	// Have we got RMC data?
+	if (m_rmcValid) {
 		unsigned int len = convertNMEA2(data, length);
 
 		m_ggaLength = 0U;
 		m_rmcLength = 0U;
-		m_csLength  = 0U;
-		m_txtLength = 0U;
 		m_ggaValid  = false;
 		m_rmcValid  = false;
-		m_csValid   = false;
-		m_txtValid  = false;
 
 		return len;
 	}
@@ -496,24 +416,14 @@ unsigned int CAPRSCollector::convertNMEA1(unsigned char* data, unsigned int)
 
 	char callsign[10U];
 	::memset(callsign, ' ', 10U);
-	::strncpy(callsign, (char*)m_txtData, 7U);
+	for (unsigned int i = 0U; i < m_callsign.Len(); i++)
+		callsign[i] = m_callsign.GetChar(i);
 
 	// This can't fail!
 	char* p = ::strchr(callsign, ' ');
-
-	if (m_txtData[6U] == ' ' && m_txtData[7U] != ' ') {
-		*p++ = '-';
-		*p++ = m_txtData[7U];
-	} else if (m_txtData[6U] != ' ' && m_txtData[7U] != ' ') {
-		*p++ = m_txtData[7U];
-	}
-
 	*p = '\0';
 
-	char symbol, overlay;
-	getSymbol(m_txtData + 9U, symbol, overlay);
-
-	::sprintf((char*)data, "%s>APDPRS,DSTAR*:!%.7s%s%c%.8s%s%c", callsign, pGGA[2U], pGGA[3U], overlay, pGGA[4U], pGGA[5U], symbol);
+	::sprintf((char*)data, "%s>APDPRS,DSTAR*:!%.7s%s%c%.8s%s%c", callsign, pGGA[2U], pGGA[3U], APRS_OVERLAY, pGGA[4U], pGGA[5U], APRS_SYMBOL);
 
 	// Get the bearing and speed from the RMC data
 	if (m_rmcValid) {
@@ -538,21 +448,6 @@ unsigned int CAPRSCollector::convertNMEA1(unsigned char* data, unsigned int)
 
 			::sprintf((char*)data + ::strlen((char*)data), "%03d/%03d", bearing, speed);
 		}
-	}
-
-	::strcat((char*)data, " ");
-
-	// Insert the message text
-	unsigned int j = ::strlen((char*)data);
-	for (unsigned int i = 13U; i < 29U; i++) {
-		unsigned char c = m_txtData[i];
-
-		if (c == '*') {
-			data[j] = '\0';
-			break;
-		}
-
-		data[j++] = c;
 	}
 
 	if (pGGA[9U] != NULL && ::strlen(pGGA[9U]) > 0U) {
@@ -590,24 +485,14 @@ unsigned int CAPRSCollector::convertNMEA2(unsigned char* data, unsigned int)
 
 	char callsign[10U];
 	::memset(callsign, ' ', 10U);
-	::strncpy(callsign, (char*)m_txtData, 7U);
+	for (unsigned int i = 0U; i < m_callsign.Len(); i++)
+		callsign[i] = m_callsign.GetChar(i);
 
 	// This can't fail!
 	char* p = ::strchr(callsign, ' ');
-
-	if (m_txtData[6U] == ' ' && m_txtData[7U] != ' ') {
-		*p++ = '-';
-		*p++ = m_txtData[7U];
-	} else if (m_txtData[6U] != ' ' && m_txtData[7U] != ' ') {
-		*p++ = m_txtData[7U];
-	}
-
 	*p = '\0';
 
-	char symbol, overlay;
-	getSymbol(m_txtData + 9U, symbol, overlay);
-
-	::sprintf((char*)data, "%s>APDPRS,DSTAR*:!%.7s%s%c%.8s%s%c", callsign, pRMC[3U], pRMC[4U], overlay, pRMC[5U], pRMC[6U], symbol);
+	::sprintf((char*)data, "%s>APDPRS,DSTAR*:!%.7s%s%c%.8s%s%c", callsign, pRMC[3U], pRMC[4U], APRS_OVERLAY, pRMC[5U], pRMC[6U], APRS_SYMBOL);
 
 	if (pRMC[7U] != NULL && pRMC[8U] != NULL && ::strlen(pRMC[7U]) > 0U && ::strlen(pRMC[8U]) > 0U) {
 		int bearing = ::atoi(pRMC[8U]);
@@ -616,108 +501,7 @@ unsigned int CAPRSCollector::convertNMEA2(unsigned char* data, unsigned int)
 		::sprintf((char*)data + ::strlen((char*)data), "%03d/%03d", bearing, speed);
 	}
 
-	if (m_txtLength == 20U) {
-		::strcat((char*)data, " ");
-
-		// Insert the message text
-		unsigned int j = ::strlen((char*)data);
-		for (unsigned int i = 2U; i < 20U; i++) {
-			unsigned char c = m_txtData[i];
-
-			if (c == '*') {
-				data[j] = '\0';
-				break;
-			}
-
-			data[j++] = c;
-		}
-	} else {
-		if (m_txtData[13U] != '*')
-			::strcat((char*)data, " ");
-
-		// Insert the message text
-		unsigned int j = ::strlen((char*)data);
-		for (unsigned int i = 13U; i < 29U; i++) {
-			unsigned char c = m_txtData[i];
-
-			if (c == '*') {
-				data[j] = '\0';
-				break;
-			}
-
-			data[j++] = c;
-		}
-	}
-
 	return ::strlen((char*)data);
-}
-
-// Function taken from DPRSIntf.java from Pete Loveall AE5PL
-void CAPRSCollector::getSymbol(const unsigned char* data, char& symbol, char& overlay)
-{
-	symbol = '.';
-
-	if (data[3U] == ' ') {
-		int offset = -1;
-
-		switch (data[0U]) {
-			case 'B':
-			case 'O':
-				offset = -33;
-				break;
-			case 'P':
-			case 'A':
-				offset = 0;
-				break;
-			case 'M':
-			case 'N':
-				offset = -24;
-				break;
-			case 'H':
-			case 'D':
-				offset = 8;
-				break;
-			case 'L':
-			case 'S':
-				offset = 32;
-				break;
-			case 'J':
-			case 'Q':
-				offset = 74;
-				break;
-			default:
-				break;
-		}
-
-		if (offset != -1 && ::isalnum(data[1U])) {
-			bool altIcons = false;
-
-			// x is valid, lets get y
-			switch (data[0U]) {
-				case 'O':
-				case 'A':
-				case 'N':
-				case 'D':
-				case 'S':
-				case 'Q':
-					altIcons = true;
-					break;
-			}
-
-			symbol = char(data[1U] + offset);
-
-			overlay = '/';
-
-			if (altIcons) {
-				if (data[2] == ' ')
-					overlay = '\\';
-				else if (::isalnum(data[2]))
-					overlay = data[2U];
-				else
-					overlay = 0;
-			}
-		}
-	}
 }
 
 // Source found at <http://unixpapa.com/incnote/string.html>

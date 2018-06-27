@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -129,6 +129,7 @@ const wxString  KEY_IRCDDB_HOSTNAME4     = wxT("ircddbHostname4");
 const wxString  KEY_IRCDDB_USERNAME4     = wxT("ircddbUsername4");
 const wxString  KEY_IRCDDB_PASSWORD4     = wxT("ircddbPassword4");
 const wxString  KEY_APRS_ENABLED         = wxT("aprsEnabled");
+const wxString  KEY_APRS_PASSWORD        = wxT("aprsPassword");
 const wxString  KEY_APRS_HOSTNAME        = wxT("aprsHostname");
 const wxString  KEY_APRS_PORT            = wxT("aprsPort");
 const wxString  KEY_DEXTRA_ENABLED       = wxT("dextraEnabled");
@@ -139,7 +140,7 @@ const wxString  KEY_DPLUS_LOGIN          = wxT("dplusLogin");
 const wxString  KEY_DCS_ENABLED          = wxT("dcsEnabled");
 const wxString  KEY_CCS_ENABLED          = wxT("ccsEnabled");
 const wxString  KEY_CCS_HOST             = wxT("ccsHost");
-const wxString  KEY_XLX_ENABLED		 = wxT("xlxEnabled");
+const wxString  KEY_XLX_ENABLED		     = wxT("xlxEnabled");
 const wxString  KEY_XLX_OVERRIDE_LOCAL	 = wxT("xlxOverrideLocal");
 const wxString  KEY_XLX_HOSTS_FILE_URL	 = wxT("xlxHostsFileUrl");
 const wxString  KEY_STARNET_BAND1            = wxT("starNetBand1");
@@ -250,7 +251,8 @@ const bool         DEFAULT_IRCDDB_ENABLED4		 = false;
 const wxString     DEFAULT_IRCDDB_HOSTNAME4		 = wxEmptyString;
 const wxString     DEFAULT_IRCDDB_USERNAME4		 = wxEmptyString;
 const wxString     DEFAULT_IRCDDB_PASSWORD4		 = wxEmptyString;
-const bool         DEFAULT_APRS_ENABLED          = true;
+const bool         DEFAULT_APRS_ENABLED          = false;
+const wxString     DEFAULT_APRS_PASSWORD         = wxT("00000");
 const wxString     DEFAULT_APRS_HOSTNAME         = wxT("rotate.aprs2.net");
 const unsigned int DEFAULT_APRS_PORT             = 14580U;
 const bool         DEFAULT_DEXTRA_ENABLED        = true;
@@ -261,8 +263,8 @@ const wxString     DEFAULT_DPLUS_LOGIN           = wxEmptyString;
 const bool         DEFAULT_DCS_ENABLED           = true;
 const bool         DEFAULT_CCS_ENABLED           = true;
 const wxString     DEFAULT_CCS_HOST              = wxT("CCS704  ");
-const bool	   DEFAULT_XLX_ENABLED		 = true;
-const bool	   DEFAULT_XLX_OVERRIDE_LOCAL    = true;
+const bool	       DEFAULT_XLX_ENABLED           = true;
+const bool	       DEFAULT_XLX_OVERRIDE_LOCAL    = true;
 const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = _T("http://xlxapi.rlx.lu/api.php?do=GetReflectorHostname");
 const wxString     DEFAULT_STARNET_BAND          = wxEmptyString;
 const wxString     DEFAULT_STARNET_CALLSIGN      = wxEmptyString;
@@ -402,6 +404,7 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
+m_aprsPassword(DEFAULT_APRS_PASSWORD),
 m_aprsHostname(DEFAULT_APRS_HOSTNAME),
 m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
@@ -723,6 +726,8 @@ m_y(DEFAULT_WINDOW_Y)
 
 	m_config->Read(m_name + KEY_APRS_ENABLED, &m_aprsEnabled, DEFAULT_APRS_ENABLED);
 
+	m_config->Read(m_name + KEY_APRS_PASSWORD, &m_aprsPassword, DEFAULT_APRS_PASSWORD);
+
 	m_config->Read(m_name + KEY_APRS_HOSTNAME, &m_aprsHostname, DEFAULT_APRS_HOSTNAME);
 
 	m_config->Read(m_name + KEY_APRS_PORT, &temp, long(DEFAULT_APRS_PORT));
@@ -1012,6 +1017,7 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
+m_aprsPassword(DEFAULT_APRS_PASSWORD),
 m_aprsHostname(DEFAULT_APRS_HOSTNAME),
 m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
@@ -1381,6 +1387,8 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_APRS_ENABLED)) {
 			val.ToLong(&temp1);
 			m_aprsEnabled = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_APRS_PASSWORD)) {
+			m_aprsPassword = val;
 		} else if (key.IsSameAs(KEY_APRS_HOSTNAME)) {
 			m_aprsHostname = val;
 		} else if (key.IsSameAs(KEY_APRS_PORT)) {
@@ -1877,16 +1885,18 @@ void CIRCDDBGatewayConfig::setIrcDDB4(bool enabled, const wxString& hostname, co
 	m_ircddbPassword4 = password;
 }
 
-void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& hostname, unsigned int& port) const
+void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& password, wxString& hostname, unsigned int& port) const
 {
 	enabled  = m_aprsEnabled;
+	password = m_aprsPassword;
 	hostname = m_aprsHostname;
 	port     = m_aprsPort;
 }
 
-void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& hostname, unsigned int port)
+void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& password, const wxString& hostname, unsigned int port)
 {
 	m_aprsEnabled  = enabled;
+	m_aprsPassword = password;
 	m_aprsHostname = hostname;
 	m_aprsPort     = port;
 }
@@ -2356,6 +2366,7 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_IRCDDB_USERNAME4, m_ircddbUsername4);
 	m_config->Write(m_name + KEY_IRCDDB_PASSWORD4, m_ircddbPassword4);
 	m_config->Write(m_name + KEY_APRS_ENABLED, m_aprsEnabled);
+	m_config->Write(m_name + KEY_APRS_PASSWORD, m_aprsPassword);
 	m_config->Write(m_name + KEY_APRS_HOSTNAME, m_aprsHostname);
 	m_config->Write(m_name + KEY_APRS_PORT, long(m_aprsPort));
 	m_config->Write(m_name + KEY_DEXTRA_ENABLED, m_dextraEnabled);
@@ -2563,6 +2574,7 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf("%s=%s", KEY_IRCDDB_USERNAME4.c_str(), m_ircddbUsername4.c_str()); file.AddLine(buffer);
 	buffer.Printf("%s=%s", KEY_IRCDDB_PASSWORD4.c_str(), m_ircddbPassword4.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_APRS_ENABLED.c_str(), m_aprsEnabled ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_APRS_PASSWORD.c_str(), m_aprsPassword.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_APRS_HOSTNAME.c_str(), m_aprsHostname.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_APRS_PORT.c_str(), m_aprsPort); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DEXTRA_ENABLED.c_str(), m_dextraEnabled ? 1 : 0); file.AddLine(buffer);

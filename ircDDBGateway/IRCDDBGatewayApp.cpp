@@ -254,15 +254,15 @@ void CIRCDDBGatewayApp::createThread()
 
 	thread->setGateway(gatewayType, gatewayCallsign, gatewayAddress);
 
-	wxString aprsHostname;
+	wxString aprsHostname, aprsPassword;
 	unsigned int aprsPort;
 	bool aprsEnabled;
-	m_config->getDPRS(aprsEnabled, aprsHostname, aprsPort);
+	m_config->getDPRS(aprsEnabled, aprsPassword, aprsHostname, aprsPort);
 	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsHostname.c_str(), aprsPort);
 
 	CAPRSWriter* aprs = NULL;
 	if (aprsEnabled && !gatewayCallsign.IsEmpty() && !aprsHostname.IsEmpty() && aprsPort != 0U) {
-		aprs = new CAPRSWriter(aprsHostname, aprsPort, gatewayCallsign, gatewayAddress);
+		aprs = new CAPRSWriter(aprsHostname, aprsPort, gatewayCallsign, aprsPassword, gatewayAddress);
 
 		bool res = aprs->open();
 		if (!res)

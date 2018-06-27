@@ -27,7 +27,6 @@ enum APRS_STATE {
 	AS_NONE,
 	AS_GGA,
 	AS_RMC,
-	AS_CS,
 	AS_CRC
 };
 
@@ -36,7 +35,7 @@ public:
 	CAPRSCollector();
 	~CAPRSCollector();
 
-	bool writeData(const unsigned char* data);
+	bool writeData(const wxString& callsign, const unsigned char* data);
 
 	void sync();
 
@@ -52,25 +51,18 @@ private:
 	unsigned char* m_rmcData;
 	unsigned int   m_rmcLength;
 	bool           m_rmcValid;
-	unsigned char* m_csData;
-	unsigned int   m_csLength;
-	bool           m_csValid;
 	unsigned char* m_crcData;
 	unsigned int   m_crcLength;
 	bool           m_crcValid;
-	unsigned char* m_txtData;
-	unsigned int   m_txtLength;
-	bool           m_txtValid;
 	unsigned char* m_buffer;
 	SLOWDATA_STATE m_slowData;
 	wxString       m_collector;
+	wxString       m_callsign;
 
 	bool addGPSData(const unsigned char* data);
-	void addTextData(const unsigned char* data);
 
 	void addGGAData();
-	void addRMCData();
-	bool addCSData();
+	bool addRMCData();
 	bool addCRCData();
 
 	bool checkXOR(const unsigned char* data, unsigned int length) const;
@@ -81,8 +73,6 @@ private:
 
 	unsigned int convertNMEA1(unsigned char* data, unsigned int length);
 	unsigned int convertNMEA2(unsigned char* data, unsigned int length);
-
-	void getSymbol(const unsigned char* data, char& symbol, char& overlay);
 
 	char* mystrsep(char** sp, const char* sep) const;
 };

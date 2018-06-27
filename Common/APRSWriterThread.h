@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ typedef void (*ReadAPRSFrameCallback)(const wxString&);
 
 class CAPRSWriterThread : public wxThread {
 public:
-	CAPRSWriterThread(const wxString& callsign, const wxString& address, const wxString& hostname, unsigned int port);
-	CAPRSWriterThread(const wxString& callsign, const wxString& address, const wxString& hostname, unsigned int port, const wxString& filter, const wxString& clientName);
+	CAPRSWriterThread(const wxString& callsign, const wxString& password, const wxString& address, const wxString& hostname, unsigned int port);
+	CAPRSWriterThread(const wxString& callsign, const wxString& password, const wxString& address, const wxString& hostname, unsigned int port, const wxString& filter, const wxString& clientName);
 	virtual ~CAPRSWriterThread();
 
 	virtual bool start();
@@ -45,6 +45,7 @@ public:
 
 private:
 	wxString               m_username;
+	wxString               m_password;
 	wxString	           m_ssid;
 	CTCPReaderWriterClient m_socket;
 	CRingBuffer<char*>     m_queue;
@@ -55,7 +56,6 @@ private:
 	wxString               m_clientName;
 
 	bool connect();
-	unsigned int getAPRSPassword(wxString username) const;
 };
 
 #endif

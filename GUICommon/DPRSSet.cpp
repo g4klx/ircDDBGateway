@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,10 +25,11 @@ const unsigned int CONTROL_WIDTH2 = 80U;
 const unsigned int PORT_LENGTH     = 5U;
 const unsigned int PASSWORD_LENGTH = 5U;
 
-CDPRSSet::CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& hostname, unsigned int port) :
+CDPRSSet::CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& password, const wxString& hostname, unsigned int port) :
 wxPanel(parent, id),
 m_title(title),
 m_enabled(NULL),
+m_password(NULL),
 m_hostname(NULL),
 m_port(NULL)
 {
@@ -42,6 +43,12 @@ m_port(NULL)
 	m_enabled->Append(_("Enabled"));
 	sizer->Add(m_enabled, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 	m_enabled->SetSelection(enabled ? 1 : 0);
+
+	wxStaticText* passwordLabel = new wxStaticText(this, -1, _("Password"));
+	sizer->Add(passwordLabel, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
+
+	m_password = new wxTextCtrl(this, -1, password, wxDefaultPosition, wxSize(CONTROL_WIDTH1, -1));
+	sizer->Add(m_password, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 
 	wxStaticText* hostnameLabel = new wxStaticText(this, -1, _("Hostname"));
 	sizer->Add(hostnameLabel, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
@@ -75,6 +82,10 @@ bool CDPRSSet::Validate()
 	if (n == wxNOT_FOUND)
 		return false;
 
+	wxString password = m_password->GetValue();
+	if (password.IsEmpty())
+		return true;
+
 	wxString hostname = m_hostname->GetValue();
 	if (hostname.IsEmpty())
 		return true;
@@ -97,6 +108,11 @@ bool CDPRSSet::getEnabled() const
 		return false;
 
 	return c == 1;
+}
+
+wxString CDPRSSet::getPassword() const
+{
+	return m_password->GetValue();
 }
 
 wxString CDPRSSet::getHostname() const

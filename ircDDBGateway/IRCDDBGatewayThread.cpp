@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -317,10 +317,6 @@ void CIRCDDBGatewayThread::run()
 	CCCSHandler::setLocalAddress(ccsAddress);
 	CCCSHandler::setHeaderLogger(headerLogger);
 	CCCSHandler::setHost(m_ccsHost);
-
-	// If no ircDDB then APRS is started immediately
-	if (m_aprsWriter != NULL && m_irc == NULL)
-		m_aprsWriter->setEnabled(true);
 
 	if (m_remoteEnabled && !m_remotePassword.IsEmpty() && m_remotePort > 0U) {
 		m_remote = new CRemoteHandler(m_remotePassword, m_remotePort, m_gatewayAddress);
@@ -689,24 +685,18 @@ void CIRCDDBGatewayThread::processIrcDDB()
 				if (m_lastStatus != IS_DISCONNECTED) {
 					wxLogInfo(wxT("Disconnected from ircDDB"));
 					m_lastStatus = IS_DISCONNECTED;
-					if (m_aprsWriter != NULL)
-						m_aprsWriter->setEnabled(false);
 				}
 				break;
 			case 7:
 				if (m_lastStatus != IS_CONNECTED) {
 					wxLogInfo(wxT("Connected to ircDDB"));
 					m_lastStatus = IS_CONNECTED;
-					if (m_aprsWriter != NULL)
-						m_aprsWriter->setEnabled(true);
 				}
 				break;
 			default:
 				if (m_lastStatus != IS_CONNECTING) {
 					wxLogInfo(wxT("Connecting to ircDDB"));
 					m_lastStatus = IS_CONNECTING;
-					if (m_aprsWriter != NULL)
-						m_aprsWriter->setEnabled(false);
 				}
 				break;
 		}

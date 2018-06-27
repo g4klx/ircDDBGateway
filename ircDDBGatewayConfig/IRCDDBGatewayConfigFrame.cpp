@@ -194,12 +194,12 @@ m_miscellaneous(NULL)
 	m_ircDDB4 = new CIRCDDBGatewayConfigIrcDDBSet(noteBook, -1, APPLICATION_NAME, ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	noteBook->AddPage(m_ircDDB4, wxT("ircDDB 4th Network"), false);
 
-	wxString aprsHostname;
+	wxString aprsHostname, aprsPassword;
 	unsigned int aprsPort;
 	bool aprsEnabled;
-	m_config->getDPRS(aprsEnabled, aprsHostname, aprsPort);
+	m_config->getDPRS(aprsEnabled, aprsPassword, aprsHostname, aprsPort);
 
-	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled, aprsHostname, aprsPort);
+	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled, aprsPassword, aprsHostname, aprsPort);
 	noteBook->AddPage(m_dprs, wxT("D-PRS"), false);
 
 	m_dextra = new CDExtraSet(noteBook, -1, APPLICATION_NAME, dextraEnabled, maxDExtraDongles, MAX_DEXTRA_LINKS);
@@ -497,9 +497,10 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setIrcDDB4(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 
 	bool aprsEnabled      = m_dprs->getEnabled();
+	wxString aprsPassword = m_dprs->getPassword();
 	wxString aprsHostname = m_dprs->getHostname();
 	unsigned int aprsPort = m_dprs->getPort();
-	m_config->setDPRS(aprsEnabled, aprsHostname, aprsPort);
+	m_config->setDPRS(aprsEnabled, aprsPassword, aprsHostname, aprsPort);
 
 	bool dextraEnabled            = m_dextra->getEnabled();
 	unsigned int maxDExtraDongles = m_dextra->getMaxDongles();

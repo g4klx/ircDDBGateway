@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ WX_DECLARE_STRING_HASH_MAP(CAPRSEntry*, CEntry_t);
 
 class CAPRSWriter {
 public:
-	CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& address);
+	CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& password, const wxString& address);
 	~CAPRSWriter();
 
 	bool open();
@@ -77,8 +77,6 @@ public:
 
 	void reset(const wxString& callsign);
 
-	void setEnabled(bool enable);
-
 	bool isConnected() const;
 
 	void clock(unsigned int ms);
@@ -87,7 +85,6 @@ public:
 
 private:
 	CAPRSWriterThread* m_thread;
-	bool               m_enabled;
 	CTimer             m_idTimer;
 	wxString           m_gateway;
 	CEntry_t           m_array;

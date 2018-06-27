@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -118,9 +118,8 @@ bool CAPRSEntry::isOK()
 	}
 }
 
-CAPRSWriter::CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& address) :
+CAPRSWriter::CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& password, const wxString& address) :
 m_thread(NULL),
-m_enabled(false),
 m_idTimer(1000U, 20U * 60U),		// 20 minutes
 m_gateway(),
 m_array()
@@ -128,8 +127,9 @@ m_array()
 	wxASSERT(!hostname.IsEmpty());
 	wxASSERT(port > 0U);
 	wxASSERT(!gateway.IsEmpty());
+	wxASSERT(!password.IsEmpty());
 
-	m_thread = new CAPRSWriterThread(gateway, address, hostname, port);
+	m_thread = new CAPRSWriterThread(gateway, password, address, hostname, port);
 
 	m_gateway = gateway;
 	m_gateway.Truncate(LONG_CALLSIGN_LENGTH - 1U);
@@ -179,14 +179,9 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 	unsigned char buffer[400U];
 	data.getData(buffer, DV_FRAME_MAX_LENGTH_BYTES);
 
-	bool complete = collector->writeData(buffer + VOICE_FRAME_LENGTH_BYTES);
+	bool complete = collector->writeData(callsign, buffer + VOICE_FRAME_LENGTH_BYTES);
 	if (!complete)
 		return;
-
-	if (!m_enabled) {
-		collector->reset();
-		return;
-	}
 
 	if (!m_thread->isConnected()) {
 		collector->reset();
@@ -244,16 +239,6 @@ void CAPRSWriter::reset(const wxString& callsign)
 	}
 
 	entry->reset();
-}
-
-void CAPRSWriter::setEnabled(bool enabled)
-{
-	m_enabled = enabled;
-
-	if (m_enabled) {
-		sendIdFrames();
-		m_idTimer.start();
-	}
 }
 
 void CAPRSWriter::clock(unsigned int ms)
