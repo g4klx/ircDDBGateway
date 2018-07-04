@@ -1,4 +1,4 @@
-ircDDB Gateway - 20180703
+ircDDB Gateway - 20180627
 =========================
 
 20101010
@@ -1477,7 +1477,7 @@ Move to wxWidgets-3.0.x.
 UPdate to VS2017 on Windows for 32 and 64 bit compilation.
 Simplify the Linux build.
 
-20180703
+20180627
 --------
 
 Support the GPS data from the Kenwood TH-D74.
