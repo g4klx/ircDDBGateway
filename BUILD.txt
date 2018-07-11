@@ -34,10 +34,10 @@ xxx30ud_xxxx instead. These can be found in the wxWidgets-3.0.4\lib\vc_dll
 directory.
 
 It is also probable that you'll need to install a copy of the latest Visual C++
-run-time libraries from Microsoft, if you are not running the Repeater software
-on the same machine as the development/compilation was done on. To do this you
-need to copy and run the Vcredist_x86.exe file which is found at
-<http://www.microsoft.com/en-gb/download/details.aspx?id=5582>
+run-time libraries from Microsoft, if you are not running the gateway software
+on the same machine as the development/compilation was done on. For 32-bit systems
+use https://go.microsoft.com/fwlink/?LinkId=746571 and for 64-bit systems use
+https://go.microsoft.com/fwlink/?LinkId=746572
 
 Linux
 -----
