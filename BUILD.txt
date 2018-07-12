@@ -35,9 +35,9 @@ directory.
 
 It is also probable that you'll need to install a copy of the latest Visual C++
 run-time libraries from Microsoft, if you are not running the gateway software
-on the same machine as the development/compilation was done on. For 32-bit systems
-use https://go.microsoft.com/fwlink/?LinkId=746571 and for 64-bit systems use
-https://go.microsoft.com/fwlink/?LinkId=746572
+on the same machine as the development/compilation was done on. You can find the
+latest versions at https://support.microsoft.com/en-gb/help/2977003/the-latest-supported-visual-c-downloads
+
 
 Linux
 -----
