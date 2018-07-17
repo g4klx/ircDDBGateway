@@ -57,11 +57,14 @@ CAPRSCollector::~CAPRSCollector()
 	delete[] m_buffer;
 }
 
-bool CAPRSCollector::writeData(const wxString& callsign, const unsigned char* data)
+void CAPRSCollector::writeHeader(const wxString& callsign)
+{
+	m_callsign = callsign;
+}
+
+bool CAPRSCollector::writeData(const unsigned char* data)
 {
 	wxASSERT(data != NULL);
-
-	m_callsign = callsign;
 
 	switch (m_slowData) {
 		case SS_FIRST:
@@ -415,13 +418,7 @@ unsigned int CAPRSCollector::convertNMEA1(unsigned char* data, unsigned int)
 		return 0U;
 
 	char callsign[10U];
-	::memset(callsign, ' ', 10U);
-	for (unsigned int i = 0U; i < m_callsign.Len(); i++)
-		callsign[i] = m_callsign.GetChar(i);
-
-	// This can't fail!
-	char* p = ::strchr(callsign, ' ');
-	*p = '\0';
+	dstarCallsignToAPRS(m_callsign, callsign);
 
 	::sprintf((char*)data, "%s>APDPRS,DSTAR*:!%.7s%s%c%.8s%s%c", callsign, pGGA[2U], pGGA[3U], APRS_OVERLAY, pGGA[4U], pGGA[5U], APRS_SYMBOL);
 
@@ -434,7 +431,7 @@ unsigned int CAPRSCollector::convertNMEA1(unsigned char* data, unsigned int)
 
 		str = (char*)m_rmcData;
 		for (;;) {
-			p = mystrsep(&str, ",\r\n");
+			char* p = mystrsep(&str, ",\r\n");
 
 			pRMC[nRMC++] = p;
 			if (p == NULL)
@@ -484,13 +481,7 @@ unsigned int CAPRSCollector::convertNMEA2(unsigned char* data, unsigned int)
 		return 0U;
 
 	char callsign[10U];
-	::memset(callsign, ' ', 10U);
-	for (unsigned int i = 0U; i < m_callsign.Len(); i++)
-		callsign[i] = m_callsign.GetChar(i);
-
-	// This can't fail!
-	char* p = ::strchr(callsign, ' ');
-	*p = '\0';
+	dstarCallsignToAPRS(m_callsign, callsign);
 
 	::sprintf((char*)data, "%s>APDPRS,DSTAR*:!%.7s%s%c%.8s%s%c", callsign, pRMC[3U], pRMC[4U], APRS_OVERLAY, pRMC[5U], pRMC[6U], APRS_SYMBOL);
 
@@ -502,6 +493,29 @@ unsigned int CAPRSCollector::convertNMEA2(unsigned char* data, unsigned int)
 	}
 
 	return ::strlen((char*)data);
+}
+
+void CAPRSCollector::dstarCallsignToAPRS(const wxString& dstarCallsign, char* aprsCallsign) const
+{
+	wxASSERT(aprsCallsign != NULL);
+
+	wxString first = dstarCallsign.BeforeFirst(wxT(' '));
+	wxString last  = dstarCallsign.AfterLast(wxT(' '));
+
+	if (first.IsSameAs(last)) {
+		unsigned int n = 0U;
+		for (unsigned int i = 0U; i < dstarCallsign.Len(); i++)
+			aprsCallsign[n++] = dstarCallsign.GetChar(i);
+		aprsCallsign[n++] = '\0';
+	} else {
+		unsigned int n = 0U;
+		for (unsigned int i = 0U; i < first.Len(); i++)
+			aprsCallsign[n++] = first.GetChar(i);
+		aprsCallsign[n++] = '-';
+		for (unsigned int i = 0U; i < last.Len(); i++)
+			aprsCallsign[n++] = last.GetChar(i);
+		aprsCallsign[n++] = '\0';
+	}
 }
 
 // Source found at <http://unixpapa.com/incnote/string.html>

@@ -594,7 +594,7 @@ void CRepeaterHandler::processRepeater(CHeaderData& header)
 
 	// Reset the APRS Writer if it's enabled
 	if (m_aprsWriter != NULL)
-		m_aprsWriter->reset(m_rptCallsign);
+		m_aprsWriter->writeHeader(m_rptCallsign, header);
 
 	// Write to Header.log if it's enabled
 	if (m_headerLogger != NULL)

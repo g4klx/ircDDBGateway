@@ -158,6 +158,21 @@ bool CAPRSWriter::open()
 	return m_thread->start();
 }
 
+void CAPRSWriter::writeHeader(const wxString& callsign, const CHeaderData& header)
+{
+	CAPRSEntry* entry = m_array[callsign];
+	if (entry == NULL) {
+		wxLogError(wxT("Cannot find the callsign \"%s\" in the APRS array"), callsign.c_str());
+		return;
+	}
+
+	entry->reset();
+
+	CAPRSCollector* collector = entry->getCollector();
+
+	collector->writeHeader(header.getMyCall1());
+}
+
 void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 {
 	if (data.isEnd())
@@ -179,7 +194,7 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 	unsigned char buffer[400U];
 	data.getData(buffer, DV_FRAME_MAX_LENGTH_BYTES);
 
-	bool complete = collector->writeData(callsign, buffer + VOICE_FRAME_LENGTH_BYTES);
+	bool complete = collector->writeData(buffer + VOICE_FRAME_LENGTH_BYTES);
 	if (!complete)
 		return;
 
@@ -228,17 +243,6 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 	m_thread->write(ascii);
 
 	collector->reset();
-}
-
-void CAPRSWriter::reset(const wxString& callsign)
-{
-	CAPRSEntry* entry = m_array[callsign];
-	if (entry == NULL) {
-		wxLogError(wxT("Cannot find the callsign \"%s\" in the APRS array"), callsign.c_str());
-		return;
-	}
-
-	entry->reset();
 }
 
 void CAPRSWriter::clock(unsigned int ms)

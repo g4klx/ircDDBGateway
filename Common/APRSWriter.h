@@ -22,6 +22,7 @@
 #include "APRSWriterThread.h"
 #include "APRSCollector.h"
 #include "DStarDefines.h"
+#include "HeaderData.h"
 #include "AMBEData.h"
 #include "Timer.h"
 #include "Defs.h"
@@ -73,9 +74,9 @@ public:
 
 	void setPort(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
 
-	void writeData(const wxString& callsign, const CAMBEData& data);
+	void writeHeader(const wxString& callsign, const CHeaderData& header);
 
-	void reset(const wxString& callsign);
+	void writeData(const wxString& callsign, const CAMBEData& data);
 
 	bool isConnected() const;
 

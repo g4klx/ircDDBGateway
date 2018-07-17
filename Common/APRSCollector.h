@@ -35,11 +35,13 @@ public:
 	CAPRSCollector();
 	~CAPRSCollector();
 
-	bool writeData(const wxString& callsign, const unsigned char* data);
+	void writeHeader(const wxString& callsign);
 
-	void sync();
+	bool writeData(const unsigned char* data);
 
 	void reset();
+
+	void sync();
 
 	unsigned int getData(unsigned char* data, unsigned int length);
 
@@ -73,6 +75,8 @@ private:
 
 	unsigned int convertNMEA1(unsigned char* data, unsigned int length);
 	unsigned int convertNMEA2(unsigned char* data, unsigned int length);
+
+	void dstarCallsignToAPRS(const wxString& dstarCallsign, char* aprsCallsign) const;
 
 	char* mystrsep(char** sp, const char* sep) const;
 };
