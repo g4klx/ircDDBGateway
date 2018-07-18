@@ -510,10 +510,10 @@ void CAPRSCollector::dstarCallsignToAPRS(const wxString& dstarCallsign, char* ap
 	wxString first = dstarCallsign.BeforeFirst(wxT(' '));
 	wxString last  = dstarCallsign.AfterLast(wxT(' '));
 
-	if (first.IsSameAs(last)) {
+	if (last.IsEmpty() || first.IsSameAs(last)) {
 		unsigned int n = 0U;
-		for (unsigned int i = 0U; i < dstarCallsign.Len(); i++)
-			aprsCallsign[n++] = dstarCallsign.GetChar(i);
+		for (unsigned int i = 0U; i < first.Len(); i++)
+			aprsCallsign[n++] = first.GetChar(i);
 		aprsCallsign[n++] = '\0';
 	} else {
 		unsigned int n = 0U;
