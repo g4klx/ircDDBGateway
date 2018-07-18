@@ -60,6 +60,8 @@ CAPRSCollector::~CAPRSCollector()
 void CAPRSCollector::writeHeader(const wxString& callsign)
 {
 	m_callsign = callsign;
+
+	wxLogMessage(wxT("APRS: Received callsign from header of \"%s\""), m_callsign.c_str());
 }
 
 bool CAPRSCollector::writeData(const unsigned char* data)
@@ -453,6 +455,9 @@ unsigned int CAPRSCollector::convertNMEA1(unsigned char* data, unsigned int)
 		::sprintf((char*)data + ::strlen((char*)data), "/A=%06.0f", float(altitude) * 3.28F);
 	}
 
+	wxString log((char*)data, wxConvLocal);
+	wxLogMessage(wxT("APRS: Created APRS string: %s"), log.c_str());
+
 	return ::strlen((char*)data);
 }
 
@@ -491,6 +496,9 @@ unsigned int CAPRSCollector::convertNMEA2(unsigned char* data, unsigned int)
 
 		::sprintf((char*)data + ::strlen((char*)data), "%03d/%03d", bearing, speed);
 	}
+
+	wxString log((char*)data, wxConvLocal);
+	wxLogMessage(wxT("APRS: Created APRS string: %s"), log.c_str());
 
 	return ::strlen((char*)data);
 }
