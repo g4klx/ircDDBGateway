@@ -3,6 +3,9 @@ export LOGDIR  := "/var/log"
 export CONFDIR := "/etc"
 export BINDIR  := "/usr/bin"
 
+# Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
+# Add -DDEXTRA_LINK to the end of the CFLAGS line below to add DExtra linking to StarNet
+
 export CXX     := $(shell wx-config --cxx)
 export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
 export GUILIBS := $(shell wx-config --libs adv,core,base)
