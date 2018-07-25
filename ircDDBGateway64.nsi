@@ -11,8 +11,8 @@
 ;Configuration
 
   ;General
-  Name "ircDDB Gateway 20180627"
-  OutFile "ircDDBGateway64-20180627.exe"
+  Name "ircDDB Gateway 20180719"
+  OutFile "ircDDBGateway64-20180719.exe"
 
   ;Folder selection page
   InstallDir "$PROGRAMFILES64\ircDDBGateway"
