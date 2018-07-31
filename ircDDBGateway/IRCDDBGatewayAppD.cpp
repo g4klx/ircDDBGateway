@@ -182,6 +182,7 @@ bool CIRCDDBGatewayAppD::init()
 
 		wxLog* log = new CLogger(m_logDir, logBaseName);
 		wxLog::SetActiveTarget(log);
+		wxLog::SetVerbose();
 	} else {
 		new wxLogNull;
 	}
