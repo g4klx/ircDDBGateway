@@ -155,7 +155,14 @@ void CAPRSWriter::setPort(const wxString& callsign, const wxString& band, double
 
 bool CAPRSWriter::open()
 {
-	return m_thread->start();
+	bool ret = m_thread->start();
+	if(ret) {
+		sendIdFrames();
+		m_idTimer.start();
+		return ret;
+	}
+
+	return false;
 }
 
 void CAPRSWriter::writeHeader(const wxString& callsign, const CHeaderData& header)
