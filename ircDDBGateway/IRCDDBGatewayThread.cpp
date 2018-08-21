@@ -405,6 +405,7 @@ void CIRCDDBGatewayThread::run()
 				}
 			}
 
+			wxLog::FlushActive();
 			::wxMilliSleep(TIME_PER_TIC_MS);
 		}
 	}
