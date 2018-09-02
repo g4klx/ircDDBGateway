@@ -54,7 +54,7 @@ ircDDB/IRCDDB.a:
 install:	all
 	make -C Data install
 	make -C APRSTransmit install
-	make -C ircDDBGateway install
+	make -C ircDDBGateway -f MakefileGUI install
 	make -C RemoteControl install
 	make -C StarNetServer install
 	make -C TextTransmit install
