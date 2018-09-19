@@ -8,7 +8,6 @@ This is the ircDDB Gateway. It allows a D-Star Repeater to interface into callsi
 * DExtra XRF reflectors.
 * DCS reflectors.
 * XLX reflectors.
-* CCS7 routing.
 * D-RATS data transfers.
 * Gateway DPRS data to aprs.fi.
 * Full multi lingual text and voice announcements.
