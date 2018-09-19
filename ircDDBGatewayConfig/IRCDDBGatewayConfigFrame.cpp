@@ -510,7 +510,7 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	wxString dplusLogin           = m_dplus->getLogin();
 	m_config->setDPlus(dplusEnabled, maxDPlusDongles, dplusLogin);
 
-	bool dcsEnabled  = m_dcs->getDCSEnabled();
+	bool dcsEnabled  = m_dcs->getEnabled();
 	m_config->setDCS(dcsEnabled);
 	
 	bool xlxEnabled  = m_xlx->getXLXEnabled();
