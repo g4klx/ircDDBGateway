@@ -27,7 +27,7 @@ const unsigned int CONTROL_WIDTH = 130U;
 const unsigned int BORDER_SIZE = 5U;
 
 
-CDCSSet::CDCSSet(wxWindow* parent, int id, const wxString& title, bool dcsEnabled) :
+CDCSSet::CDCSSet(wxWindow* parent, int id, const wxString& title, bool enabled) :
 wxPanel(parent, id),
 m_title(title),
 m_enabled(NULL)

@@ -23,7 +23,7 @@
 
 class CDCSSet : public wxPanel {
 public:
-	CDCSSet(wxWindow* parent, int id, const wxString& title, bool dcsEnabled);
+	CDCSSet(wxWindow* parent, int id, const wxString& title, bool enabled);
 	virtual ~CDCSSet();
 
 	virtual bool Validate();
