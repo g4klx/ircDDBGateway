@@ -35,9 +35,6 @@
     <ClCompile Include="CallsignList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CallsignServer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CCITTChecksum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -224,9 +221,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CallsignList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CallsignServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CCITTChecksum.h">

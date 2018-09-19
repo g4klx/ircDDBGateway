@@ -154,7 +154,6 @@
     <ClCompile Include="AudioUnit.cpp" />
     <ClCompile Include="CacheManager.cpp" />
     <ClCompile Include="CallsignList.cpp" />
-    <ClCompile Include="CallsignServer.cpp" />
     <ClCompile Include="CCITTChecksum.cpp" />
     <ClCompile Include="ConnectData.cpp" />
     <ClCompile Include="DCSHandler.cpp" />
@@ -219,7 +218,6 @@
     <ClInclude Include="AudioUnit.h" />
     <ClInclude Include="CacheManager.h" />
     <ClInclude Include="CallsignList.h" />
-    <ClInclude Include="CallsignServer.h" />
     <ClInclude Include="CCITTChecksum.h" />
     <ClInclude Include="ConnectData.h" />
     <ClInclude Include="DCSHandler.h" />

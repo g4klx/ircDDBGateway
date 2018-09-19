@@ -20,7 +20,6 @@
 #include "IRCDDBGatewayDefs.h"
 #include "RepeaterHandler.h"
 #include "StarNetHandler.h"
-#include "CallsignServer.h"
 #include "DExtraHandler.h"
 #include "DPlusHandler.h"
 #include "HeaderLogger.h"
@@ -320,12 +319,6 @@ void CIRCDDBGatewayThread::run()
 
 	m_statusFileTimer.start();
 
-	CCallsignServer* server = NULL;
-	if (m_dextraEnabled || m_dcsEnabled) {
-		server = new CCallsignServer(m_gatewayCallsign, m_gatewayAddress, &m_cache);
-		server->start();
-	}
-
 	wxStopWatch stopWatch;
 	stopWatch.Start();
 
@@ -412,9 +405,6 @@ void CIRCDDBGatewayThread::run()
 
 	if (m_ddModeEnabled)
 		CDDHandler::finalise();
-
-	if (server != NULL)
-		server->stop();
 
 	m_dextraPool->close();
 	delete m_dextraPool;
