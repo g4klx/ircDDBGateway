@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011-2014,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -295,8 +295,7 @@ void CAudioUnit::spellReflector(unsigned int id, const wxString &reflector)
 	if (c == wxT(' '))
 		return;
 
-	if (m_linkStatus == LS_LINKING_DCS || m_linkStatus == LS_LINKED_DCS ||
-	    m_linkStatus == LS_LINKING_CCS || m_linkStatus == LS_LINKED_CCS) {
+	if (m_linkStatus == LS_LINKING_DCS || m_linkStatus == LS_LINKED_DCS) {
 		lookup(id, wxString(c));
 		return;
 	}
@@ -467,7 +466,6 @@ void CAudioUnit::sendStatus(LINK_STATUS status, const wxString& reflector, const
 			case LS_NONE:
 				lookup(id, wxT("notlinked"));
 				break;
-			case LS_LINKED_CCS:
 			case LS_LINKED_DCS:
 			case LS_LINKED_DPLUS:
 			case LS_LINKED_DEXTRA:

@@ -138,8 +138,6 @@ const wxString  KEY_DPLUS_ENABLED        = wxT("dplusEnabled");
 const wxString  KEY_DPLUS_MAXDONGLES     = wxT("dplusMaxDongles");
 const wxString  KEY_DPLUS_LOGIN          = wxT("dplusLogin");
 const wxString  KEY_DCS_ENABLED          = wxT("dcsEnabled");
-const wxString  KEY_CCS_ENABLED          = wxT("ccsEnabled");
-const wxString  KEY_CCS_HOST             = wxT("ccsHost");
 const wxString  KEY_XLX_ENABLED		     = wxT("xlxEnabled");
 const wxString  KEY_XLX_OVERRIDE_LOCAL	 = wxT("xlxOverrideLocal");
 const wxString  KEY_XLX_HOSTS_FILE_URL	 = wxT("xlxHostsFileUrl");
@@ -261,8 +259,6 @@ const bool         DEFAULT_DPLUS_ENABLED         = false;
 const unsigned int DEFAULT_DPLUS_MAXDONGLES      = 5U;
 const wxString     DEFAULT_DPLUS_LOGIN           = wxEmptyString;
 const bool         DEFAULT_DCS_ENABLED           = true;
-const bool         DEFAULT_CCS_ENABLED           = true;
-const wxString     DEFAULT_CCS_HOST              = wxT("CCS704  ");
 const bool	       DEFAULT_XLX_ENABLED           = true;
 const bool	       DEFAULT_XLX_OVERRIDE_LOCAL    = true;
 const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = _T("http://xlxapi.rlx.lu/api.php?do=GetReflectorHostname");
@@ -413,8 +409,6 @@ m_dplusEnabled(DEFAULT_DPLUS_ENABLED),
 m_dplusMaxDongles(DEFAULT_DPLUS_MAXDONGLES),
 m_dplusLogin(DEFAULT_DPLUS_LOGIN),
 m_dcsEnabled(DEFAULT_DCS_ENABLED),
-m_ccsEnabled(DEFAULT_CCS_ENABLED),
-m_ccsHost(DEFAULT_CCS_HOST),
 m_xlxEnabled(DEFAULT_XLX_ENABLED),
 m_xlxOverrideLocal(DEFAULT_XLX_OVERRIDE_LOCAL),
 m_xlxHostsFileUrl(DEFAULT_XLX_HOSTS_FILE_URL),
@@ -747,10 +741,6 @@ m_y(DEFAULT_WINDOW_Y)
 
 	m_config->Read(m_name + KEY_DCS_ENABLED, &m_dcsEnabled, DEFAULT_DCS_ENABLED);
 
-	m_config->Read(m_name + KEY_CCS_ENABLED, &m_ccsEnabled, DEFAULT_CCS_ENABLED);
-
-	m_config->Read(m_name + KEY_CCS_HOST, &m_ccsHost, DEFAULT_CCS_HOST);
-	
 	m_config->Read(m_name + KEY_XLX_ENABLED, &m_xlxEnabled, DEFAULT_XLX_ENABLED);
 	
 	m_config->Read(m_name + KEY_XLX_OVERRIDE_LOCAL, &m_xlxOverrideLocal, DEFAULT_XLX_OVERRIDE_LOCAL);
@@ -1026,8 +1016,6 @@ m_dplusEnabled(DEFAULT_DPLUS_ENABLED),
 m_dplusMaxDongles(DEFAULT_DPLUS_MAXDONGLES),
 m_dplusLogin(DEFAULT_DPLUS_LOGIN),
 m_dcsEnabled(DEFAULT_DCS_ENABLED),
-m_ccsEnabled(DEFAULT_CCS_ENABLED),
-m_ccsHost(DEFAULT_CCS_HOST),
 m_xlxEnabled(DEFAULT_XLX_ENABLED),
 m_xlxOverrideLocal(DEFAULT_XLX_OVERRIDE_LOCAL),
 m_xlxHostsFileUrl(DEFAULT_XLX_HOSTS_FILE_URL),
@@ -1411,11 +1399,6 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_DCS_ENABLED)) {
 			val.ToLong(&temp1);
 			m_dcsEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_CCS_ENABLED)) {
-			val.ToLong(&temp1);
-			m_ccsEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_CCS_HOST)) {
-			m_ccsHost = val;
 		} else if (key.IsSameAs(KEY_XLX_ENABLED)) {
 			val.ToLong(&temp1);
 			m_xlxEnabled = temp1 == 1L;
@@ -1927,18 +1910,14 @@ void CIRCDDBGatewayConfig::setDPlus(bool enabled, unsigned int maxDongles, const
 	m_dplusLogin      = login;
 }
 
-void CIRCDDBGatewayConfig::getDCS(bool& dcsEnabled, bool& ccsEnabled, wxString& ccsHost) const
+void CIRCDDBGatewayConfig::getDCS(bool& dcsEnabled) const
 {
 	dcsEnabled = m_dcsEnabled;
-	ccsEnabled = m_ccsEnabled;
-	ccsHost    = m_ccsHost;
 }
 
-void CIRCDDBGatewayConfig::setDCS(bool dcsEnabled, bool ccsEnabled, const wxString& ccsHost)
+void CIRCDDBGatewayConfig::setDCS(bool dcsEnabled)
 {
 	m_dcsEnabled = dcsEnabled;
-	m_ccsEnabled = ccsEnabled;
-	m_ccsHost    = ccsHost;
 }
 
 void CIRCDDBGatewayConfig::getXLX(bool& xlxEnabled, bool& xlxOverrideLocal, wxString& xlxHostsFileUrl)
@@ -2375,8 +2354,6 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_DPLUS_MAXDONGLES, long(m_dplusMaxDongles));
 	m_config->Write(m_name + KEY_DPLUS_LOGIN, m_dplusLogin);
 	m_config->Write(m_name + KEY_DCS_ENABLED, m_dcsEnabled);
-	m_config->Write(m_name + KEY_CCS_ENABLED, m_ccsEnabled);
-	m_config->Write(m_name + KEY_CCS_HOST, m_ccsHost);
 	m_config->Write(m_name + KEY_XLX_ENABLED, m_xlxEnabled);
 	m_config->Write(m_name + KEY_XLX_OVERRIDE_LOCAL, m_xlxOverrideLocal);
 	m_config->Write(m_name + KEY_XLX_HOSTS_FILE_URL, m_xlxHostsFileUrl);
@@ -2583,8 +2560,6 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%u"), KEY_DPLUS_MAXDONGLES.c_str(), m_dplusMaxDongles); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_DPLUS_LOGIN.c_str(), m_dplusLogin.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DCS_ENABLED.c_str(), m_dcsEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%d"), KEY_CCS_ENABLED.c_str(), m_ccsEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_CCS_HOST.c_str(), m_ccsHost.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_XLX_ENABLED.c_str(), m_xlxEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_XLX_OVERRIDE_LOCAL.c_str(), m_xlxOverrideLocal ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_XLX_HOSTS_FILE_URL.c_str(), m_xlxHostsFileUrl.c_str()); file.AddLine(buffer);	

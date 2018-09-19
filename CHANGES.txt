@@ -1481,3 +1481,8 @@ Simplify the Linux build.
 --------
 
 Support the GPS data from the Kenwood TH-D74.
+
+201809xx
+--------
+
+Remove the CCS support.

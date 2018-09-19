@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -43,7 +43,6 @@ private:
 	wxChar       m_lastChar;
 
 	wxString processReflector(const wxString& prefix, const wxString& command) const;
-	wxString processCCS(const wxString& command) const;
 };
 
 #endif

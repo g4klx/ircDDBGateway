@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,9 +33,7 @@
 #include "HeaderLogger.h"
 #include "CallsignList.h"
 #include "DRATSServer.h"
-#include "CCSCallback.h"
 #include "VersionUnit.h"
-#include "CCSHandler.h"
 #include "StatusData.h"
 #include "APRSWriter.h"
 #include "HeardData.h"
@@ -56,7 +54,7 @@
 
 #include <wx/wx.h>
 
-class CRepeaterHandler : public IRepeaterCallback, public IReflectorCallback, public ICCSCallback {
+class CRepeaterHandler : public IRepeaterCallback, public IReflectorCallback {
 public:
 	static void initialise(unsigned int maxRepeaters);
 
@@ -127,10 +125,6 @@ public:
 	virtual void linkUp(DSTAR_PROTOCOL protocol, const wxString& callsign);
 	virtual void linkRefused(DSTAR_PROTOCOL protocol, const wxString& callsign);
 	virtual bool linkFailed(DSTAR_PROTOCOL protocol, const wxString& callsign, bool isRecoverable);
-
-	virtual void ccsLinkMade(const wxString& callsign, DIRECTION direction);
-	virtual void ccsLinkFailed(const wxString& dtmf, DIRECTION direction);
-	virtual void ccsLinkEnded(const wxString& callsign, DIRECTION direction);
 
 protected:
 	CRepeaterHandler(const wxString& callsign, const wxString& band, const wxString& address, unsigned int port, HW_TYPE hwType, const wxString& reflector, bool atStartup, RECONNECT reconnect, bool dratsEnabled, double frequency, double offset, double range, double latitude, double longitude, double agl, const wxString& description1, const wxString& description2, const wxString& url, IRepeaterProtocolHandler* handler, unsigned char band1, unsigned char band2, unsigned char band3);
@@ -265,9 +259,6 @@ private:
 	// Poll timer
 	CTimer                    m_pollTimer;
 
-	// CCS
-	CCCSHandler*              m_ccsHandler;
-
 	// Reflector restoration
 	wxString                  m_lastReflector;
 
@@ -277,7 +268,6 @@ private:
 	CTimer                    m_heardTimer;
 
 	void g2CommandHandler(const wxString& callsign, const wxString& user, CHeaderData& header);
-	void ccsCommandHandler(const wxString& callsign, const wxString& user, const wxString& type);
 	void reflectorCommandHandler(const wxString& callsign, const wxString& user, const wxString& type);
 	void sendToOutgoing(const CHeaderData& header);
 	void sendToOutgoing(const CAMBEData& data);
@@ -298,8 +288,6 @@ private:
 	bool restoreLinks();
 
 	void triggerInfo();
-
-	bool isCCSCommand(const wxString& command) const;
 };
 
 #endif

@@ -1,6 +1,5 @@
 install:
 	install -d -g bin -o root -m 0775 $(DATADIR)
-	install -g bin -o root -m 0664 CCS_Hosts.txt    $(DATADIR)
 	install -g bin -o root -m 0664 DCS_Hosts.txt    $(DATADIR)
 	install -g bin -o root -m 0664 DExtra_Hosts.txt $(DATADIR)
 	install -g bin -o root -m 0664 DPlus_Hosts.txt  $(DATADIR)

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -66,45 +66,6 @@ bool CHeardData::setIcomRepeaterData(const unsigned char *data, unsigned int len
 	m_port    = port;
 
 	return true;
-}
-
-unsigned int CHeardData::getCCSData(unsigned char *data, unsigned int length) const
-{
-	wxASSERT(data != NULL);
-	wxASSERT(length >= 100U);
-
-	::memset(data, 0x00U, 100U);
-
-	data[0U] = '0';
-	data[1U] = '0';
-	data[2U] = '0';
-	data[3U] = '1';
-
-	::memset(data + 7U, ' ', 36U);
-
-	for (unsigned int i = 0U; i < m_reflector.Len(); i++)
-		data[i + 7U] = m_reflector.GetChar(i);
-
-	for (unsigned int i = 0U; i < m_repeater.Len(); i++)
-		data[i + 15U] = m_repeater.GetChar(i);
-
-	::memcpy(data + 23U, "CQCQCQ  ",  LONG_CALLSIGN_LENGTH);
-
-	for (unsigned int i = 0U; i < m_user.Len(); i++)
-		data[i + 31U] = m_user.GetChar(i);
-
-	for (unsigned int i = 0U; i < m_ext.Len(); i++)
-		data[i + 39U] = m_ext.GetChar(i);
-
-	data[61U] = 0x01U;
-
-	data[63U] = 0x21U;
-
-	::memset(data + 64U, ' ', 20U);
-
-	data[93U] = 0x36U;
-
-	return 100U;
 }
 
 wxString CHeardData::getRepeater() const

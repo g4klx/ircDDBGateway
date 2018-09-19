@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -42,7 +42,6 @@ public:
 	bool setDExtraData(const unsigned char* data, unsigned int length, bool check, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
 	bool setDPlusData(const unsigned char* data, unsigned int length, bool check, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
 	void setDCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	void setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
 
 	unsigned int getIcomRepeaterData(unsigned char* data, unsigned int length, bool check) const;
 	unsigned int getHBRepeaterData(unsigned char* data, unsigned int length, bool check) const;
@@ -50,7 +49,6 @@ public:
 	unsigned int getDPlusData(unsigned char* data, unsigned int length, bool check) const;
 	unsigned int getG2Data(unsigned char* data, unsigned int length, bool check) const;
 	void         getDCSData(unsigned char* data, unsigned int length) const;
-	void         getCCSData(unsigned char* data, unsigned int length) const;
 
 	bool setDVTOOLData(const unsigned char* data, unsigned int length, bool check);
 

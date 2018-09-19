@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013,2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2015,2018 by Jonathan Naylor G4KLX
  *   Copyright (C) 2011 by DV Developer Group. DJ0ABR
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -167,8 +167,6 @@ wxString CDTMF::translate()
 		return processReflector(wxT("XRF"), command.Mid(1U));
 	else if (command.GetChar(0U) == wxT('D'))
 		return processReflector(wxT("DCS"), command.Mid(1U));
-	else
-		return processCCS(command);
 }
 
 void CDTMF::reset()
@@ -220,98 +218,4 @@ wxString CDTMF::processReflector(const wxString& prefix, const wxString& command
 	
 		return out;
 	}
-}
-
-wxString CDTMF::processCCS(const wxString& command) const
-{
-	unsigned int len = command.Len();
-
-	wxString out = wxEmptyString;
-
-	switch (len) {
-		case 3U: {
-				// CCS7 for local repeater without band
-				unsigned long n;
-				command.ToULong(&n);
-				if (n == 0UL)
-					return wxEmptyString;
-				out.Printf(wxT("C%03lu    "), n);
-			}
-			break;
-		case 4U: {
-				wxChar c = command.GetChar(3U);
-				if (c == wxT('A') || c == wxT('B') || c == wxT('C') || c == wxT('D')) {
-					// CCS7 for local repeater with band
-					unsigned long n;
-					command.Mid(0U, 3U).ToULong(&n);
-					if (n == 0UL)
-						return wxEmptyString;
-					out.Printf(wxT("C%03lu%c   "), n, c);
-				} else {
-					// CCS7 for local user
-					unsigned long n;
-					command.ToULong(&n);
-					if (n == 0UL)
-						return wxEmptyString;
-					out.Printf(wxT("C%04lu   "), n);
-				}
-			}
-			break;
-		case 5U: {
-				wxChar c = command.GetChar(4U);
-				if (c == wxT('A') || c == wxT('B') || c == wxT('C') || c == wxT('D')) {
-					// CCS7 for local hostspot with band
-					unsigned long n;
-					command.Mid(0U, 4U).ToULong(&n);
-					if (n == 0UL)
-						return wxEmptyString;
-					out.Printf(wxT("C%04lu%c  "), n, c);
-				}
-			}
-			break;
-		case 6U: {
-				// CCS7 for full repeater without band
-				unsigned long n;
-				command.ToULong(&n);
-				if (n == 0UL)
-					return wxEmptyString;
-				out.Printf(wxT("C%06lu "), n);
-			}
-			break;
-		case 7U: {
-				wxChar c = command.GetChar(6U);
-				if (c == wxT('A') || c == wxT('B') || c == wxT('C') || c == wxT('D')) {
-					// CCS7 for full repeater with band
-					unsigned long n;
-					command.Mid(0U, 6U).ToULong(&n);
-					if (n == 0UL)
-						return wxEmptyString;
-					out.Printf(wxT("C%06lu%c"), n, c);
-				} else {
-					// CCS7 for full user or CCS7 for full hostpot without band
-					unsigned long n;
-					command.ToULong(&n);
-					if (n == 0UL)
-						return wxEmptyString;
-					out.Printf(wxT("C%07lu"), n);
-				}
-			}
-			break;
-		case 8U: {
-				wxChar c = command.GetChar(7U);
-				if (c == wxT('A') || c == wxT('B') || c == wxT('C') || c == wxT('D')) {
-					// CCS7 for full hotspot with band
-					unsigned long n;
-					command.Mid(0U, 7U).ToULong(&n);
-					if (n == 0UL)
-						return wxEmptyString;
-					out.Printf(wxT("C%07lu%c"), n, c);
-				}
-			}
-			break;
-		default:
-			break;
-	}
-
-	return out;
 }
