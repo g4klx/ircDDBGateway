@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -125,6 +125,21 @@ bool CPollData::setDCSData(const unsigned char* data, unsigned int length, const
 	return true;
 }
 
+bool CPollData::setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+{
+	wxASSERT(data != NULL);
+	wxASSERT(length >= 25U);
+	wxASSERT(yourPort > 0U);
+
+	m_data1       = wxString((const char*)(data + 0U), wxConvLocal, 25U);
+	m_length      = length;
+	m_yourAddress = yourAddress;
+	m_yourPort    = yourPort;
+	m_myPort      = myPort;
+
+	return true;
+}
+
 bool CPollData::setDPlusData(const unsigned char*, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
 {
 	wxASSERT(yourPort > 0U);
@@ -186,6 +201,24 @@ unsigned int CPollData::getDCSData(unsigned char *data, unsigned int length) con
 
 		return 22U;
 	}
+}
+
+unsigned int CPollData::getCCSData(unsigned char *data, unsigned int length) const
+{
+	wxASSERT(data != NULL);
+	wxASSERT(length >= 25U);
+
+	::memset(data, ' ', 25U);
+
+	for (unsigned int i = 0U; i < m_data1.Len() && i < LONG_CALLSIGN_LENGTH; i++)
+		data[i + 0U] = m_data1.GetChar(i);
+
+	if (!m_data2.IsEmpty()) {
+		for (unsigned int i = 0U; i < m_data2.Len() && i < LONG_CALLSIGN_LENGTH; i++)
+			data[i + 8U] = m_data2.GetChar(i);
+	}
+
+	return 25U;
 }
 
 unsigned int CPollData::getDPlusData(unsigned char *data, unsigned int length) const

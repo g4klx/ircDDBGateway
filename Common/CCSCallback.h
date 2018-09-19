@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2013 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,34 +16,29 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef DTMF_H
-#define	DTMF_H
+#ifndef	CCSCallback_H
+#define	CCSCallback_H
+
+#include "DStarDefines.h"
+#include "HeaderData.h"
+#include "AMBEData.h"
+#include "Defs.h"
 
 #include <wx/wx.h>
 
-class CDTMF {
+class ICCSCallback {
 public:
-	CDTMF();
-	~CDTMF();
+	virtual bool process(CHeaderData& header, DIRECTION direction, AUDIO_SOURCE source) = 0;
 
-	bool decode(const unsigned char* ambe, bool end);
+	virtual bool process(CAMBEData& data, DIRECTION direction, AUDIO_SOURCE source) = 0;
 
-	bool hasCommand() const;
+	virtual void ccsLinkMade(const wxString& callsign, DIRECTION direction) = 0;
 
-	wxString translate();
+	virtual void ccsLinkFailed(const wxString& dtmf, DIRECTION direction) = 0;
 
-	void reset();
+	virtual void ccsLinkEnded(const wxString& callsign, DIRECTION direction) = 0;
 
 private:
-	wxString     m_data;
-	wxString     m_command;
-	bool         m_pressed;
-	unsigned int m_releaseCount;
-	unsigned int m_pressCount;
-	wxChar       m_lastChar;
-
-	wxString processReflector(const wxString& prefix, const wxString& command) const;
-	wxString processCCS(const wxString& command) const;
 };
 
 #endif

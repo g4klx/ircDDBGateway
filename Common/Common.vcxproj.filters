@@ -41,6 +41,15 @@
     <ClCompile Include="CCITTChecksum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CCSData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CCSHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CCSProtocolHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ConnectData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -230,6 +239,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CCITTChecksum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CCSCallback.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CCSData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CCSHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CCSProtocolHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConnectData.h">

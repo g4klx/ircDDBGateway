@@ -68,8 +68,8 @@ public:
 	void getDPlus(bool& enabled, unsigned int& maxDongles, wxString& login) const;
 	void setDPlus(bool enabled, unsigned int maxDongles, const wxString& login);
 
-	void getDCS(bool& dcsEnabled) const;
-	void setDCS(bool dcsEnabled);
+	void getDCS(bool& dcsEnabled, bool& ccsEnabled, wxString& ccsHost) const;
+	void setDCS(bool dcsEnabled, bool ccsEnabled, const wxString& ccsHost);
 	
 	void getXLX(bool& xlxEnabled, bool& xlxOverrideLocal, wxString& xlxHostsFileUrl);
 	void setXLX(bool xlxEnabled, bool xlxOverrideLocal, wxString xlxHostsFileUrl);
@@ -241,6 +241,8 @@ private:
 	unsigned int  m_dplusMaxDongles;
 	wxString      m_dplusLogin;
 	bool          m_dcsEnabled;
+	bool          m_ccsEnabled;
+	wxString      m_ccsHost;
 	bool	      m_xlxEnabled;
 	bool	      m_xlxOverrideLocal;
 	wxString      m_xlxHostsFileUrl;

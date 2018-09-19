@@ -156,6 +156,9 @@
     <ClCompile Include="CallsignList.cpp" />
     <ClCompile Include="CallsignServer.cpp" />
     <ClCompile Include="CCITTChecksum.cpp" />
+    <ClCompile Include="CCSData.cpp" />
+    <ClCompile Include="CCSHandler.cpp" />
+    <ClCompile Include="CCSProtocolHandler.cpp" />
     <ClCompile Include="ConnectData.cpp" />
     <ClCompile Include="DCSHandler.cpp" />
     <ClCompile Include="DCSProtocolHandler.cpp" />
@@ -221,6 +224,10 @@
     <ClInclude Include="CallsignList.h" />
     <ClInclude Include="CallsignServer.h" />
     <ClInclude Include="CCITTChecksum.h" />
+    <ClInclude Include="CCSCallback.h" />
+    <ClInclude Include="CCSData.h" />
+    <ClInclude Include="CCSHandler.h" />
+    <ClInclude Include="CCSProtocolHandler.h" />
     <ClInclude Include="ConnectData.h" />
     <ClInclude Include="DCSHandler.h" />
     <ClInclude Include="DCSProtocolHandler.h" />
