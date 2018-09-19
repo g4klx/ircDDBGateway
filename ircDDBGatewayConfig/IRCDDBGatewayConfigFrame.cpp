@@ -98,9 +98,8 @@ m_miscellaneous(NULL)
 	bool dplusEnabled;
 	m_config->getDPlus(dplusEnabled, maxDPlusDongles, dplusLogin);
 
-	bool dcsEnabled, ccsEnabled;
-	wxString ccsHost;
-	m_config->getDCS(dcsEnabled, ccsEnabled, ccsHost);
+	bool dcsEnabled;
+	m_config->getDCS(dcsEnabled);
 	
 	bool xlxEnabled;
 	bool xlxOverrideLocal;
@@ -208,8 +207,8 @@ m_miscellaneous(NULL)
 	m_dplus = new CDPlusSet(noteBook, -1, APPLICATION_NAME, dplusEnabled, maxDPlusDongles, MAX_DPLUS_LINKS, dplusLogin);
 	noteBook->AddPage(m_dplus, wxT("D-Plus"), false);
 
-	m_dcs = new CDCSSet(noteBook, -1, APPLICATION_NAME, dcsEnabled, ccsEnabled, ccsHost);
-	noteBook->AddPage(m_dcs, _("DCS and CCS"), false);
+	m_dcs = new CDCSSet(noteBook, -1, APPLICATION_NAME, dcsEnabled);
+	noteBook->AddPage(m_dcs, _("DCS"), false);
 	
 	m_xlx = new CXLXSet(noteBook, -1, APPLICATION_NAME, xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
 	noteBook->AddPage(m_xlx, _("XLX Hosts File"), false);
@@ -512,9 +511,7 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setDPlus(dplusEnabled, maxDPlusDongles, dplusLogin);
 
 	bool dcsEnabled  = m_dcs->getDCSEnabled();
-	bool ccsEnabled  = m_dcs->getCCSEnabled();
-	wxString ccsHost = m_dcs->getCCSHost();
-	m_config->setDCS(dcsEnabled, ccsEnabled, ccsHost);
+	m_config->setDCS(dcsEnabled);
 	
 	bool xlxEnabled  = m_xlx->getXLXEnabled();
 	bool xlxOverrideLocal = m_xlx->getXLXOverrideLocal();

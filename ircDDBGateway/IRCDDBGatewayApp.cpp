@@ -831,10 +831,9 @@ void CIRCDDBGatewayApp::createThread()
 	m_config->getDPlus(dplusEnabled, dplusMaxDongles, dplusLogin);
 	wxLogInfo(wxT("D-Plus enabled: %d, max. dongles; %u, login: %s"), int(dplusEnabled), dplusMaxDongles, dplusLogin.c_str());
 
-	bool dcsEnabled, ccsEnabled;
-	wxString ccsHost;
-	m_config->getDCS(dcsEnabled, ccsEnabled, ccsHost);
-	wxLogInfo(wxT("DCS enabled: %d, CCS enabled: %d, server: %s"), int(dcsEnabled), int(ccsEnabled), ccsHost.c_str());
+	bool dcsEnabled;
+	m_config->getDCS(dcsEnabled);
+	wxLogInfo(wxT("DCS enabled: %d"), int(dcsEnabled));
 	
 	bool xlxEnabled;
 	bool xlxOverrideLocal;
@@ -909,7 +908,6 @@ void CIRCDDBGatewayApp::createThread()
 	thread->setDPlus(dplusEnabled, dplusMaxDongles, dplusLogin);
 	thread->setDExtra(dextraEnabled, dextraMaxDongles);
 	thread->setDCS(dcsEnabled);
-	thread->setCCS(ccsEnabled, ccsHost);
 	thread->setXLX(xlxEnabled, xlxOverrideLocal, xlxEnabled ? CXLXHostsFileDownloader::Download(xlxHostsFileUrl) : wxString(wxEmptyString));
 	thread->setInfoEnabled(infoEnabled);
 	thread->setEchoEnabled(echoEnabled);

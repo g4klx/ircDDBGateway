@@ -25,7 +25,6 @@
 #include "DPlusHandler.h"
 #include "HeaderLogger.h"
 #include "ConnectData.h"
-#include "CCSHandler.h"
 #include "HeaderData.h"
 #include "StatusData.h"
 #include "DCSHandler.h"
@@ -35,7 +34,6 @@
 #include "PollData.h"
 #include "AMBEData.h"
 #include "HostFile.h"
-#include "CCSData.h"
 #include "DDData.h"
 #include "Utils.h"
 #include "Defs.h"
@@ -84,8 +82,6 @@ m_dplusLogin(),
 m_dcsEnabled(true),
 m_xlxEnabled(true),
 m_xlxHostsFileName(),
-m_ccsEnabled(true),
-m_ccsHost(),
 m_infoEnabled(true),
 m_echoEnabled(true),
 m_dtmfEnabled(true),
@@ -117,7 +113,6 @@ m_restrictList(NULL)
 	CDCSHandler::initialise(MAX_DCS_LINKS);
 	CRepeaterHandler::initialise(MAX_REPEATERS);
 	CStarNetHandler::initialise(MAX_STARNETS, m_name);
-	CCCSHandler::initialise(MAX_REPEATERS);
 	CAudioUnit::initialise();
 }
 
@@ -130,7 +125,6 @@ CIRCDDBGatewayThread::~CIRCDDBGatewayThread()
 	CDCSHandler::finalise();
 	CRepeaterHandler::finalise();
 	CStarNetHandler::finalise();
-	CCCSHandler::finalise();
 	CAudioUnit::finalise();
 }
 
@@ -313,11 +307,6 @@ void CIRCDDBGatewayThread::run()
 			CDDHandler::setIRC(m_irc);
 	}
 
-	wxString ccsAddress = m_ccsEnabled ? m_gatewayAddress : LOOPBACK_ADDRESS;
-	CCCSHandler::setLocalAddress(ccsAddress);
-	CCCSHandler::setHeaderLogger(headerLogger);
-	CCCSHandler::setHost(m_ccsHost);
-
 	if (m_remoteEnabled && !m_remotePassword.IsEmpty() && m_remotePort > 0U) {
 		m_remote = new CRemoteHandler(m_remotePassword, m_remotePort, m_gatewayAddress);
 		bool res = m_remote->open();
@@ -360,7 +349,6 @@ void CIRCDDBGatewayThread::run()
 			processDPlus();
 			processDCS();
 			processG2();
-			CCCSHandler::process();
 
 			if (m_ddModeEnabled)
 				processDD();
@@ -378,7 +366,6 @@ void CIRCDDBGatewayThread::run()
 			CDCSHandler::clock(ms);
 			CStarNetHandler::clock(ms);
 			CDDHandler::clock(ms);
-	 		CCCSHandler::clock(ms);
 
 			m_statusTimer2.clock(ms);
 
@@ -397,8 +384,7 @@ void CIRCDDBGatewayThread::run()
 					bool ret1 = CDExtraHandler::stateChange();
 					bool ret2 = CDPlusHandler::stateChange();
 					bool ret3 = CDCSHandler::stateChange();
-					bool ret4 = CCCSHandler::stateChange();
-					if (ret1 || ret2 || ret3 || ret4)
+					if (ret1 || ret2 || ret3)
 						writeStatus();
 		
 					m_statusTimer1.start();
@@ -423,7 +409,6 @@ void CIRCDDBGatewayThread::run()
 	CDExtraHandler::unlink();
 	CDPlusHandler::unlink();
 	CDCSHandler::unlink();
-	CCCSHandler::disconnect();
 
 	if (m_ddModeEnabled)
 		CDDHandler::finalise();
@@ -578,31 +563,6 @@ void CIRCDDBGatewayThread::setXLX(bool enabled, bool overrideLocal, const wxStri
 	m_xlxEnabled 	 = enabled;
 	m_xlxHostsFileName = xlxHostsFileName;
 	m_xlxOverrideLocal = overrideLocal;
-}
-
-void CIRCDDBGatewayThread::setCCS(bool enabled, const wxString& host)
-{
-	m_ccsEnabled = enabled;
-
-	wxFileName fileName(wxFileName::GetHomeDir(), CCS_HOSTS_FILE_NAME);
-
-	if (!fileName.IsFileReadable()) {
-		wxLogMessage(wxT("File %s not readable"), fileName.GetFullPath().c_str());
-#if defined(__WINDOWS__)
-		fileName.Assign(::wxGetCwd(), CCS_HOSTS_FILE_NAME);
-#else
-		fileName.Assign(wxT(DATA_DIR), CCS_HOSTS_FILE_NAME);
-#endif
-		if (!fileName.IsFileReadable()) {
-			wxLogMessage(wxT("File %s not readable"), fileName.GetFullPath().c_str());
-			m_ccsEnabled = false;
-			return;
-		}
-	}
-
-	CHostFile hostFile(fileName.GetFullPath(), true);
-
-	m_ccsHost = hostFile.getAddress(host);
 }
 
 void CIRCDDBGatewayThread::setLog(bool enabled)
@@ -1298,7 +1258,6 @@ void CIRCDDBGatewayThread::writeStatus()
 	CDExtraHandler::writeStatus(file);
 	CDPlusHandler::writeStatus(file);
 	CDCSHandler::writeStatus(file);
-	CCCSHandler::writeStatus(file);
 
 	file.Close();
 }
@@ -1318,7 +1277,6 @@ CIRCDDBGatewayStatusData* CIRCDDBGatewayThread::getStatus() const
 		if (ret) {
 			wxString incoming1 = CDExtraHandler::getIncoming(callsign);
 			wxString incoming2 = CDCSHandler::getIncoming(callsign);
-			wxString incoming3 = CCCSHandler::getIncoming(callsign);
 
 			wxString incoming;
 			if (!incoming1.IsEmpty()) {
@@ -1327,10 +1285,6 @@ CIRCDDBGatewayStatusData* CIRCDDBGatewayThread::getStatus() const
 			}
 			if (!incoming2.IsEmpty()) {
 				incoming.Append(incoming2);
-				incoming.Append(wxT(" "));
-			}
-			if (!incoming3.IsEmpty()) {
-				incoming.Append(incoming3);
 				incoming.Append(wxT(" "));
 			}
 

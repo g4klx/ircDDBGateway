@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,24 +23,16 @@
 
 class CDCSSet : public wxPanel {
 public:
-	CDCSSet(wxWindow* parent, int id, const wxString& title, bool dcsEnabled, bool ccsEnabled, const wxString& ccsHost);
+	CDCSSet(wxWindow* parent, int id, const wxString& title, bool dcsEnabled);
 	virtual ~CDCSSet();
 
 	virtual bool Validate();
 
-	virtual bool     getDCSEnabled() const;
-	virtual bool     getCCSEnabled() const;
-	virtual wxString getCCSHost() const;
-
-	virtual void onEnabled(wxCommandEvent& event);
+	virtual bool getEnabled() const;
 
 private:
 	wxString  m_title;
-	wxChoice* m_dcsEnabled;
-	wxChoice* m_ccsEnabled;
-	wxChoice* m_ccsHosts;
-
-	DECLARE_EVENT_TABLE()
+	wxChoice* m_enabled;
 };
 
 #endif

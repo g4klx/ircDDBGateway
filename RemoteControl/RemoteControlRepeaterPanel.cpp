@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2012,2013,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -302,9 +302,6 @@ void CRemoteControlRepeaterPanel::add(const CRemoteControlRepeaterData& data)
 				break;
 			case PROTO_DCS:
 				m_list->SetItem(0L, 1, wxT("DCS"));
-				break;
-			case PROTO_CCS:
-				m_list->SetItem(0L, 1, wxT("CCS"));
 				break;
 			default:
 				m_list->SetItem(0L, 1, wxT("?????"));
