@@ -59,6 +59,7 @@ Section "Repeater Program Files" SecProgram
   File "C:\wxWidgets-3.0.4\lib\vc_x64_dll\wxmsw30u_core_vc_x64_custom.dll"
   File "CHANGES.txt"
   File "COPYING.txt"
+  File "Data\CCS_Hosts.txt"
   File "Data\DCS_Hosts.txt"
   File "Data\DExtra_Hosts.txt"
   File "Data\DPlus_Hosts.txt"

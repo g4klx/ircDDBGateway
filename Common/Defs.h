@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 const wxString DEXTRA_HOSTS_FILE_NAME  = wxT("DExtra_Hosts.txt");
 const wxString DPLUS_HOSTS_FILE_NAME   = wxT("DPlus_Hosts.txt");
 const wxString DCS_HOSTS_FILE_NAME     = wxT("DCS_Hosts.txt");
+const wxString CCS_HOSTS_FILE_NAME     = wxT("CCS_Hosts.txt");
 const wxString GATEWAY_HOSTS_FILE_NAME = wxT("Gateway_Hosts.txt");
 
 const wxString LINKS_BASE_NAME   = wxT("Links");
@@ -56,7 +57,8 @@ enum DIRECTION {
 enum PROTOCOL {
 	PROTO_DEXTRA,
 	PROTO_DPLUS,
-	PROTO_DCS
+	PROTO_DCS,
+	PROTO_CCS
 };
 
 enum HW_TYPE {
@@ -107,10 +109,12 @@ enum LINK_STATUS {
 	LS_LINKING_DEXTRA,
 	LS_LINKING_DPLUS,
 	LS_LINKING_DCS,
+	LS_LINKING_CCS,
 	LS_LINKED_LOOPBACK,
 	LS_LINKED_DEXTRA,
 	LS_LINKED_DPLUS,
-	LS_LINKED_DCS
+	LS_LINKED_DCS,
+	LS_LINKED_CCS
 };
 
 enum SLOWDATA_STATE {

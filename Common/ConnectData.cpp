@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -203,6 +203,33 @@ bool CConnectData::setDCSData(const unsigned char* data, unsigned int length, co
 	return true;
 }
 
+bool CConnectData::setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+{
+	wxASSERT(data != NULL);
+	wxASSERT(length >= 14U);
+	wxASSERT(yourPort > 0U);
+
+	m_repeater = wxString((const char*)data, wxConvLocal, LONG_CALLSIGN_LENGTH);
+	m_repeater.SetChar(LONG_CALLSIGN_LENGTH - 1U, data[LONG_CALLSIGN_LENGTH + 0U]);
+
+	if (data[LONG_CALLSIGN_LENGTH + 2U] == 'A' &&
+		data[LONG_CALLSIGN_LENGTH + 3U] == 'C' &&
+		data[LONG_CALLSIGN_LENGTH + 4U] == 'K')
+		m_type = CT_ACK;
+	else if (data[LONG_CALLSIGN_LENGTH + 2U] == 'N' &&
+		     data[LONG_CALLSIGN_LENGTH + 3U] == 'A' &&
+			 data[LONG_CALLSIGN_LENGTH + 4U] == 'K')
+		m_type = CT_NAK;
+	else
+		return false;
+
+	m_yourAddress = yourAddress;
+	m_yourPort    = yourPort;
+	m_myPort      = myPort;
+
+	return true;
+}
+
 bool CConnectData::setDPlusData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
@@ -359,6 +386,46 @@ unsigned int CConnectData::getDCSData(unsigned char *data, unsigned int length) 
 			data[LONG_CALLSIGN_LENGTH + 4U] = 'K';
 			data[LONG_CALLSIGN_LENGTH + 5U] = 0x00;
 			return 14U;
+
+		default:
+			return 0U;
+	}
+}
+
+unsigned int CConnectData::getCCSData(unsigned char *data, unsigned int length) const
+{
+	wxASSERT(data != NULL);
+	wxASSERT(length >= 39U);
+
+	::memset(data, ' ', 39U);
+
+	for (unsigned int i = 0U; i < m_repeater.Len() && i < (LONG_CALLSIGN_LENGTH - 1U); i++)
+		data[i] = m_repeater.GetChar(i);
+
+	data[LONG_CALLSIGN_LENGTH + 0U] = m_repeater.GetChar(LONG_CALLSIGN_LENGTH - 1U);
+
+	switch (m_type) {
+		case CT_LINK1:
+		case CT_LINK2: {
+				data[9U]  = 0x41U;
+				data[10U] = '@';
+
+				for (unsigned int i = 0U; i < m_locator.Len(); i++)
+					data[11U + i] = m_locator.GetChar(i);
+
+				data[17U] = 0x20U;
+				data[18U] = '@';
+
+				wxString text;
+				text.Printf(wxT("ircDDB_GW-%s"), VERSION.Left(8U).c_str());
+
+				for (unsigned int i = 0U; i < text.Len(); i++)
+					data[19U + i] = text.GetChar(i);
+			}
+			return 39U;
+
+		case CT_UNLINK:
+			return 19U;
 
 		default:
 			return 0U;
