@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 #include "DPlusHandler.h"
 #include "DStarDefines.h"
 #include "DCSHandler.h"
-#include "CCSHandler.h"
 #include "HeaderData.h"
 #include "DDHandler.h"
 #include "AMBEData.h"
@@ -127,7 +126,6 @@ m_version(NULL),
 m_drats(NULL),
 m_dtmf(),
 m_pollTimer(1000U, 900U),			// 15 minutes
-m_ccsHandler(NULL),
 m_lastReflector(),
 m_heardUser(),
 m_heardRepeater(),
@@ -567,10 +565,6 @@ void CRepeaterHandler::processRepeater(CHeaderData& header)
 	if (!m_heardUser.IsEmpty() && !m_myCall1.IsSameAs(m_heardUser) && m_irc != NULL)
 		m_irc->sendHeard(m_heardUser, wxT("    "), wxT("        "), m_heardRepeater, wxT("        "), 0x00U, 0x00U, 0x00U);
 
-	// Inform CCS
-	m_ccsHandler->writeHeard(header);
-	m_ccsHandler->writeHeader(header);
-
 	// The Icom heard timer
 	m_heardTimer.stop();
 
@@ -711,16 +705,11 @@ void CRepeaterHandler::processRepeater(CHeaderData& header)
 		return;
 	}
 
-	if (isCCSCommand(m_yourCall)) {
-		ccsCommandHandler(m_yourCall, m_myCall1, wxT("UR Call"));
-		sendToOutgoing(header);
-	} else {
-		g2CommandHandler(m_yourCall, m_myCall1, header);
+	g2CommandHandler(m_yourCall, m_myCall1, header);
 
-		if (m_g2Status == G2_NONE) {
-			reflectorCommandHandler(m_yourCall, m_myCall1, wxT("UR Call"));
-			sendToOutgoing(header);
-		}
+	if (m_g2Status == G2_NONE) {
+		reflectorCommandHandler(m_yourCall, m_myCall1, wxT("UR Call"));
+		sendToOutgoing(header);
 	}
 }
 
@@ -756,8 +745,6 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 			if (!m_restricted && m_yourCall.Left(4U).IsSameAs(wxT("CQCQ"))) {
 				if (command.IsEmpty()) {
 					// Do nothing
-				} else if (isCCSCommand(command)) {
-					ccsCommandHandler(command, m_myCall1, wxT("DTMF"));
 				} else if (command.IsSameAs(wxT("       I"))) {
 					m_infoNeeded = true;
 				} else {
@@ -769,9 +756,6 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 
 	// Incoming links get everything
 	sendToIncoming(data);
-
-	// CCS gets everything
-	m_ccsHandler->writeAMBE(data);
 
 	if (m_drats != NULL)
 		m_drats->writeData(data);
@@ -957,10 +941,7 @@ void CRepeaterHandler::processBusy(CHeaderData& header)
 	if (m_yourCall.Left(4).IsSameAs(wxT("CQCQ")) || m_yourCall.IsSameAs(wxT("       E"))     || m_yourCall.IsSameAs(wxT("       I")))
 		return;
 
-	if (isCCSCommand(m_yourCall))
-		ccsCommandHandler(m_yourCall, m_myCall1, wxT("background UR Call"));
-	else
-		reflectorCommandHandler(m_yourCall, m_myCall1, wxT("background UR Call"));
+	reflectorCommandHandler(m_yourCall, m_myCall1, wxT("background UR Call"));
 }
 
 void CRepeaterHandler::processBusy(CAMBEData& data)
@@ -982,8 +963,6 @@ void CRepeaterHandler::processBusy(CAMBEData& data)
 			if (!m_restricted && m_yourCall.Left(4U).IsSameAs(wxT("CQCQ"))) {
 				if (command.IsEmpty()) {
 					// Do nothing
-				} else if (isCCSCommand(command)) {
-					ccsCommandHandler(command, m_myCall1, wxT("background DTMF"));
 				} else if (command.IsSameAs(wxT("       I"))) {
 					// Do nothing
 				} else {
@@ -1117,9 +1096,6 @@ bool CRepeaterHandler::process(CHeaderData& header, DIRECTION, AUDIO_SOURCE sour
 
 	sendToIncoming(header);
 
-	if (source == AS_DPLUS || source == AS_DEXTRA || source == AS_DCS)
-		m_ccsHandler->writeHeader(header);
-
 	if (source == AS_G2 || source == AS_INFO || source == AS_VERSION || source == AS_XBAND || source == AS_ECHO)
 		return true;
 
@@ -1153,9 +1129,6 @@ bool CRepeaterHandler::process(CAMBEData& data, DIRECTION, AUDIO_SOURCE source)
 	m_repeaterHandler->writeAMBE(data);
 
 	sendToIncoming(data);
-
-	if (source == AS_DPLUS || source == AS_DEXTRA || source == AS_DCS)
-		m_ccsHandler->writeAMBE(data);
 
 	if (source == AS_G2 || source == AS_INFO || source == AS_VERSION || source == AS_XBAND || source == AS_ECHO)
 		return true;
@@ -1455,16 +1428,6 @@ void CRepeaterHandler::clockInt(unsigned int ms)
 
 			writeNotLinked();
 			triggerInfo();
-		} else if (m_linkStatus == LS_LINKING_CCS) {
-			// CCS didn't reply in time
-			wxLogMessage(wxT("CCS did not reply within five seconds"));
-
-			m_ccsHandler->stopLink();
-
-			m_linkStatus = LS_NONE;
-			m_linkRepeater.Clear();
-
-			restoreLinks();
 		}
 	}
 
@@ -1745,17 +1708,6 @@ void CRepeaterHandler::linkRefused(DSTAR_PROTOCOL protocol, const wxString& call
 
 void CRepeaterHandler::link(RECONNECT reconnect, const wxString& reflector)
 {
-	// CCS removal
-	if (m_linkStatus == LS_LINKING_CCS || m_linkStatus == LS_LINKED_CCS) {
-		wxLogMessage(wxT("Dropping CCS link to %s"), m_linkRepeater.c_str());
-
-		m_ccsHandler->stopLink();
-
-		m_linkStatus = LS_NONE;
-		m_linkRepeater.Clear();
-		m_queryTimer.stop();
-	}
-
 	m_linkStartup   = reflector;
 	m_linkReconnect = reconnect;
 
@@ -1892,11 +1844,6 @@ void CRepeaterHandler::link(RECONNECT reconnect, const wxString& reflector)
 
 void CRepeaterHandler::unlink(PROTOCOL protocol, const wxString& reflector)
 {
-	if (protocol == PROTO_CCS) {
-		m_ccsHandler->unlink(reflector);
-		return;
-	}
-
 	if (m_linkReconnect == RECONNECT_FIXED && m_linkRepeater.IsSameAs(reflector)) {
 		wxLogMessage(wxT("Cannot unlink %s because it is fixed"), reflector.c_str());
 		return;
@@ -1922,9 +1869,6 @@ void CRepeaterHandler::unlink(PROTOCOL protocol, const wxString& reflector)
 
 void CRepeaterHandler::g2CommandHandler(const wxString& callsign, const wxString& user, CHeaderData& header)
 {
-	if (m_linkStatus == LS_LINKING_CCS || m_linkStatus == LS_LINKED_CCS)
-		return;
-
 	if (callsign.Left(1).IsSameAs(wxT("/"))) {
 		if (m_irc == NULL) {
 			wxLogMessage(wxT("%s is trying to G2 route with ircDDB disabled"), user.c_str());
@@ -2017,27 +1961,8 @@ void CRepeaterHandler::g2CommandHandler(const wxString& callsign, const wxString
 	}
 }
 
-void CRepeaterHandler::ccsCommandHandler(const wxString& callsign, const wxString& user, const wxString& type)
-{
-	if (callsign.IsSameAs(wxT("CA      "))) {
-		m_ccsHandler->stopLink(user, type);
-	} else {
-		CCS_STATUS status = m_ccsHandler->getStatus();
-		if (status == CS_CONNECTED) {
-			suspendLinks();
-			m_queryTimer.start();
-			m_linkStatus   = LS_LINKING_CCS;
-			m_linkRepeater = callsign.Mid(1U);
-			m_ccsHandler->startLink(m_linkRepeater, user, type);
-		}
-	}
-}
-
 void CRepeaterHandler::reflectorCommandHandler(const wxString& callsign, const wxString& user, const wxString& type)
 {
-	if (m_linkStatus == LS_LINKING_CCS || m_linkStatus == LS_LINKED_CCS)
-		return;
-
 	if (m_linkReconnect == RECONNECT_FIXED)
 		return;
 
@@ -2324,12 +2249,6 @@ void CRepeaterHandler::startupInt()
 	}
 
 
-	m_ccsHandler = new CCCSHandler(this, m_rptCallsign, m_index + 1U, m_latitude, m_longitude, m_frequency, m_offset, m_description1, m_description2, m_url, CCS_PORT + m_index);
-
-	// Start up our CCS link if we are DV mode
-	if (!m_ddMode)
-		m_ccsHandler->connect();
-
 	// Link to a startup reflector/repeater
 	if (m_linkAtStartup && !m_linkStartup.IsEmpty()) {
 		wxLogMessage(wxT("Linking %s at startup to %s"), m_rptCallsign.c_str(), m_linkStartup.c_str());
@@ -2460,8 +2379,6 @@ void CRepeaterHandler::writeLinkingTo(const wxString &callsign)
 
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
 	triggerInfo();
-
-	m_ccsHandler->setReflector();
 }
 
 void CRepeaterHandler::writeLinkedTo(const wxString &callsign)
@@ -2510,8 +2427,6 @@ void CRepeaterHandler::writeLinkedTo(const wxString &callsign)
 
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
 	triggerInfo();
-
-	m_ccsHandler->setReflector(callsign);
 }
 
 void CRepeaterHandler::writeNotLinked()
@@ -2560,8 +2475,6 @@ void CRepeaterHandler::writeNotLinked()
 
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
 	triggerInfo();
-
-	m_ccsHandler->setReflector();
 }
 
 void CRepeaterHandler::writeIsBusy(const wxString& callsign)
@@ -2626,228 +2539,6 @@ void CRepeaterHandler::writeIsBusy(const wxString& callsign)
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
 	m_infoAudio->setTempStatus(m_linkStatus, m_linkRepeater, tempText);
 	triggerInfo();
-
-	m_ccsHandler->setReflector();
-}
-
-void CRepeaterHandler::ccsLinkMade(const wxString& callsign, DIRECTION direction)
-{
-	wxString text;
-
-	switch (m_language) {
-		case TL_DEUTSCH:
-			text.Printf(wxT("Verlinkt zu %s"), callsign.c_str());
-			break;
-		case TL_DANSK:
-			text.Printf(wxT("Linket til %s"), callsign.c_str());
-			break;
-		case TL_FRANCAIS:
-			text.Printf(wxT("Connecte a %s"), callsign.c_str());
-			break;
-		case TL_ITALIANO:
-			text.Printf(wxT("Connesso a %s"), callsign.c_str());
-			break;
-		case TL_POLSKI:
-			text.Printf(wxT("Polaczony z %s"), callsign.c_str());
-			break;
-		case TL_ESPANOL:
-			text.Printf(wxT("Enlazado %s"), callsign.c_str());
-			break;
-		case TL_SVENSKA:
-			text.Printf(wxT("Lankad till %s"), callsign.c_str());
-			break;
-		case TL_NEDERLANDS_NL:
-		case TL_NEDERLANDS_BE:
-			text.Printf(wxT("Gelinkt met %s"), callsign.c_str());
-			break;
-		case TL_NORSK:
-			text.Printf(wxT("Tilkoblet %s"), callsign.c_str());
-			break;
-		case TL_PORTUGUES:
-			text.Printf(wxT("Conectado a %s"), callsign.c_str());
-			break;
-		default:
-			text.Printf(wxT("Linked to %s"), callsign.c_str());
-			break;
-	}
-
-	if (direction == DIR_OUTGOING) {
-		suspendLinks();
-
-		m_linkStatus   = LS_LINKED_CCS;
-		m_linkRepeater = callsign;
-		m_queryTimer.stop();
-
-		CTextData textData(m_linkStatus, callsign, text, m_address, m_port);
-		m_repeaterHandler->writeText(textData);
-
-		m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
-		triggerInfo();
-	} else {
-		CTextData textData(m_linkStatus, m_linkRepeater, text, m_address, m_port, true);
-		m_repeaterHandler->writeText(textData);
-
-		m_infoAudio->setTempStatus(LS_LINKED_CCS, callsign, text);
-		triggerInfo();
-	}
-}
-
-void CRepeaterHandler::ccsLinkEnded(const wxString&, DIRECTION direction)
-{
-	wxString tempText;
-	wxString text;
-
-	switch (m_language) {
-		case TL_DEUTSCH:
-			text = wxT("Nicht verbunden");
-			tempText = wxT("CCS ist beendet");
-			break;
-		case TL_DANSK:
-			text = wxT("Ikke forbundet");
-			tempText = wxT("CCS er afsluttet");
-			break;
-		case TL_FRANCAIS:
-			text = wxT("Non connecte");
-			tempText = wxT("CCS a pris fin");
-			break;
-		case TL_ITALIANO:
-			text = wxT("Non connesso");
-			tempText = wxT("CCS e finita");
-			break;
-		case TL_POLSKI:
-			text = wxT("Nie polaczony");
-			tempText = wxT("CCS zakonczyl");
-			break;
-		case TL_ESPANOL:
-			text = wxT("No enlazado");
-			tempText = wxT("CCS ha terminado");
-			break;
-		case TL_SVENSKA:
-			text = wxT("Ej lankad");
-			tempText = wxT("CCS har upphort");
-			break;
-		case TL_NEDERLANDS_NL:
-		case TL_NEDERLANDS_BE:
-			text = wxT("Niet gelinkt");
-			tempText = wxT("CCS is afgelopen");
-			break;
-		case TL_NORSK:
-			text = wxT("Ikke linket");
-			tempText = wxT("CCS er avsluttet");
-			break;
-		case TL_PORTUGUES:
-			text = wxT("Desconectado");
-			tempText = wxT("CCS terminou");
-			break;
-		default:
-			text = wxT("Not linked");
-			tempText = wxT("CCS has ended");
-			break;
-	}
-
-	if (direction == DIR_OUTGOING) {
-		m_linkStatus = LS_NONE;
-		m_linkRepeater.Clear();
-		m_queryTimer.stop();
-
-		bool res = restoreLinks();
-		if (!res) {
-			CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
-			m_repeaterHandler->writeText(textData1);
-
-			CTextData textData2(m_linkStatus, m_linkRepeater, text, m_address, m_port);
-			m_repeaterHandler->writeText(textData2);
-
-			m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
-			m_infoAudio->setTempStatus(m_linkStatus, m_linkRepeater, tempText);
-			triggerInfo();
-		}
-	} else {
-		CTextData textData(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
-		m_repeaterHandler->writeText(textData);
-
-		m_infoAudio->setTempStatus(m_linkStatus, m_linkRepeater, tempText);
-		triggerInfo();
-	}
-}
-
-void CRepeaterHandler::ccsLinkFailed(const wxString& dtmf, DIRECTION direction)
-{
-	wxString tempText;
-	wxString text;
-
-	switch (m_language) {
-		case TL_DEUTSCH:
-			text = wxT("Nicht verbunden");
-			tempText.Printf(wxT("%s unbekannt"), dtmf.c_str());
-			break;
-		case TL_DANSK:
-			text = wxT("Ikke forbundet");
-			tempText.Printf(wxT("%s unknown"), dtmf.c_str());
-			break;
-		case TL_FRANCAIS:
-			text = wxT("Non connecte");
-			tempText.Printf(wxT("%s inconnu"), dtmf.c_str());
-			break;
-		case TL_ITALIANO:
-			text = wxT("Non connesso");
-			tempText.Printf(wxT("Sconosciuto %s"), dtmf.c_str());
-			break;
-		case TL_POLSKI:
-			text = wxT("Nie polaczony");
-			tempText.Printf(wxT("%s nieznany"), dtmf.c_str());
-			break;
-		case TL_ESPANOL:
-			text = wxT("No enlazado");
-			tempText.Printf(wxT("Desconocido %s"), dtmf.c_str());
-			break;
-		case TL_SVENSKA:
-			text = wxT("Ej lankad");
-			tempText.Printf(wxT("%s okand"), dtmf.c_str());
-			break;
-		case TL_NEDERLANDS_NL:
-		case TL_NEDERLANDS_BE:
-			text = wxT("Niet gelinkt");
-			tempText.Printf(wxT("%s bekend"), dtmf.c_str());
-			break;
-		case TL_NORSK:
-			text = wxT("Ikke linket");
-			tempText.Printf(wxT("%s ukjent"), dtmf.c_str());
-			break;
-		case TL_PORTUGUES:
-			text = wxT("Desconectado");
-			tempText.Printf(wxT("%s desconhecido"), dtmf.c_str());
-			break;
-		default:
-			text = wxT("Not linked");
-			tempText.Printf(wxT("%s unknown"), dtmf.c_str());
-			break;
-	}
-
-	if (direction == DIR_OUTGOING) {
-		m_linkStatus = LS_NONE;
-		m_linkRepeater.Clear();
-		m_queryTimer.stop();
-
-		bool res = restoreLinks();
-		if (!res) {
-			CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
-			m_repeaterHandler->writeText(textData1);
-
-			CTextData textData2(m_linkStatus, m_linkRepeater, text, m_address, m_port);
-			m_repeaterHandler->writeText(textData2);
-
-			m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
-			m_infoAudio->setTempStatus(m_linkStatus, m_linkRepeater, tempText);
-			triggerInfo();
-		}
-	} else {
-		CTextData textData(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
-		m_repeaterHandler->writeText(textData);
-
-		m_infoAudio->setTempStatus(m_linkStatus, m_linkRepeater, tempText);
-		triggerInfo();
-	}
 }
 
 void CRepeaterHandler::writeStatus(CStatusData& statusData)
@@ -2900,8 +2591,6 @@ void CRepeaterHandler::suspendLinks()
 	m_linkStatus = LS_NONE;
 	m_linkRepeater.Clear();
 	m_linkReconnectTimer.stop();
-
-	m_ccsHandler->setReflector();
 }
 
 bool CRepeaterHandler::restoreLinks()
@@ -2943,28 +2632,4 @@ void CRepeaterHandler::triggerInfo()
 		m_infoAudio->sendStatus();
 		m_infoNeeded = false;
 	}
-}
-
-bool CRepeaterHandler::isCCSCommand(const wxString& command) const
-{
-	if (command.IsSameAs(wxT("CA      ")))
-		return true;
-
-	wxChar c = command.GetChar(0U);
-	if (c != wxT('C'))
-		return false;
-
-	c = command.GetChar(1U);
-	if (c < wxT('0') || c > wxT('9'))
-		return false;
-
-	c = command.GetChar(2U);
-	if (c < wxT('0') || c > wxT('9'))
-		return false;
-
-	c = command.GetChar(3U);
-	if (c < wxT('0') || c > wxT('9'))
-		return false;
-
-	return true;
 }
