@@ -20,10 +20,11 @@
 #define	IRCDDBGatewayDefs_H
 
 #include <wx/wx.h>
+#include "../GlobalDefines.h"
 
 const wxString APPLICATION_NAME = wxT("ircDDB Gateway");
 
-const wxString CONFIG_FILE_NAME = wxT("ircDDBGateway.ini");
+const wxString CONFIG_FILE_NAME = wxT(CONF_FILE);
 
 const wxString STATUS1_FILE_NAME = wxT("status1.txt");
 const wxString STATUS2_FILE_NAME = wxT("status2.txt");
