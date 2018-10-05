@@ -216,7 +216,7 @@ bool CAPRSWriterThread::connect()
 		m_socket.close();
 		return false;
 	}
-	wxLogMessage(wxT("Received login banner : %s") + serverResponse.c_str());
+	wxLogMessage(wxT("Received login banner : %s"), serverResponse.c_str());
 
 	wxString filter(m_filter);
 	if (filter.Length() > 0) filter.Prepend(wxT(" filter "));
@@ -242,7 +242,7 @@ bool CAPRSWriterThread::connect()
 		return false;
 	}
 
-	wxLogMessage(wxT("Response from APRS server: %s") + serverResponse.c_str());
+	wxLogMessage(wxT("Response from APRS server: %s"), serverResponse.c_str());
 
 	wxLogMessage(wxT("Connected to the APRS server"));
 
