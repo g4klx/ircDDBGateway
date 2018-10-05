@@ -23,3 +23,5 @@
 #define LOG_BASE "ircddbgateway"
 
 #endif
+
+#endif
