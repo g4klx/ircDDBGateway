@@ -27,8 +27,10 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
+#if defined(__linux__)
 #include <linux/if_tun.h>
 #include <linux/sockios.h>
+#endif
 #include <netinet/in.h>
 #endif
 
@@ -103,7 +105,7 @@ void CDDHandler::initialise(unsigned int maxRoutes, const wxString& name)
 	// Add a dummy entry for "DX-Cluster" multicast
 	m_list[2] = new CEthernet(DX_MULTICAST_ADDRESS, wxT("CQCQCQ  "));
 
-#if !defined(WIN32)
+#if defined(__linux__)
 	m_fd = ::open("/dev/net/tun", O_RDWR);
 	if (m_fd < 0) {
 		wxLogError(wxT("Cannot open /dev/net/tun"));
