@@ -1,5 +1,3 @@
-include ../common.mk
-
 OBJECTS = IRCClient.o IRCDDBApp.o IRCDDBClient.o IRCDDB.o IRCDDBMultiClient.o IRCMessage.o IRCMessageQueue.o IRCProtocol.o IRCReceiver.o \
 	  IRCutils.o
 

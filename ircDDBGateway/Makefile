@@ -1,5 +1,3 @@
-include ../common.mk
-
 OBJECTS = IRCDDBGatewayAppD.o IRCDDBGatewayStatusData.o IRCDDBGatewayThread.o IRCDDBGatewayThreadHelper.o
 
 all:		ircddbgatewayd

@@ -2,9 +2,9 @@
 #define __GLOBAL_DEFS__
 
 #if defined(__APPLE__)
-#define DATA_DIR "/etc/mmdvm/dstar"
-#define LOG_DIR  "/var/log/mmdvm"
-#define CONF_DIR "/etc"
+#define DATA_DIR "/opt/mmdvm/conf/dstar"
+#define LOG_DIR  "/opt/mmdvm/logs"
+#define CONF_DIR "/opt/mmdvm/conf"
 #define CONF_FILE "ircDDBGateway.ini"
 #define LOG_BASE "ircDDBGateway"
 
@@ -20,7 +20,7 @@
 #define LOG_DIR  "/tmp"
 #define CONF_DIR "/etc"
 #define CONF_FILE "ircddbgateway"
-#define LOG_BASE "ircddbgateway"
+#define LOG_BASE "ircddbgatewayd"
 
 #endif
 
