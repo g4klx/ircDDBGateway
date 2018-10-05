@@ -50,7 +50,7 @@ const wxChar*    LOGDIR_OPTION = wxT("logdir");
 const wxChar*   CONFDIR_OPTION = wxT("confdir");
 const wxChar*    DAEMON_SWITCH = wxT("daemon");
 
-const wxString LOG_BASE_NAME    = wxT("LOG_BASE");
+const wxString LOG_BASE_NAME    = wxT(LOG_BASE);
 
 static CIRCDDBGatewayAppD* m_gateway = NULL;
 
