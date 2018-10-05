@@ -23,7 +23,7 @@
 
 const wxString APPLICATION_NAME = wxT("ircDDB Gateway");
 
-const wxString CONFIG_FILE_NAME = wxT("ircddbgateway");
+const wxString CONFIG_FILE_NAME = wxT("ircDDBGateway.ini");
 
 const wxString STATUS1_FILE_NAME = wxT("status1.txt");
 const wxString STATUS2_FILE_NAME = wxT("status2.txt");
