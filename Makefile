@@ -1,4 +1,9 @@
-include common.mk
+
+# CXX     := $(shell wx-config --cxx)
+# CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
+# GUILIBS := $(shell wx-config --libs adv,core,base)
+# LIBS    := $(shell wx-config --libs base)
+# LDFLAGS := 
 
 all:	ircDDBGateway/ircddbgatewayd
 
