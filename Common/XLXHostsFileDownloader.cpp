@@ -29,6 +29,7 @@ wxString CXLXHostsFileDownloader::Download(const wxString & xlxHostsFileURL)
 {
 #ifdef XLX_USE_WGET
 	wxString xlxHostsFileName = wxFileName::CreateTempFileName(_T("XLX_Hosts_"));
+	wxLogMessage(_T("Downloading XLX host file..."));
 	wxString commandLine = _T("wget -q -O ") + xlxHostsFileName + _T(" ") + xlxHostsFileURL;
 	bool execResult = wxShell(commandLine);
 	

@@ -28,7 +28,7 @@
 class CIRCDDBGatewayAppD {
 
 public:
-	CIRCDDBGatewayAppD(bool nolog, const wxString& logDir, const wxString& confDir, const wxString& name);
+	CIRCDDBGatewayAppD(bool nolog, bool debug, const wxString& logDir, const wxString& confDir, const wxString& name);
 	~CIRCDDBGatewayAppD();
 
 	bool init();
@@ -40,6 +40,7 @@ public:
 private:
 	wxString                 m_name;
 	bool                     m_nolog;
+	bool                     m_debug;
 	wxString                 m_logDir;
 	wxString                 m_confDir;
 	CIRCDDBGatewayThread*    m_thread;

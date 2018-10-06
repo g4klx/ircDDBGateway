@@ -80,7 +80,13 @@ void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogReco
 		default:               letter = wxT("U"); break;
 	}
 
-	struct tm* tm = ::gmtime(&info.timestamp);
+	bool utc = false;
+	struct tm* tm;
+	if (utc){
+		tm = ::gmtime(&info.timestamp);
+	}else{
+		tm = ::localtime(&info.timestamp);
+	}
 
 	wxString message;
 	message.Printf(wxT("%s: %04d-%02d-%02d %02d:%02d:%02d: %s\n"), letter.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, msg.c_str());

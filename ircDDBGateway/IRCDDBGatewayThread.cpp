@@ -684,19 +684,19 @@ void CIRCDDBGatewayThread::processIrcDDB()
 			case 0:
 			case 10:
 				if (m_lastStatus != IS_DISCONNECTED) {
-					wxLogInfo(wxT("Disconnected from ircDDB"));
+					wxLogMessage(wxT("Disconnected from ircDDB"));
 					m_lastStatus = IS_DISCONNECTED;
 				}
 				break;
 			case 7:
 				if (m_lastStatus != IS_CONNECTED) {
-					wxLogInfo(wxT("Connected to ircDDB"));
+					wxLogMessage(wxT("Connected to ircDDB"));
 					m_lastStatus = IS_CONNECTED;
 				}
 				break;
 			default:
 				if (m_lastStatus != IS_CONNECTING) {
-					wxLogInfo(wxT("Connecting to ircDDB"));
+					wxLogMessage(wxT("Connecting to ircDDB"));
 					m_lastStatus = IS_CONNECTING;
 				}
 				break;
@@ -717,10 +717,10 @@ void CIRCDDBGatewayThread::processIrcDDB()
 						break;
 
 					if (!address.IsEmpty()) {
-						wxLogMessage(wxT("USER: %s %s %s %s"), user.c_str(), repeater.c_str(), gateway.c_str(), address.c_str());
+						wxLogInfo(wxT("USER: %s %s %s %s"), user.c_str(), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateUser(user, repeater, gateway, address, timestamp, DP_DEXTRA, false, false);
 					} else {
-						wxLogMessage(wxT("USER: %s NOT FOUND"), user.c_str());
+						wxLogInfo(wxT("USER: %s NOT FOUND"), user.c_str());
 					}
 				}
 				break;
@@ -733,7 +733,7 @@ void CIRCDDBGatewayThread::processIrcDDB()
 
 					CRepeaterHandler::resolveRepeater(repeater, gateway, address, DP_DEXTRA);
 					if (!address.IsEmpty()) {
-						wxLogMessage(wxT("REPEATER: %s %s %s"), repeater.c_str(), gateway.c_str(), address.c_str());
+						wxLogInfo(wxT("REPEATER: %s %s %s"), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateRepeater(repeater, gateway, address, DP_DEXTRA, false, false);
 					} else {
 						wxLogMessage(wxT("REPEATER: %s NOT FOUND"), repeater.c_str());
@@ -750,7 +750,7 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					CDExtraHandler::gatewayUpdate(gateway, address);
 					CDPlusHandler::gatewayUpdate(gateway, address);
 					if (!address.IsEmpty()) {
-						wxLogMessage(wxT("GATEWAY: %s %s"), gateway.c_str(), address.c_str());
+						wxLogInfo(wxT("GATEWAY: %s %s"), gateway.c_str(), address.c_str());
 						m_cache.updateGateway(gateway, address, DP_DEXTRA, false, false);
 					} else {
 						wxLogMessage(wxT("GATEWAY: %s NOT FOUND"), gateway.c_str());
@@ -794,7 +794,7 @@ void CIRCDDBGatewayThread::processRepeater(IRepeaterProtocolHandler* handler)
 						if (!repeater.IsSameAs(user)) {
 							CRepeaterHandler* handler = CRepeaterHandler::findDVRepeater(repeater);
 							if (handler == NULL)
-								wxLogMessage(wxT("Heard received from unknown repeater, %s"), repeater.c_str());
+								wxLogInfo(wxT("Heard received from unknown repeater, %s"), repeater.c_str());
 							else
 								handler->processRepeater(*heard);
 
