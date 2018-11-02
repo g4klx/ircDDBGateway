@@ -144,7 +144,7 @@ CAMBEData* CG2ProtocolHandler::readAMBE()
 	return data;
 }
 
-void CG2ProtocolHandler::PunchUDPHole(const wxString& address)
+void CG2ProtocolHandler::punchUDPHole(const wxString& address)
 {
 	unsigned char buffer[1];
 	::memset(buffer, 0, 1);
