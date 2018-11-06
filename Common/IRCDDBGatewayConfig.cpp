@@ -202,6 +202,9 @@ const wxString  KEY_ECHO_ENABLED             = wxT("echoEnabled");
 const wxString  KEY_LOG_ENABLED              = wxT("logEnabled");
 const wxString  KEY_DRATS_ENABLED            = wxT("dratsEnabled");
 const wxString  KEY_DTMF_ENABLED             = wxT("dtmfEnabled");
+const wxString  KEY_MOBILE_GPS_ENABLED       = wxT("mobileGPSEnabled");
+const wxString  KEY_MOBILE_GPS_ADDRESS       = wxT("mobileGPSAddress");
+const wxString  KEY_MOBILE_GPS_PORT          = wxT("mobileGPSPort");
 const wxString  KEY_WINDOW_X                 = wxT("windowX");
 const wxString  KEY_WINDOW_Y                 = wxT("windowY");
 
@@ -285,6 +288,9 @@ const bool         DEFAULT_INFO_ENABLED          = true;
 const bool         DEFAULT_ECHO_ENABLED          = true;
 const bool         DEFAULT_DRATS_ENABLED         = false;
 const bool         DEFAULT_DTMF_ENABLED          = true;
+const bool         DEFAULT_MOBILE_GPS_ENABLED    = false;
+const wxString     DEFAULT_MOBILE_GPS_ADDRESS    = wxT("127.0.0.1");
+const unsigned int DEFAULT_MOBILE_GPS_PORT       = 7834U;
 const int          DEFAULT_WINDOW_X              = -1;
 const int          DEFAULT_WINDOW_Y              = -1;
 
@@ -477,6 +483,9 @@ m_echoEnabled(DEFAULT_ECHO_ENABLED),
 m_logEnabled(DEFAULT_LOG_ENABLED),
 m_dratsEnabled(DEFAULT_DRATS_ENABLED),
 m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
+m_mobileGPSEnabled(DEFAULT_MOBILE_GPS_ENABLED),
+m_mobileGPSAddress(DEFAULT_MOBILE_GPS_ADDRESS),
+m_mobileGPSPort(DEFAULT_MOBILE_GPS_PORT),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -892,6 +901,13 @@ m_y(DEFAULT_WINDOW_Y)
 
 	m_config->Read(m_name + KEY_DTMF_ENABLED, &m_dtmfEnabled, DEFAULT_DTMF_ENABLED);
 
+	m_config->Read(m_name + KEY_MOBILE_GPS_ENABLED, &m_mobileGPSEnabled, DEFAULT_MOBILE_GPS_ENABLED);
+
+	m_config->Read(m_name + KEY_MOBILE_GPS_ADDRESS, &m_mobileGPSAddress, DEFAULT_MOBILE_GPS_ADDRESS);
+
+	m_config->Read(m_name + KEY_MOBILE_GPS_PORT, &temp, long(DEFAULT_MOBILE_GPS_PORT));
+	m_mobileGPSPort = (unsigned int)temp;
+
 	m_config->Read(m_name + KEY_WINDOW_X, &temp, long(DEFAULT_WINDOW_X));
 	m_x = int(temp);
 
@@ -1090,6 +1106,9 @@ m_echoEnabled(DEFAULT_ECHO_ENABLED),
 m_logEnabled(DEFAULT_LOG_ENABLED),
 m_dratsEnabled(DEFAULT_DRATS_ENABLED),
 m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
+m_mobileGPSEnabled(DEFAULT_MOBILE_GPS_ENABLED),
+m_mobileGPSAddress(DEFAULT_MOBILE_GPS_ADDRESS),
+m_mobileGPSPort(DEFAULT_MOBILE_GPS_PORT),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -1570,6 +1589,14 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_DTMF_ENABLED)) {
 			val.ToLong(&temp1);
 			m_dtmfEnabled = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_MOBILE_GPS_ENABLED)) {
+			val.ToLong(&temp1);
+			m_mobileGPSEnabled = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_MOBILE_GPS_ADDRESS)) {
+			m_mobileGPSAddress = val;
+		} else if (key.IsSameAs(KEY_MOBILE_GPS_PORT)) {
+			val.ToULong(&temp2);
+			m_mobileGPSPort = (unsigned int)temp2;
 		} else if (key.IsSameAs(KEY_WINDOW_X)) {
 			val.ToLong(&temp1);
 			m_x = int(temp1);
@@ -2199,6 +2226,20 @@ void CIRCDDBGatewayConfig::setMiscellaneous(TEXT_LANG language, bool infoEnabled
 	m_dtmfEnabled  = dtmfEnabled;
 }
 
+void CIRCDDBGatewayConfig::getMobileGPS(bool& enabled, wxString& address, unsigned int& port) const
+{
+	enabled = m_mobileGPSEnabled;
+	address = m_mobileGPSAddress;
+	port    = m_mobileGPSPort;
+}
+
+void CIRCDDBGatewayConfig::setMobileGPS(bool enabled, const wxString& address, unsigned int port)
+{
+	m_mobileGPSEnabled = enabled;
+	m_mobileGPSAddress = address;
+	m_mobileGPSPort    = port;
+}
+
 void CIRCDDBGatewayConfig::getPosition(int& x, int& y) const
 {
 	x = m_x;
@@ -2439,6 +2480,9 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_LOG_ENABLED, m_logEnabled);
 	m_config->Write(m_name + KEY_DRATS_ENABLED, m_dratsEnabled);
 	m_config->Write(m_name + KEY_DTMF_ENABLED, m_dtmfEnabled);
+	m_config->Write(m_name + KEY_MOBILE_GPS_ENABLED, m_mobileGPSEnabled);
+	m_config->Write(m_name + KEY_MOBILE_GPS_ADDRESS, m_mobileGPSAddress);
+	m_config->Write(m_name + KEY_MOBILE_GPS_PORT, long(m_mobileGPSPort));
 	m_config->Write(m_name + KEY_WINDOW_X, long(m_x));
 	m_config->Write(m_name + KEY_WINDOW_Y, long(m_y));
 	m_config->Flush();
@@ -2647,6 +2691,9 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%d"), KEY_LOG_ENABLED.c_str(), m_logEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DRATS_ENABLED.c_str(), m_dratsEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DTMF_ENABLED.c_str(), m_dtmfEnabled ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%d"), KEY_MOBILE_GPS_ENABLED.c_str(), m_mobileGPSEnabled ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_MOBILE_GPS_ADDRESS.c_str(), m_mobileGPSAddress.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%u"), KEY_MOBILE_GPS_PORT.c_str(), m_mobileGPSPort); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_X.c_str(), m_x); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_Y.c_str(), m_y); file.AddLine(buffer);
 
