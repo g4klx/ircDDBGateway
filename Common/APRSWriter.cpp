@@ -290,10 +290,10 @@ void CAPRSWriter::clock(unsigned int ms)
 			m_idTimer.start();
 		}
 
-		sendIdFrameMobile();
+		sendIdFramesMobile();
 	} else {
 		if (m_idTimer.hasExpired()) {
-			sendIdFrameFixed();
+			sendIdFramesFixed();
 			m_idTimer.start();
 		}
 	}

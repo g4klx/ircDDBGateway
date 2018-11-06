@@ -73,9 +73,9 @@ public:
 
 	bool open();
 
-	void setFixedPort(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
+	void setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
 
-	void setMobilePort(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, unsigned int port);
+	void setPortMobile(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, unsigned int port);
 
 	void writeHeader(const wxString& callsign, const CHeaderData& header);
 

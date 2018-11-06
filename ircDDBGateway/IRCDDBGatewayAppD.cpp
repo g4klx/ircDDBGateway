@@ -269,7 +269,7 @@ bool CIRCDDBGatewayAppD::createThread()
 	wxString mobileGPSAddress;
 	unsigned int mobileGPSPort;
 	config.getMobileGPS(mobileGPSEnabled, mobileGPSAddress, mobileGPSPort);
-	wxLogInfo(wxT("Mobile GPS: %d, address: %s, port: %u"), int(mobileGPSEnabled), mobileGPSAddress.c_str(), m_mobileGPSPort);
+	wxLogInfo(wxT("Mobile GPS: %d, address: %s, port: %u"), int(mobileGPSEnabled), mobileGPSAddress.c_str(), mobileGPSPort);
 
 	CIcomRepeaterProtocolHandler* icomRepeaterHandler = NULL;
 	CHBRepeaterProtocolHandler* hbRepeaterHandler = NULL;
@@ -348,7 +348,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign1, repeaterBand1, frequency1, offset1, range1, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign1, repeaterBand1, frequency1, offset1, range1, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
 			}
@@ -359,7 +359,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign1, repeaterBand1, frequency1, offset1, range1, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign1, repeaterBand1, frequency1, offset1, range1, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
 			}
@@ -444,7 +444,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign2, repeaterBand2, frequency2, offset2, range2, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign2, repeaterBand2, frequency2, offset2, range2, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
 			}
@@ -455,7 +455,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign2, repeaterBand2, frequency2, offset2, range2, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign2, repeaterBand2, frequency2, offset2, range2, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl1);
 			}
@@ -544,7 +544,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign3, repeaterBand3, frequency3, offset3, range3, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign3, repeaterBand3, frequency3, offset3, range3, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
 			}
@@ -555,7 +555,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign3, repeaterBand3, frequency3, offset3, range3, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign3, repeaterBand3, frequency3, offset3, range3, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
 			}
@@ -648,7 +648,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign4, repeaterBand4, frequency4, offset4, range4, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign4, repeaterBand4, frequency4, offset4, range4, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
 			}
@@ -659,7 +659,7 @@ bool CIRCDDBGatewayAppD::createThread()
 
 			if (aprs != NULL) {
 				if (mobileGPSEnabled)
-					aprs->setPortMobile(callsign4, repeaterBand4, frequency4, offset4, range4, m_mobileGPSAddress, m_mobileGPSPort);
+					aprs->setPortMobile(callsign4, repeaterBand4, frequency4, offset4, range4, mobileGPSAddress, mobileGPSPort);
 				else
 					aprs->setPortFixed(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
 			}
