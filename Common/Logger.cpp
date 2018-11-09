@@ -18,7 +18,7 @@
 
 #include "Logger.h"
 
-#if defined(LOG_LOCALTIME) && LOG_LOCAL_TIME == 1
+#if defined(LOG_LOCALTIME) && LOG_LOCALTIME == 1
 static const bool utc = false;
 #else
 static const bool utc = true;
