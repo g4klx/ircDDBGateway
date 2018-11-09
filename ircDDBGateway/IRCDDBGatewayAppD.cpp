@@ -124,9 +124,9 @@ int main(int argc, char** argv)
 
 	wxString pidFileName;
 	if (!name.IsEmpty())
-		pidFileName.Printf(wxT("/var/run/opendv/ircddbgateway_%s.pid"), name.c_str());
+		pidFileName.Printf(wxT(PID_FILE_T), name.c_str());
 	else
-		pidFileName = wxT("/var/run/opendv/ircddbgateway.pid");
+		pidFileName = wxT(PID_FILE);
 	pidFileName.Replace(wxT(" "), wxT("_"));
 
 	char fileName[128U];
