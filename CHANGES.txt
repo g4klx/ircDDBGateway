@@ -1481,3 +1481,9 @@ Simplify the Linux build.
 --------
 
 Support the GPS data from the Kenwood TH-D74.
+
+2018xxxx
+--------
+
+Add support for external GPS input for mobile systems.
+

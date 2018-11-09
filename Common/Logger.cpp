@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2002,2003,2009,2011,2012,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2002,2003,2009,2011,2012 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,20 +19,17 @@
 #include "Logger.h"
 
 CLogger::CLogger(const wxString& directory, const wxString& name) :
-#if(defined(__WINDOWS__))
-m_day(0),
-#endif
 wxLog(),
 m_name(name),
 m_file(NULL),
-m_fileName()
+m_fileName(),
+m_day(0)
 {
 	m_file = new wxFFile;
 
 	m_fileName.SetPath(directory);
 	m_fileName.SetExt(wxT("log"));
 
-#if(defined(__WINDOWS__))
 	time_t timestamp;
 	::time(&timestamp);
 	struct tm* tm = ::gmtime(&timestamp);
@@ -42,9 +39,6 @@ m_fileName()
 
 	m_day = tm->tm_yday;
 	m_fileName.SetName(text);
-#else
-	m_fileName.SetName(m_name);
-#endif
 
 	bool ret = m_file->Open(m_fileName.GetFullPath(), wxT("a+t"));
 	if (!ret) {
@@ -61,10 +55,11 @@ CLogger::~CLogger()
 	delete m_file;
 }
 
-void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info)
+void CLogger::DoLog(wxLogLevel level, const wxChar* msg, time_t timestamp)
 {
 	wxASSERT(m_file != NULL);
 	wxASSERT(m_file->IsOpened());
+	wxASSERT(msg != NULL);
 
 	wxString letter;
 
@@ -83,26 +78,26 @@ void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogReco
 	bool utc = false;
 	struct tm* tm;
 	if (utc){
-		tm = ::gmtime(&info.timestamp);
+		tm = ::gmtime(&timestamp);
 	}else{
-		tm = ::localtime(&info.timestamp);
+		tm = ::localtime(&timestamp);
 	}
 
 	wxString message;
-	message.Printf(wxT("%s: %04d-%02d-%02d %02d:%02d:%02d: %s\n"), letter.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, msg.c_str());
+	message.Printf(wxT("%s: %04d-%02d-%02d %02d:%02d:%02d: %s\n"), letter.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, msg);
 
-	logString(message, info.timestamp);
+	DoLogString(message.c_str(), timestamp);
 
 	if (level == wxLOG_FatalError)
 		::abort();
 }
 
-void CLogger::logString(const wxString& msg, time_t timestamp)
+void CLogger::DoLogString(const wxChar* msg, time_t timestamp)
 {
 	wxASSERT(m_file != NULL);
 	wxASSERT(m_file->IsOpened());
+	wxASSERT(msg != NULL);
 
-#if(defined(__WINDOWS__))
 	struct tm* tm = ::gmtime(&timestamp);
 
 	int day = tm->tm_yday;
@@ -121,8 +116,8 @@ void CLogger::logString(const wxString& msg, time_t timestamp)
 			return;
 		}
 	}
-#endif
 
-	m_file->Write(msg);
+	m_file->Write(wxString(msg));
 	m_file->Flush();
 }
+

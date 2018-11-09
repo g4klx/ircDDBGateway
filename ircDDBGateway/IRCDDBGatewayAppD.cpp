@@ -51,7 +51,7 @@ const wxChar*   CONFDIR_OPTION = wxT("confdir");
 const wxChar*    DAEMON_SWITCH = wxT("daemon");
 const wxChar*     DEBUG_SWITCH = wxT("debug");
 
-const wxString LOG_BASE_NAME    = wxT(LOG_BASE);
+const wxString LOG_BASE_NAME    = wxT("ircDDBGateway");
 
 static CIRCDDBGatewayAppD* m_gateway = NULL;
 
@@ -277,6 +277,12 @@ bool CIRCDDBGatewayAppD::createThread()
 	config.getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
 	wxLogInfo(wxT("Language: %d, info enabled: %d, echo enabled: %d, log enabled : %d, D-RATS enabled: %d, DTMF control enabled: %d"), int(language), int(infoEnabled), int(echoEnabled), int(logEnabled), int(dratsEnabled), int(dtmfEnabled));
 
+	bool mobileGPSEnabled;
+	wxString mobileGPSAddress;
+	unsigned int mobileGPSPort;
+	config.getMobileGPS(mobileGPSEnabled, mobileGPSAddress, mobileGPSPort);
+	wxLogInfo(wxT("Mobile GPS: %d, address: %s, port: %u"), int(mobileGPSEnabled), mobileGPSAddress.c_str(), mobileGPSPort);
+
 	CIcomRepeaterProtocolHandler* icomRepeaterHandler = NULL;
 	CHBRepeaterProtocolHandler* hbRepeaterHandler = NULL;
 	CDummyRepeaterProtocolHandler* dummyRepeaterHandler = NULL;
@@ -352,15 +358,23 @@ bool CIRCDDBGatewayAppD::createThread()
 			wxLogInfo(wxT("Repeater 1 bands: %u %u %u"), band11, band12, band13);
 			m_thread->addRepeater(callsign1, repeaterBand1, repeaterAddress1, repeaterPort1, repeaterType1, reflector1, atStartup1, reconnect1, dratsEnabled, frequency1, offset1, range1, latitude1, longitude1, agl1, description11, description12, url1, icomRepeaterHandler, band11, band12, band13);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign1, repeaterBand1, frequency1, offset1, range1, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			}
 
 			icomCount++;
 		} else if (repeaterType1 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign1, repeaterBand1, repeaterAddress1, repeaterPort1, repeaterType1, reflector1, atStartup1, reconnect1, dratsEnabled, frequency1, offset1, range1, latitude1, longitude1, agl1, description11, description12, url1, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign1, repeaterBand1, frequency1, offset1, range1, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			}
 		} else if (repeaterType1 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign1, repeaterBand1, repeaterAddress1, repeaterPort1, repeaterType1, reflector1, atStartup1, reconnect1, dratsEnabled, frequency1, offset1, range1, latitude1, longitude1, agl1, description11, description12, url1, dummyRepeaterHandler);
 		}
@@ -440,15 +454,23 @@ bool CIRCDDBGatewayAppD::createThread()
 			wxLogInfo(wxT("Repeater 2 bands: %u %u %u"), band21, band22, band23);
 			m_thread->addRepeater(callsign2, repeaterBand2, repeaterAddress2, repeaterPort2, repeaterType2, reflector2, atStartup2, reconnect2, dratsEnabled, frequency2, offset2, range2, latitude2, longitude2, agl2, description21, description22, url2, icomRepeaterHandler, band21, band22, band23);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign2, repeaterBand2, frequency2, offset2, range2, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
+			}
 
 			icomCount++;
 		} else if (repeaterType2 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign2, repeaterBand2, repeaterAddress2, repeaterPort2, repeaterType2, reflector2, atStartup2, reconnect2, dratsEnabled, frequency2, offset2, range2, latitude2, longitude2, agl2, description21, description22, url2, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign2, repeaterBand2, frequency2, offset2, range2, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl1);
+			}
 		} else if (repeaterType2 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign2, repeaterBand2, repeaterAddress2, repeaterPort2, repeaterType2, reflector2, atStartup2, reconnect2, dratsEnabled, frequency2, offset2, range2, latitude2, longitude2, agl2, description21, description22, url2, dummyRepeaterHandler);
 		}
@@ -532,15 +554,23 @@ bool CIRCDDBGatewayAppD::createThread()
 			wxLogInfo(wxT("Repeater 3 bands: %u %u %u"), band31, band32, band33);
 			m_thread->addRepeater(callsign3, repeaterBand3, repeaterAddress3, repeaterPort3, repeaterType3, reflector3, atStartup3, reconnect3, dratsEnabled, frequency3, offset3, range3, latitude3, longitude3, agl3, description31, description32, url3, icomRepeaterHandler, band31, band32, band33);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign3, repeaterBand3, frequency3, offset3, range3, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			}
 
 			icomCount++;
 		} else if (repeaterType3 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign3, repeaterBand3, repeaterAddress3, repeaterPort3, repeaterType3, reflector3, atStartup3, reconnect3, dratsEnabled, frequency3, offset3, range3, latitude3, longitude3, agl3, description31, description32, url3, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign3, repeaterBand3, frequency3, offset3, range3, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			}
 		} else if (repeaterType3 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign3, repeaterBand3, repeaterAddress3, repeaterPort3, repeaterType3, reflector3, atStartup3, reconnect3, dratsEnabled, frequency3, offset3, range3, latitude3, longitude3, agl3, description31, description32, url3, dummyRepeaterHandler);
 		}
@@ -628,15 +658,23 @@ bool CIRCDDBGatewayAppD::createThread()
 			wxLogInfo(wxT("Repeater 4 bands: %u %u %u"), band41, band42, band43);
 			m_thread->addRepeater(callsign4, repeaterBand4, repeaterAddress4, repeaterPort4, repeaterType4, reflector4, atStartup4, reconnect4, dratsEnabled, frequency4, offset4, range4, latitude4, longitude4, agl4, description41, description42, url4, icomRepeaterHandler, band41, band42, band43);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign4, repeaterBand4, frequency4, offset4, range4, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			}
 
 			icomCount++;
 		} else if (repeaterType4 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign4, repeaterBand4, repeaterAddress4, repeaterPort4, repeaterType4, reflector4, atStartup4, reconnect4, dratsEnabled, frequency4, offset4, range4, latitude4, longitude4, agl4, description41, description42, url4, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			if (aprs != NULL) {
+				if (mobileGPSEnabled)
+					aprs->setPortMobile(callsign4, repeaterBand4, frequency4, offset4, range4, mobileGPSAddress, mobileGPSPort);
+				else
+					aprs->setPortFixed(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			}
 		} else if (repeaterType4 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			m_thread->addRepeater(callsign4, repeaterBand4, repeaterAddress4, repeaterPort4, repeaterType4, reflector4, atStartup4, reconnect4, dratsEnabled, frequency4, offset4, range4, latitude4, longitude4, agl4, description41, description42, url4, dummyRepeaterHandler);
 		}

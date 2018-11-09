@@ -112,6 +112,9 @@ public:
 	void getMiscellaneous(TEXT_LANG& language, bool& infoEnabled, bool& echoEnabled, bool& logEnabled, bool& dratsEnabled, bool& dtmfEnabled) const;
 	void setMiscellaneous(TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled);
 
+	void getMobileGPS(bool& enabled, wxString& address, unsigned int& port) const;
+	void setMobileGPS(bool enabled, const wxString& address, unsigned int port);
+
 	void getPosition(int& x, int& y) const;
 	void setPosition(int x, int y);
 
@@ -305,6 +308,9 @@ private:
 	bool          m_logEnabled;
 	bool          m_dratsEnabled;
 	bool          m_dtmfEnabled;
+	bool          m_mobileGPSEnabled;
+	wxString      m_mobileGPSAddress;
+	unsigned int  m_mobileGPSPort;
 	int           m_x;
 	int           m_y;
 };

@@ -16,63 +16,63 @@ all:	ircDDBGateway/ircddbgateway ircDDBGatewayConfig/ircddbgatewayconfig APRSTra
 	StarNetServer/starnetserver TextTransmit/texttransmitd TimerControl/timercontrol TimeServer/timeserver VoiceTransmit/voicetransmitd
 
 ircDDBGateway/ircddbgateway:	GUICommon/GUICommon.a Common/Common.a ircDDB/IRCDDB.a
-	make -C ircDDBGateway -f MakefileGUI
+	$(MAKE) -C ircDDBGateway -f MakefileGUI
 
 ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a
-	make -C ircDDBGatewayConfig
+	$(MAKE) -C ircDDBGatewayConfig
 
 APRSTransmit/aprstransmitd:	Common/Common.a
-	make -C APRSTransmit
+	$(MAKE) -C APRSTransmit
 
 RemoteControl/remotecontrol:	Common/Common.a
-	make -C RemoteControl -f MakefileGUI
+	$(MAKE) -C RemoteControl -f MakefileGUI
 
 StarNetServer/starnetserver:	Common/Common.a ircDDB/IRCDDB.a
-	make -C StarNetServer -f MakefileGUI
+	$(MAKE) -C StarNetServer -f MakefileGUI
 
 TextTransmit/texttransmitd:	Common/Common.a
-	make -C TextTransmit
+	$(MAKE) -C TextTransmit
 
 TimerControl/timercontrol:	Common/Common.a GUICommon/GUICommon.a
-	make -C TimerControl -f MakefileGUI
+	$(MAKE) -C TimerControl -f MakefileGUI
 
 TimeServer/timeserver:	Common/Common.a GUICommon/GUICommon.a
-	make -C TimeServer -f MakefileGUI
+	$(MAKE) -C TimeServer -f MakefileGUI
 
 VoiceTransmit/voicetransmitd:	Common/Common.a
-	make -C VoiceTransmit
+	$(MAKE) -C VoiceTransmit
 
 GUICommon/GUICommon.a:
-	make -C GUICommon
+	$(MAKE) -C GUICommon
 
 Common/Common.a:
-	make -C Common
+	$(MAKE) -C Common
 
 ircDDB/IRCDDB.a:
-	make -C ircDDB
+	$(MAKE) -C ircDDB
 
 install:	all
-	make -C Data install
-	make -C APRSTransmit install
-	make -C ircDDBGateway -f MakefileGUI install
-	make -C RemoteControl -f MakefileGUI install
-	make -C StarNetServer -f MakefileGUI install
-	make -C TextTransmit install
-	make -C TimerControl -f MakefileGUI install
-	make -C TimeServer -f MakefileGUI install
-	make -C VoiceTransmit install
-	make -C ircDDBGatewayConfig install
+	$(MAKE) -C Data install
+	$(MAKE) -C APRSTransmit install
+	$(MAKE) -C ircDDBGateway -f MakefileGUI install
+	$(MAKE) -C RemoteControl -f MakefileGUI install
+	$(MAKE) -C StarNetServer -f MakefileGUI install
+	$(MAKE) -C TextTransmit install
+	$(MAKE) -C TimerControl -f MakefileGUI install
+	$(MAKE) -C TimeServer -f MakefileGUI install
+	$(MAKE) -C VoiceTransmit install
+	$(MAKE) -C ircDDBGatewayConfig install
 
 clean:
-	make -C Common clean
-	make -C ircDDB clean
-	make -C GUICommon clean
-	make -C APRSTransmit clean
-	make -C ircDDBGateway -f MakefileGUI clean
-	make -C RemoteControl -f MakefileGUI clean
-	make -C StarNetServer -f MakefileGUI clean
-	make -C TextTransmit clean
-	make -C TimerControl -f MakefileGUI clean
-	make -C TimeServer -f MakefileGUI clean
-	make -C VoiceTransmit clean
-	make -C ircDDBGatewayConfig clean
+	$(MAKE) -C Common clean
+	$(MAKE) -C ircDDB clean
+	$(MAKE) -C GUICommon clean
+	$(MAKE) -C APRSTransmit clean
+	$(MAKE) -C ircDDBGateway -f MakefileGUI clean
+	$(MAKE) -C RemoteControl -f MakefileGUI clean
+	$(MAKE) -C StarNetServer -f MakefileGUI clean
+	$(MAKE) -C TextTransmit clean
+	$(MAKE) -C TimerControl -f MakefileGUI clean
+	$(MAKE) -C TimeServer -f MakefileGUI clean
+	$(MAKE) -C VoiceTransmit clean
+	$(MAKE) -C ircDDBGatewayConfig clean

@@ -7,64 +7,64 @@
 all:	ircDDBGateway/ircddbgatewayd
 
 ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a
-	make -C ircDDBGateway
+	$(MAKE) -C ircDDBGateway
 
 ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a
-	make -C ircDDBGatewayConfig
+	$(MAKE) -C ircDDBGatewayConfig
 
 APRSTransmit/aprstransmitd:	Common/Common.a
-	make -C APRSTransmit
+	$(MAKE) -C APRSTransmit
 
 RemoteControl/remotecontrold:	Common/Common.a
-	make -C RemoteControl
+	$(MAKE) -C RemoteControl
 
 StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a
-	make -C StarNetServer
+	$(MAKE) -C StarNetServer
 
 TextTransmit/texttransmitd:	Common/Common.a
-	make -C TextTransmit
+	$(MAKE) -C TextTransmit
 
 TimerControl/timercontrold:	Common/Common.a GUICommon/GUICommon.a
-	make -C TimerControl
+	$(MAKE) -C TimerControl
 
 TimeServer/timeserverd:	Common/Common.a GUICommon/GUICommon.a
-	make -C TimeServer
+	$(MAKE) -C TimeServer
 
 VoiceTransmit/voicetransmitd:	Common/Common.a
-	make -C VoiceTransmit
+	$(MAKE) -C VoiceTransmit
 
 GUICommon/GUICommon.a:
-	make -C GUICommon
+	$(MAKE) -C GUICommon
 
 Common/Common.a:
-	make -C Common
+	$(MAKE) -C Common
 
 ircDDB/IRCDDB.a:
-	make -C ircDDB
+	$(MAKE) -C ircDDB
 
 install:	all
-	make -C Data install
-	make -C APRSTransmit install
-	make -C ircDDBGateway install
-	make -C RemoteControl install
-	make -C StarNetServer install
-	make -C TextTransmit install
-	make -C TimerControl install
-	make -C TimeServer install
-	make -C VoiceTransmit install
-	make -C ircDDBGatewayConfig install
+	$(MAKE) -C Data install
+	$(MAKE) -C APRSTransmit install
+	$(MAKE) -C ircDDBGateway install
+	$(MAKE) -C RemoteControl install
+	$(MAKE) -C StarNetServer install
+	$(MAKE) -C TextTransmit install
+	$(MAKE) -C TimerControl install
+	$(MAKE) -C TimeServer install
+	$(MAKE) -C VoiceTransmit install
+	$(MAKE) -C ircDDBGatewayConfig install
 
 clean:
-	make -C Common clean
-	make -C ircDDB clean
-	make -C GUICommon clean
-	make -C APRSTransmit clean
-	make -C ircDDBGateway clean
-	make -C RemoteControl clean
-	make -C StarNetServer clean
-	make -C TextTransmit clean
-	make -C TimerControl clean
-	make -C TimeServer clean
-	make -C VoiceTransmit clean
-	make -C ircDDBGatewayConfig clean
+	$(MAKE) -C Common clean
+	$(MAKE) -C ircDDB clean
+	$(MAKE) -C GUICommon clean
+	$(MAKE) -C APRSTransmit clean
+	$(MAKE) -C ircDDBGateway clean
+	$(MAKE) -C RemoteControl clean
+	$(MAKE) -C StarNetServer clean
+	$(MAKE) -C TextTransmit clean
+	$(MAKE) -C TimerControl clean
+	$(MAKE) -C TimeServer clean
+	$(MAKE) -C VoiceTransmit clean
+	$(MAKE) -C ircDDBGatewayConfig clean
 

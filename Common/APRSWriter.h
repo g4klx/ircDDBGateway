@@ -20,6 +20,7 @@
 #define	APRSWriter_H
 
 #include "APRSWriterThread.h"
+#include "UDPReaderWriter.h"
 #include "APRSCollector.h"
 #include "DStarDefines.h"
 #include "HeaderData.h"
@@ -72,7 +73,9 @@ public:
 
 	bool open();
 
-	void setPort(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
+	void setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
+
+	void setPortMobile(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, unsigned int port);
 
 	void writeHeader(const wxString& callsign, const CHeaderData& header);
 
@@ -89,8 +92,14 @@ private:
 	CTimer             m_idTimer;
 	wxString           m_gateway;
 	CEntry_t           m_array;
+	in_addr            m_address;
+	unsigned int       m_port;
+	CUDPReaderWriter*  m_socket;
 
-	void sendIdFrames();
+	bool pollGPS();
+	void sendIdFramesFixed();
+	void sendIdFramesMobile();
 };
 
 #endif
+
