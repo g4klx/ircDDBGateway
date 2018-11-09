@@ -199,6 +199,7 @@ bool CIRCDDBGatewayAppD::init()
 		new wxLogNull;
 	}
 
+#if !defined(OPENWRT) || OPENWRT != 1
 	wxString appName;
 	if (!m_name.IsEmpty())
 		appName = APPLICATION_NAME + wxT(" ") + m_name;
@@ -212,6 +213,7 @@ bool CIRCDDBGatewayAppD::init()
 		wxLogError(wxT("Another copy of the ircDDB Gateway is running, exiting"));
 		return false;
 	}
+#endif
 
 	wxLogInfo(wxT("Starting ") + APPLICATION_NAME + wxT(" daemon - ") + VERSION);
 
