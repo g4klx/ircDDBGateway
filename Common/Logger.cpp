@@ -18,6 +18,8 @@
 
 #include "Logger.h"
 
+static bool utc = false;
+
 CLogger::CLogger(const wxString& directory, const wxString& name) :
 wxLog(),
 m_name(name),
@@ -32,7 +34,12 @@ m_day(0)
 
 	time_t timestamp;
 	::time(&timestamp);
-	struct tm* tm = ::gmtime(&timestamp);
+	struct tm* tm;
+	if (utc){
+		tm = ::gmtime(&timestamp);
+	}else{
+		tm = ::localtime(&timestamp);
+	}
 
 	wxString text;
 	text.Printf(wxT("%s-%04d-%02d-%02d"), m_name.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
@@ -75,7 +82,6 @@ void CLogger::DoLog(wxLogLevel level, const wxChar* msg, time_t timestamp)
 		default:               letter = wxT("U"); break;
 	}
 
-	bool utc = false;
 	struct tm* tm;
 	if (utc){
 		tm = ::gmtime(&timestamp);
@@ -98,7 +104,12 @@ void CLogger::DoLogString(const wxChar* msg, time_t timestamp)
 	wxASSERT(m_file->IsOpened());
 	wxASSERT(msg != NULL);
 
-	struct tm* tm = ::gmtime(&timestamp);
+	struct tm* tm;
+	if (utc){
+		tm = ::gmtime(&timestamp);
+	}else{
+		tm = ::localtime(&timestamp);
+	}
 
 	int day = tm->tm_yday;
 	if (day != m_day) {
