@@ -52,6 +52,8 @@ public:
 	CHeaderData* readHeader();
 	CAMBEData*   readAMBE();
 
+	void punchUDPHole(const wxString& addr);
+
 	void close();
 
 private:

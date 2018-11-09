@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2006-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2006-2014,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,6 +26,34 @@
 CUDPReaderWriter::CUDPReaderWriter(const wxString& address, unsigned int port) :
 m_address(address),
 m_port(port),
+m_addr(),
+m_fd(-1)
+{
+#if defined(__WINDOWS__)
+	WSAData data;
+	int wsaRet = ::WSAStartup(MAKEWORD(2, 2), &data);
+	if (wsaRet != 0)
+		wxLogError(wxT("Error from WSAStartup"));
+#endif
+}
+
+CUDPReaderWriter::CUDPReaderWriter(unsigned int port) :
+m_address(),
+m_port(port),
+m_addr(),
+m_fd(-1)
+{
+#if defined(__WINDOWS__)
+	WSAData data;
+	int wsaRet = ::WSAStartup(MAKEWORD(2, 2), &data);
+	if (wsaRet != 0)
+		wxLogError(wxT("Error from WSAStartup"));
+#endif
+}
+
+CUDPReaderWriter::CUDPReaderWriter() :
+m_address(),
+m_port(0U),
 m_addr(),
 m_fd(-1)
 {

@@ -401,7 +401,7 @@ unsigned int CAPRSCollector::convertNMEA1(unsigned char* data, unsigned int)
 	unsigned int nGGA = 0U;
 
 	char* str = (char*)m_ggaData;
-	for (;;) {
+	while (nGGA < 20U) {
 		char* p = mystrsep(&str, ",\r\n");
 
 		pGGA[nGGA++] = p;
@@ -464,7 +464,7 @@ unsigned int CAPRSCollector::convertNMEA2(unsigned char* data, unsigned int)
 	unsigned int nRMC = 0U;
 
 	char* str = (char*)m_rmcData;
-	for (;;) {
+	while (nRMC < 20U) {
 		char* p = mystrsep(&str, ",\r\n");
 
 		pRMC[nRMC++] = p;
