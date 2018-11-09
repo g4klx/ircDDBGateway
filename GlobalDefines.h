@@ -22,8 +22,8 @@
 #define LOG_DIR    "/tmp"
 #define CONF_DIR   "/etc"
 #define CONF_FILE  "ircddbgateway"
-#define PID_FILE   "/tmp/ircddbgateway.pid"
-#define PID_FILE_T "/tmp/ircddbgateway_%s.pid"
+#define PID_FILE   "/var/run/ircddbgateway.pid"
+#define PID_FILE_T "/var/run/ircddbgateway_%s.pid"
 
 #endif
 
