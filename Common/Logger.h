@@ -31,6 +31,8 @@ public:
 	virtual void DoLog(wxLogLevel level, const wxChar* msg, time_t timestamp);
 	virtual void DoLogString(const wxChar* msg, time_t timestamp);
 
+	virtual void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info);
+
 private:
 	wxString   m_name;
 	wxFFile*   m_file;

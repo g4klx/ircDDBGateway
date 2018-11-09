@@ -132,3 +132,6 @@ void CLogger::DoLogString(const wxChar* msg, time_t timestamp)
 	m_file->Flush();
 }
 
+void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info) {
+	DoLog(level, msg.c_str(), info.timestamp);
+}
