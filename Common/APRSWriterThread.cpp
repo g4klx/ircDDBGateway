@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -216,7 +216,7 @@ bool CAPRSWriterThread::connect()
 		m_socket.close();
 		return false;
 	}
-	wxLogMessage(wxT("Received login banner : ") + serverResponse);
+	wxLogMessage(wxT("Received login banner : %s"), serverResponse.c_str());
 
 	wxString filter(m_filter);
 	if (filter.Length() > 0) filter.Prepend(wxT(" filter "));
@@ -242,7 +242,7 @@ bool CAPRSWriterThread::connect()
 		return false;
 	}
 
-	wxLogMessage(wxT("Response from APRS server: ") + serverResponse);
+	wxLogMessage(wxT("Response from APRS server: %s"), serverResponse.c_str());
 
 	wxLogMessage(wxT("Connected to the APRS server"));
 

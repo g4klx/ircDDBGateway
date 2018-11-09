@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2015,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
 wxString CXLXHostsFileDownloader::Download(const wxString & xlxHostsFileURL)
 {
 #ifdef XLX_USE_WGET
+	wxLogMessage(_T("Downloading XLX reflector list from %s"), xlxHostsFileURL.c_str());
+
 	wxString xlxHostsFileName = wxFileName::CreateTempFileName(_T("XLX_Hosts_"));
 	wxString commandLine = _T("wget -q -O ") + xlxHostsFileName + _T(" ") + xlxHostsFileURL;
 	bool execResult = wxShell(commandLine);

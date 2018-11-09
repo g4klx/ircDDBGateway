@@ -44,6 +44,7 @@
 
 const wxChar*       NAME_PARAM = wxT("Gateway Name");
 const wxChar* NOLOGGING_SWITCH = wxT("nolog");
+const wxChar*     DEBUG_SWITCH = wxT("debug");
 const wxChar*    LOGDIR_OPTION = wxT("logdir");
 const wxChar*   CONFDIR_OPTION = wxT("confdir");
 const wxChar*    DAEMON_SWITCH = wxT("daemon");
@@ -67,6 +68,7 @@ int main(int argc, char** argv)
 
 	wxCmdLineParser parser(argc, argv);
 	parser.AddSwitch(NOLOGGING_SWITCH, wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
+	parser.AddSwitch(DEBUG_SWITCH,     wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddSwitch(DAEMON_SWITCH,    wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(LOGDIR_OPTION,    wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(CONFDIR_OPTION,   wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
@@ -79,6 +81,7 @@ int main(int argc, char** argv)
 	}
 
 	bool  nolog = parser.Found(NOLOGGING_SWITCH);
+	bool  debug = parser.Found(DEBUG_SWITCH);
 	bool daemon = parser.Found(DAEMON_SWITCH);
 
 	wxString logDir;
@@ -135,7 +138,7 @@ int main(int argc, char** argv)
 		::fclose(fp);
 	}
 
-	m_gateway = new CIRCDDBGatewayAppD(nolog, logDir, confDir, name);
+	m_gateway = new CIRCDDBGatewayAppD(nolog, debug, logDir, confDir, name);
 	if (!m_gateway->init()) {
 		::wxUninitialize();
 		return 1;
@@ -154,9 +157,10 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-CIRCDDBGatewayAppD::CIRCDDBGatewayAppD(bool nolog, const wxString& logDir, const wxString& confDir, const wxString& name) :
+CIRCDDBGatewayAppD::CIRCDDBGatewayAppD(bool nolog, bool debug, const wxString& logDir, const wxString& confDir, const wxString& name) :
 m_name(name),
 m_nolog(nolog),
+m_debug(debug),
 m_logDir(logDir),
 m_confDir(confDir),
 m_thread(NULL),
@@ -182,7 +186,14 @@ bool CIRCDDBGatewayAppD::init()
 
 		wxLog* log = new CLogger(m_logDir, logBaseName);
 		wxLog::SetActiveTarget(log);
-		wxLog::SetVerbose();
+
+		if (m_debug) {
+			wxLog::SetVerbose(true);
+			wxLog::SetLogLevel(wxLOG_Debug);
+		} else {
+			wxLog::SetVerbose(false);
+			wxLog::SetLogLevel(wxLOG_Message);
+		}
 	} else {
 		new wxLogNull;
 	}

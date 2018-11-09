@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2012,2013,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,7 @@
 
 #include <wx/filename.h>
 
-#if !defined(WIN32)
-// XXX Check these
+#if defined(__linux__)
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
@@ -103,7 +102,7 @@ void CDDHandler::initialise(unsigned int maxRoutes, const wxString& name)
 	// Add a dummy entry for "DX-Cluster" multicast
 	m_list[2] = new CEthernet(DX_MULTICAST_ADDRESS, wxT("CQCQCQ  "));
 
-#if !defined(WIN32)
+#if defined(__linux__)
 	m_fd = ::open("/dev/net/tun", O_RDWR);
 	if (m_fd < 0) {
 		wxLogError(wxT("Cannot open /dev/net/tun"));
@@ -238,7 +237,7 @@ void CDDHandler::process(CDDData& data)
 		}
 	}
 
-#if !defined(WIN32)
+#if defined(__linux__)
 	unsigned int length = data.getEthernetFrame(m_buffer, BUFFER_LENGTH);
 
 	ssize_t len = ::write(m_fd, (char*)m_buffer, length);
@@ -253,7 +252,7 @@ CDDData* CDDHandler::read()
 	if (m_maxRoutes == 0U)
 		return NULL;
 
-#if defined(WIN32)
+#if !defined(WIN32)
 	return NULL;
 #else
 	// Check that the read() won't block
