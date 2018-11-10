@@ -40,6 +40,7 @@ wxIMPLEMENT_APP(CIRCDDBGatewayApp);
 
 const wxChar*       NAME_PARAM = wxT("Gateway Name");
 const wxChar* NOLOGGING_SWITCH = wxT("nolog");
+const wxChar*     DEBUG_SWITCH = wxT("debug");
 const wxChar*       GUI_SWITCH = wxT("gui");
 const wxChar*    LOGDIR_OPTION = wxT("logdir");
 const wxChar*   CONFDIR_OPTION = wxT("confdir");
@@ -50,6 +51,7 @@ CIRCDDBGatewayApp::CIRCDDBGatewayApp() :
 wxApp(),
 m_name(),
 m_nolog(false),
+m_debug(false),
 m_gui(false),
 m_logDir(),
 m_confDir(),
@@ -89,6 +91,14 @@ bool CIRCDDBGatewayApp::OnInit()
 
 		wxLog* log = new CLogger(m_logDir, logBaseName);
 		wxLog::SetActiveTarget(log);
+
+		if (m_debug) {
+			wxLog::SetVerbose(true);
+			wxLog::SetLogLevel(wxLOG_Debug);
+		} else {
+			wxLog::SetVerbose(false);
+			wxLog::SetLogLevel(wxLOG_Message);
+		}
 	} else {
 		new wxLogNull;
 	}
@@ -174,6 +184,7 @@ int CIRCDDBGatewayApp::OnExit()
 void CIRCDDBGatewayApp::OnInitCmdLine(wxCmdLineParser& parser)
 {
 	parser.AddSwitch(NOLOGGING_SWITCH, wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
+	parser.AddSwitch(DEBUG_SWITCH,     wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddSwitch(GUI_SWITCH,       wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(LOGDIR_OPTION,    wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(CONFDIR_OPTION,   wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
@@ -188,6 +199,7 @@ bool CIRCDDBGatewayApp::OnCmdLineParsed(wxCmdLineParser& parser)
 		return false;
 
 	m_nolog  = parser.Found(NOLOGGING_SWITCH);
+	m_debug  = parser.Found(DEBUG_SWITCH);
 	m_gui    = parser.Found(GUI_SWITCH);
 
 	wxString logDir;
