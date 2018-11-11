@@ -4,7 +4,7 @@ OBJECTS = TimerControlAppD.o TimerControlConfig.o TimerControlItemFile.o TimerCo
 .PHONY: all
 all:		timercontrold
 
-timercontrold:	$(OBJECTS)
+timercontrold:	$(OBJECTS) ../Common/Common.a
 		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o timercontrold
 
 -include $(OBJECTS:.o=.d)
@@ -20,4 +20,6 @@ install:
 .PHONY: clean
 clean:
 		$(RM) timercontrold *.o *.d *.bak *~
+
+../Common/Common.a:
 

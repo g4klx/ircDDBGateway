@@ -5,7 +5,7 @@ OBJECTS = RemoteControlApp.o RemoteControlCallsignData.o RemoteControlConfig.o R
 .PHONY: all
 all:		remotecontrol
 
-remotecontrol:	$(OBJECTS)
+remotecontrol:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a $(LDFLAGS) $(GUILIBS) -o remotecontrol
 
 -include $(OBJECTS:.o=.d)
@@ -22,3 +22,5 @@ install:
 clean:
 		$(RM) remotecontrol *.o *.d *.bak *~
 
+../GUICommon/GUICommon.a:
+../Common/Common.a:

@@ -4,7 +4,7 @@ OBJECTS = IRCDDBGatewayConfigApp.o IRCDDBGatewayConfigFrame.o IRCDDBGatewayConfi
 .PHONY: all
 all:		ircddbgatewayconfig
 
-ircddbgatewayconfig:	$(OBJECTS)
+ircddbgatewayconfig:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a $(LDFLAGS) $(GUILIBS) -o ircddbgatewayconfig
 
 -include $(OBJECTS:.o=.d)
@@ -21,3 +21,5 @@ install:
 clean:
 		$(RM) ircddbgatewayconfig *.o *.d *.bak *~
 
+../Common/Common.a:
+../GUICommon/GUICommon.a:

@@ -3,7 +3,7 @@ OBJECTS = IRCDDBGatewayAppD.o IRCDDBGatewayStatusData.o IRCDDBGatewayThread.o IR
 .PHONY: all
 all:		ircddbgatewayd
 
-ircddbgatewayd:	$(OBJECTS)
+ircddbgatewayd:	$(OBJECTS) ../ircDDB/IRCDDB.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(LIBS) -o ircddbgatewayd
 
 -include $(OBJECTS:.o=.d)
@@ -19,4 +19,7 @@ install:
 .PHONY: clean
 clean:
 		$(RM) ircddbgatewayd *.o *.d *.bak *~
+
+../Common/Common.a:
+../ircDDB/IRCDDB.a:
 

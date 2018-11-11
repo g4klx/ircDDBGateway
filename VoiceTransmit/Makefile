@@ -3,7 +3,7 @@ OBJECTS = VoiceStore.o VoiceTransmit.o
 .PHONY: all
 all:		voicetransmitd
 
-voicetransmitd:	$(OBJECTS)
+voicetransmitd:	$(OBJECTS) ../Common/Common.a
 		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o voicetransmitd
 
 -include $(OBJECTS:.o=.d)
@@ -20,3 +20,4 @@ install:
 clean:
 		$(RM) voicetransmitd *.o *.d *.bak *~
 
+../Common/Common.a:

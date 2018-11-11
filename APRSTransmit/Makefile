@@ -3,7 +3,7 @@ OBJECTS = APRSParser.o APRSTransmitAppD.o APRSTransmit.o
 .PHONY: all
 all:		aprstransmitd
 
-aprstransmitd:	$(OBJECTS)
+aprstransmitd:	$(OBJECTS) ../Common/Common.a
 		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o aprstransmitd
 
 -include $(OBJECTS:.o=.d)
@@ -19,4 +19,6 @@ install:
 .PHONY: clean
 clean:
 		$(RM) aprstransmitd *.o *.d *.bak *~
+
+../Common/Common.a:
 

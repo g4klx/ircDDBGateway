@@ -82,5 +82,5 @@ clean:
 
 .PHONY: force
 force :
-	true
+	@true
 

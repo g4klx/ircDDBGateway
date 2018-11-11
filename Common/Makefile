@@ -12,7 +12,7 @@ OBJECTS = AMBEData.o AnnouncementUnit.o APRSCollector.o APRSWriter.o APRSWriterT
 .PHONY:		all
 all:		Common.a
 
-Common.a:	$(OBJECTS)
+Common.a:	$(OBJECTS) ../ircDDB/IRCDDB.a
 		$(AR) rcs Common.a $(OBJECTS)
 
 -include $(OBJECTS:.o=.d)
@@ -25,3 +25,4 @@ Common.a:	$(OBJECTS)
 clean:
 		$(RM) Common.a *.o *.d *.bak *~
 
+../ircDDB/IRCDDB.a:

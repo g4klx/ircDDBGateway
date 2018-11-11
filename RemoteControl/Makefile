@@ -4,7 +4,7 @@ OBJECTS = RemoteControlAppD.o RemoteControlCallsignData.o RemoteControlConfig.o 
 .PHONY: all
 all:		remotecontrold
 
-remotecontrold:	$(OBJECTS)
+remotecontrold:	$(OBJECTS) ../Common/Common.a
 		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o remotecontrold
 
 -include $(OBJECTS:.o=.d)
@@ -21,3 +21,4 @@ install:
 clean:
 		$(RM) remotecontrold *.o *.d *.bak *~
 
+../Common/Common.a:

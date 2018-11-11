@@ -3,7 +3,7 @@ OBJECTS = TextTransmit.o
 .PHONY: all
 all:		texttransmitd
 
-texttransmitd:	$(OBJECTS)
+texttransmitd:	$(OBJECTS) ../Common/Common.a
 		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o texttransmitd
 
 -include $(OBJECTS:.o=.d)
@@ -20,3 +20,4 @@ install:
 clean:
 		$(RM) texttransmitd *.o *.d *.bak *~
 
+../Common/Common.a:

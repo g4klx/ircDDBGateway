@@ -3,7 +3,7 @@ OBJECTS = StarNetServerAppD.o StarNetServerConfig.o StarNetServerThread.o StarNe
 .PHONY: all
 all:		starnetserverd
 
-starnetserverd:	$(OBJECTS)
+starnetserverd:	$(OBJECTS) ../Common/Common.a ../ircDDB/IRCDDB.a
 		$(CXX) $(OBJECTS) ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(LIBS) -o starnetserverd
 
 -include $(OBJECTS:.o=.d)
@@ -20,3 +20,5 @@ install:
 clean:
 		$(RM) starnetserverd *.o *.d *.bak *~
 
+../Common/Common.a:
+../ircDDB/IRCDDB.a:

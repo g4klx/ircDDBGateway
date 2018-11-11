@@ -3,7 +3,7 @@ OBJECTS = TimeServerD.o TimeServerConfig.o TimeServerThread.o TimeServerThreadHe
 .PHONY: all
 all:		timeserverd
 
-timeserverd:	$(OBJECTS)
+timeserverd:	$(OBJECTS) ../Common/Common.a
 		$(CXX) $(OBJECTS) ../Common/Common.a $(LDFLAGS) $(LIBS) -o timeserverd
 
 -include $(OBJECTS:.o=.d)
@@ -20,3 +20,4 @@ install:
 clean:
 		$(RM) timeserverd *.o *.d *.bak *~
 
+../Common/Common.a:

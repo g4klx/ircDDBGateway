@@ -4,7 +4,7 @@ OBJECTS = AddressTextCtrl.o CallsignTextCtrl.o DCSSet.o DescriptionTextCtrl.o DE
 .PHONY: all
 all:		GUICommon.a
 
-GUICommon.a:	$(OBJECTS)
+GUICommon.a:	$(OBJECTS) ../Common/Common.a
 		$(AR) rcs GUICommon.a $(OBJECTS)
 
 -include $(OBJECTS:.o=.d)
@@ -17,3 +17,4 @@ GUICommon.a:	$(OBJECTS)
 clean:
 		$(RM) GUICommon.a *.o *.d *.bak *~
 
+../Common/Common.a:
