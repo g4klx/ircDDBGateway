@@ -1,4 +1,4 @@
-OBJECTS = AddressTextCtrl.o CallsignTextCtrl.o DCSSet.o DescriptionTextCtrl.o DExtraSet.o DPlusSet.o DPRSSet.o PortTextCtrl.o RemoteSet.o \
+OBJECTS = AddressTextCtrl.o CallsignTextCtrl.o DCSSet.o DescriptionTextCtrl.o DExtraSet.o DPlusSet.o DPRSSet.o MobileGPSSet.o PortTextCtrl.o RemoteSet.o \
 	  RepeaterDataSet.o RepeaterInfoSet.o RestrictedTextCtrl.o StarNetSet.o XLXSet.o
 
 all:		GUICommon.a
