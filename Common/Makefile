@@ -9,14 +9,19 @@ OBJECTS = AMBEData.o AnnouncementUnit.o APRSCollector.o APRSWriter.o APRSWriterT
 	  TCPReaderWriterClient.o TCPReaderWriterServer.o TextCollector.o TextData.o Timer.o UDPReaderWriter.o UserCache.o Utils.o \
 	  VersionUnit.o XLXHostsFileDownloader.o
 
+.PHONY:		all
 all:		Common.a
 
 Common.a:	$(OBJECTS)
 		$(AR) rcs Common.a $(OBJECTS)
 
+-include $(OBJECTS:.o=.d)
+
 %.o: %.cpp
 		$(CXX) -DwxUSE_GUI=0 $(CFLAGS) -I../ircDDB -c -o $@ $<
+		$(CXX) -MM -DwxUSE_GUI=0 $(CFLAGS) -I../ircDDB $< > $*.d
 
+.PHONY: clean
 clean:
 		$(RM) Common.a *.o *.d *.bak *~
 

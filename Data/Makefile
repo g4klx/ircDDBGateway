@@ -1,3 +1,4 @@
+.PHONY: install
 install:
 	install -d -g bin -o root -m 0775 $(DATADIR)
 	install -g bin -o root -m 0664 CCS_Hosts.txt    $(DATADIR)
