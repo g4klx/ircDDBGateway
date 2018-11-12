@@ -12,45 +12,47 @@ export GUILIBS := $(shell wx-config --libs adv,core,base)
 export LIBS    := $(shell wx-config --libs base)
 export LDFLAGS := 
 
+.PHONY: all
 all:	ircDDBGateway/ircddbgatewayd ircDDBGatewayConfig/ircddbgatewayconfig APRSTransmit/aprstransmitd RemoteControl/remotecontrold \
 	StarNetServer/starnetserverd TextTransmit/texttransmitd TimerControl/timercontrold TimeServer/timeserverd VoiceTransmit/voicetransmitd
 
-ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a
+ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a force
 	$(MAKE) -C ircDDBGateway
 
-ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a
+ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a force
 	$(MAKE) -C ircDDBGatewayConfig
 
-APRSTransmit/aprstransmitd:	Common/Common.a
+APRSTransmit/aprstransmitd:	Common/Common.a force
 	$(MAKE) -C APRSTransmit
 
-RemoteControl/remotecontrold:	Common/Common.a
+RemoteControl/remotecontrold:	Common/Common.a force
 	$(MAKE) -C RemoteControl
 
-StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a
+StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a force
 	$(MAKE) -C StarNetServer
 
-TextTransmit/texttransmitd:	Common/Common.a
+TextTransmit/texttransmitd:	Common/Common.a force
 	$(MAKE) -C TextTransmit
 
-TimerControl/timercontrold:	Common/Common.a GUICommon/GUICommon.a
+TimerControl/timercontrold:	Common/Common.a GUICommon/GUICommon.a force
 	$(MAKE) -C TimerControl
 
-TimeServer/timeserverd:	Common/Common.a GUICommon/GUICommon.a
+TimeServer/timeserverd:	Common/Common.a GUICommon/GUICommon.a force
 	$(MAKE) -C TimeServer
 
-VoiceTransmit/voicetransmitd:	Common/Common.a
+VoiceTransmit/voicetransmitd:	Common/Common.a force
 	$(MAKE) -C VoiceTransmit
 
-GUICommon/GUICommon.a:
+GUICommon/GUICommon.a: force
 	$(MAKE) -C GUICommon
 
-Common/Common.a:
+Common/Common.a: force
 	$(MAKE) -C Common
 
-ircDDB/IRCDDB.a:
+ircDDB/IRCDDB.a: force
 	$(MAKE) -C ircDDB
 
+.PHONY: install
 install:	all
 	$(MAKE) -C Data install
 	$(MAKE) -C APRSTransmit install
@@ -63,6 +65,7 @@ install:	all
 	$(MAKE) -C VoiceTransmit install
 	$(MAKE) -C ircDDBGatewayConfig install
 
+.PHONY: clean
 clean:
 	$(MAKE) -C Common clean
 	$(MAKE) -C ircDDB clean
@@ -76,4 +79,8 @@ clean:
 	$(MAKE) -C TimeServer clean
 	$(MAKE) -C VoiceTransmit clean
 	$(MAKE) -C ircDDBGatewayConfig clean
+
+.PHONY: force
+force :
+	@true
 

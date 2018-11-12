@@ -1,17 +1,25 @@
 OBJECTS = TimeServerApp.o TimeServerAnnouncementsSet.o TimeServerConfig.o TimeServerFrame.o TimeServerGatewaySet.o TimeServerLogRedirect.o \
 		  TimeServerPreferences.o TimeServerThread.o TimeServerThreadHelper.o
 
+.PHONY: all
 all:		timeserver
 
-timeserver:	$(OBJECTS)
+timeserver:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a $(LDFLAGS) $(GUILIBS) -o timeserver
+
+-include $(OBJECTS:.o=.d)
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -c -o $@ $<
+		$(CXX) -MM $(CFLAGS) -I../Common -I../GUICommon $< > $*.d
 
+.PHONY: install
 install:
 		install -g bin -o root -m 0775 timeserver $(BINDIR)
 
+.PHONY: clean
 clean:
 		$(RM) timeserver *.o *.d *.bak *~
 
+../GUICommon/GUICommon.a:
+../Common/Common.a:

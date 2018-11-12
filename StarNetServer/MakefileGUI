@@ -2,17 +2,25 @@ OBJECTS = StarNetServerApp.o StarNetServerCallsignSet.o StarNetServerConfig.o St
 		  StarNetServerLogRedirect.o StarNetServerMiscellaneousSet.o StarNetServerPreferences.o StarNetServerThread.o \
 		  StarNetServerThreadHelper.o
 
+.PHONY: all
 all:		starnetserver
 
-starnetserver:	$(OBJECTS)
+starnetserver:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(GUILIBS) -o starnetserver
+
+-include $(OBJECTS:.o=.d)
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -I../ircDDB -c -o $@ $<
+		$(CXX) -MM $(CFLAGS) -I../Common -I../GUICommon -I../ircDDB $< > $*.d
 
+.PHONY: install
 install:
 		install -g bin -o root -m 0775 starnetserver $(BINDIR)
 
+.PHONY: clean
 clean:
 		$(RM) starnetserver *.o *.d *.bak *~
 
+../GUICommon/GUICommon.a:
+../Common/Common.a:
