@@ -1,5 +1,5 @@
 /*
- *	Copyright (C) 2009-2015 by Jonathan Naylor, G4KLX
+ *	Copyright (C) 2009-2015,2018 by Jonathan Naylor, G4KLX
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -31,8 +31,7 @@ const bool DATA_SYNC_BITS[]   = {true,  false, true,  false, true,  false, true,
 							     true,  false, true,  true,  false, true,  false, false,
 							     false, true,  true,  false, true,  false, false, false};
 
-const unsigned char END_PATTERN_BYTES[] = {0x55, 0x55, 0x55, 0x55, 0xC8, 0x7A,
-										   0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+const unsigned char END_PATTERN_BYTES[] = {0x55, 0x55, 0x55, 0x55, 0xC8, 0x7A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 const bool END_PATTERN_BITS[] = {true,  false, true,  false, true,  false, true,  false,
 							     true,  false, true,  false, true,  false, true,  false,
 							     true,  false, true,  false, true,  false, true,  false,
@@ -58,6 +57,10 @@ const unsigned char NULL_SLOW_DATA_BYTES[] = {0x16, 0x29, 0xF5};
 const bool NULL_SLOW_DATA_BITS[] = {false, true,  true,  false, true,  false, false, false,
 									true,  false, false, true,  false, true,  false, false,
 									true,  false, true,  false, true,  true,  true,  true};
+
+const unsigned char KENWOOD_DATA_MODE_BYTES[] = {0xEEU, 0xC2U, 0xA1U, 0xC8U, 0x42U, 0x6EU, 0x52U, 0x51U, 0xC3U};
+const unsigned char ICOM_DATA_MODE_BYTES1[]   = {0xB2U, 0x4DU, 0x22U, 0x48U, 0xC0U, 0x16U, 0x28U, 0x26U, 0xC8U};
+const unsigned char ICOM_DATA_MODE_BYTES2[]   = {0x70U, 0x4FU, 0x93U, 0x40U, 0x64U, 0x74U, 0x6DU, 0x30U, 0x2BU};
 
 const unsigned int VOICE_FRAME_LENGTH_BITS   = 72U;
 const unsigned int VOICE_FRAME_LENGTH_BYTES  = VOICE_FRAME_LENGTH_BITS / 8U;
