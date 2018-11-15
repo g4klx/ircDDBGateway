@@ -22,5 +22,5 @@ clean:
 		$(RM) ircddbgateway *.o *.d *.bak *~
 
 ../GUICommon/GUICommon.a:
-../Common/Common.a:s
+../Common/Common.a:
 
