@@ -746,7 +746,7 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 			m_fastData = true;
 		else if (::memcmp(buffer, ICOM_DATA_MODE_BYTES1, VOICE_FRAME_LENGTH_BYTES) == 0)
 			m_fastData = true;
-		else if (::memcmp(buffer, ICOM_DATA_MODE_BYTES2, VOICE_FRAME_LENGTH_BYTES) == 0) {
+		else if (::memcmp(buffer, ICOM_DATA_MODE_BYTES2, VOICE_FRAME_LENGTH_BYTES) == 0)
 			m_fastData = true;
 	}
 
