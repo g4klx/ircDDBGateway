@@ -81,6 +81,9 @@ public:
 private:
 	wxString       m_gateway;
 	in_addr        m_address;
+	
+	//the incoming G2 port, usually the default one unless the calling hotspot is behind a NAT, therefore keep track of it and use it to answer back instead of the default one
+	unsigned int   m_G2Port;
 	DSTAR_PROTOCOL m_protocol;
 	bool           m_addrLock;
 	bool           m_protoLock;

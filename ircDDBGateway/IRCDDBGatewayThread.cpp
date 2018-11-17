@@ -1025,12 +1025,15 @@ void CIRCDDBGatewayThread::processDCS()
 
 void CIRCDDBGatewayThread::processG2()
 {
+	in_addr incomingAddress;
+	unsigned int incomingPort;
+
 	for (;;) {
-		G2_TYPE type = m_g2Handler->read();
+		G2_TYPE type = m_g2Handler->read(incomingAddress, incomingPort);
 
 		switch (type) {
 			case GT_HEADER: {
-					CHeaderData* header = m_g2Handler->readHeader();
+					CHeaderData* header = m_g2Handler->readHeader(incomingAddress, incomingPort);
 					if (header != NULL) {
 						// wxLogMessage(wxT("G2 header - My: %s/%s  Your: %s  Rpt1: %s  Rpt2: %s  Flags: %02X %02X %02X"), header->getMyCall1().c_str(), header->getMyCall2().c_str(), header->getYourCall().c_str(), header->getRptCall1().c_str(), header->getRptCall2().c_str(), header->getFlag1(), header->getFlag2(), header->getFlag3());
 						CG2Handler::process(*header);
@@ -1040,7 +1043,7 @@ void CIRCDDBGatewayThread::processG2()
 				break;
 
 			case GT_AMBE: {
-					CAMBEData* data = m_g2Handler->readAMBE();
+					CAMBEData* data = m_g2Handler->readAMBE(incomingAddress, incomingPort);
 					if (data != NULL) {
 						CG2Handler::process(*data);
 						delete data;
@@ -1049,6 +1052,7 @@ void CIRCDDBGatewayThread::processG2()
 				break;
 
 			default:
+				//Probably someone punching a UDP hole to us
 				return;
 		}
 	}
