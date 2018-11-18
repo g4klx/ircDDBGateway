@@ -54,6 +54,11 @@ public:
 		return m_gateway;
 	}
 
+	void setGateway(const wxString& gateway)
+	{
+		m_gateway = gateway;
+	}
+
 	in_addr getAddress() const
 	{
 		return m_address;
@@ -69,11 +74,8 @@ public:
 		return m_g2Port;
 	}
 
-	void setData(in_addr address, unsigned int g2Port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+	void setData(in_addr address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
 	{
-		if(!ignoreG2Port)
-			m_g2Port = g2Port;
-
 		if (!m_addrLock) {
 			m_address  = address;
 			m_addrLock = addrLock;
@@ -87,10 +89,19 @@ public:
 		}
 	}
 
+	void setG2Data(in_addr address, unsigned int g2Port)
+	{
+		if (!m_addrLock) {
+			m_address  = address;
+		}
+
+		m_g2Port = g2Port;
+	}
+
 private:
 	wxString       m_gateway;
 	in_addr        m_address;	
-	//the incoming G2 port, usually the default one unless the calling hotspot is behind a NAT, therefore keep track of it and use it to answer back instead of the default one
+	//the incoming G2 port, keep track of it and use it to answer back instead of the default one. This helps us defeat NAT with no port forwarding to G2_DVPORT
 	unsigned int   m_g2Port;
 	DSTAR_PROTOCOL m_protocol;
 	bool           m_addrLock;
@@ -106,11 +117,14 @@ public:
 
 	CGatewayRecord* find(const wxString& gateway);
 
-	void update(const wxString& gateway, const wxString& address, unsigned int g2port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+	void update(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+	void updateG2(const wxString& gateway, in_addr address, unsigned int g2Port);
 
 	unsigned int getCount() const;
 
 private:
+	CGatewayRecord* findByAddress(in_addr address);
+
 	CGatewayCache_t m_cache;
 };
 
