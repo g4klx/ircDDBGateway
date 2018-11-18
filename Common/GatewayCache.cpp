@@ -43,6 +43,12 @@ void CGatewayCache::update(const wxString& gateway, const wxString& address, DST
 
 	CGatewayRecord* rec = m_cache[gateway];
 
+	if(rec == NULL) {
+		rec = findByAddress(addr_in);//did this gateway punch to us and we do not have a gateway set for it ?
+		if(rec->getGateway().empty())
+			rec->setGateway(gateway);
+	}
+
 	if (rec == NULL)
 		// A brand new record is needed
 		m_cache[gateway] = new CGatewayRecord(gateway, addr_in, G2_DV_PORT, protocol, addrLock, protoLock);
@@ -53,7 +59,7 @@ void CGatewayCache::update(const wxString& gateway, const wxString& address, DST
 
 void CGatewayCache::updateG2(const wxString& gateway, in_addr address,  unsigned int g2Port)
 {
-	//empty gateway means we are coming from udp hole punching, let see if we have an getway with matching address
+	//empty gateway means we are coming from udp hole punching, let see if we have an gateway with matching address
 	CGatewayRecord* rec = gateway.empty()? findByAddress(address) : m_cache[gateway];
 
 	if (rec == NULL) {

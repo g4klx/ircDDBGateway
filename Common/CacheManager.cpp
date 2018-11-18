@@ -65,7 +65,7 @@ CGatewayData* CCacheManager::findGateway(const wxString& gateway)
 	if (gr == NULL)
 		return NULL;
 
-	return new CGatewayData(gateway, gr->getAddress(), gr->getProtocol());
+	return new CGatewayData(gateway, gr->getAddress(), gr->getProtocol(), gr->getG2Port());
 }
 
 CRepeaterData* CCacheManager::findRepeater(const wxString& repeater)
@@ -87,7 +87,7 @@ CRepeaterData* CCacheManager::findRepeater(const wxString& repeater)
 	if (gr == NULL)
 		return NULL;
 
-	return new CRepeaterData(repeater, gr->getGateway(), gr->getAddress(), gr->getProtocol());
+	return new CRepeaterData(repeater, gr->getGateway(), gr->getAddress(), gr->getProtocol(), gr->getG2Port());
 }
 
 void CCacheManager::updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, const wxString& timestamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
