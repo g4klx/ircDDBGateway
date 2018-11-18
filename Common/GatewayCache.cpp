@@ -45,7 +45,7 @@ void CGatewayCache::update(const wxString& gateway, const wxString& address, DST
 
 	if(rec == NULL) {
 		rec = findByAddress(addr_in);//did this gateway punch to us and we do not have a gateway set for it ?
-		if(rec->getGateway().empty())
+		if(rec != NULL && rec->getGateway().empty())
 			rec->setGateway(gateway);
 	}
 
