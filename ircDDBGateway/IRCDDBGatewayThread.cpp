@@ -1037,6 +1037,7 @@ void CIRCDDBGatewayThread::processG2()
 					if (header != NULL) {
 						// wxLogMessage(wxT("G2 header - My: %s/%s  Your: %s  Rpt1: %s  Rpt2: %s  Flags: %02X %02X %02X"), header->getMyCall1().c_str(), header->getMyCall2().c_str(), header->getYourCall().c_str(), header->getRptCall1().c_str(), header->getRptCall2().c_str(), header->getFlag1(), header->getFlag2(), header->getFlag3());
 						CG2Handler::process(*header);
+						m_cache.updateGatewayG2(header-> getRptCall1(), wxT("127.0.0.1"), incomingPort);
 						delete header;
 					}
 				}
