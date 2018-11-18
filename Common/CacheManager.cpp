@@ -54,7 +54,7 @@ CUserData* CCacheManager::findUser(const wxString& user)
 	if (gr == NULL)
 		return NULL;
 
-	return new CUserData(user, ur->getRepeater(), gr->getGateway(), gr->getAddress());
+	return new CUserData(user, ur->getRepeater(), gr->getGateway(), gr->getAddress(), gr->getG2Port());
 }
 
 CGatewayData* CCacheManager::findGateway(const wxString& gateway)

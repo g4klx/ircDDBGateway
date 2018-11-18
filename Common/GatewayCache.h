@@ -69,7 +69,7 @@ public:
 		return m_protocol;
 	}
 
-	unsigned int g2Port() const
+	unsigned int getG2Port() const
 	{
 		return m_g2Port;
 	}
