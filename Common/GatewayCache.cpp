@@ -36,7 +36,7 @@ CGatewayRecord* CGatewayCache::find(const wxString& gateway)
 	return m_cache[gateway];
 }
 
-void CGatewayCache::update(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+void CGatewayCache::update(const wxString& gateway, const wxString& address,  unsigned int g2Port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
 {
 	CGatewayRecord* rec = m_cache[gateway];
 
@@ -45,10 +45,10 @@ void CGatewayCache::update(const wxString& gateway, const wxString& address, DST
 
 	if (rec == NULL)
 		// A brand new record is needed
-		m_cache[gateway] = new CGatewayRecord(gateway, addr_in, protocol, addrLock, protoLock);
+		m_cache[gateway] = new CGatewayRecord(gateway, addr_in, g2Port, protocol, addrLock, protoLock);
 	else
 		// Update an existing record
-		rec->setData(addr_in, protocol, addrLock, protoLock);
+		rec->setData(addr_in, g2Port, ignoreG2Port, protocol, addrLock, protoLock);
 }
 
 unsigned int CGatewayCache::getCount() const

@@ -92,6 +92,11 @@ CRepeaterData* CCacheManager::findRepeater(const wxString& repeater)
 
 void CCacheManager::updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, const wxString& timestamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
 {
+	updateUser(user, repeater, gateway, address, G2_DV_PORT, true, timestamp, protocol, addrLock, protoLock);
+}
+
+void CCacheManager::updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, unsigned int g2Port, bool ignoreG2Port, const wxString& timestamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+{
 	wxMutexLocker locker(m_mutex);
 
 	wxString repeater7 = repeater.Left(LONG_CALLSIGN_LENGTH - 1U);
@@ -103,10 +108,15 @@ void CCacheManager::updateUser(const wxString& user, const wxString& repeater, c
 	if (!repeater7.IsSameAs(gateway7))
 		m_repeaterCache.update(repeater, gateway);
 
-	m_gatewayCache.update(gateway, address, protocol, addrLock, protoLock);
+	updateGateway(gateway, address, g2Port, ignoreG2Port, protocol, addrLock, protoLock);
 }
 
 void CCacheManager::updateRepeater(const wxString& repeater, const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+{
+	updateRepeater(repeater, gateway, address, G2_DV_PORT, true, protocol, addrLock, protoLock);
+}
+
+void CCacheManager::updateRepeater(const wxString& repeater, const wxString& gateway, const wxString& address, unsigned int g2Port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
 {
 	wxMutexLocker locker(m_mutex);
 
@@ -117,12 +127,24 @@ void CCacheManager::updateRepeater(const wxString& repeater, const wxString& gat
 	if (!repeater7.IsSameAs(gateway7))
 		m_repeaterCache.update(repeater, gateway);
 
-	m_gatewayCache.update(gateway, address, protocol, addrLock, protoLock);
+	updateGateway(gateway, address, g2Port, ignoreG2Port, protocol, addrLock, protoLock);
 }
 
 void CCacheManager::updateGateway(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
 {
+	updateGateway(gateway, address, G2_DV_PORT, true, protocol, addrLock, protoLock);
+}
+
+void CCacheManager::updateGateway(const wxString& gateway, const wxString& address, unsigned int g2Port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+{
 	wxMutexLocker locker(m_mutex);
 
-	m_gatewayCache.update(gateway, address, protocol, addrLock, protoLock);
+	m_gatewayCache.update(gateway, address, g2Port, ignoreG2Port, protocol, addrLock, protoLock);
+}
+
+void CCacheManager::updateGatewayG2(const wxString& gateway, const wxString& address, unsigned int g2Port)
+{
+	CGatewayRecord* gr = m_gatewayCache.find(gateway);
+	DSTAR_PROTOCOL protocol = gr != NULL? gr->getProtocol() : DP_UNKNOWN;
+	updateGateway(gateway, address, g2Port, false, protocol, false, false);
 }

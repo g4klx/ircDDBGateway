@@ -146,9 +146,14 @@ public:
 
 	void updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, const wxString& timeStamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
 	void updateRepeater(const wxString& repeater, const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
-	void updateGateway(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+	void updateGateway(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol,bool addrLock, bool protoLock);
+	void updateGatewayG2(const wxString& gateway, const wxString& address, unsigned int g2Port);
 
 private:
+	void updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, unsigned int g2Port, bool ignoreG2Port, const wxString& timeStamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+	void updateRepeater(const wxString& repeater, const wxString& gateway, const wxString& address, unsigned int g2Port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+	void updateGateway(const wxString& gateway, const wxString& address, unsigned int g2Port, bool ignoreG2Port, DSTAR_PROTOCOL protocol,bool addrLock, bool protoLock);
+
 	wxMutex        m_mutex;
 	CUserCache     m_userCache;
 	CGatewayCache  m_gatewayCache;

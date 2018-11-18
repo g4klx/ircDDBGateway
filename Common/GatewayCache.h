@@ -35,9 +35,10 @@
 
 class CGatewayRecord {
 public:
-	CGatewayRecord(const wxString& gateway, in_addr address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock) :
+	CGatewayRecord(const wxString& gateway, in_addr address, unsigned int g2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock) :
 	m_gateway(gateway),
 	m_address(address),
+	m_g2Port(g2Port),
 	m_protocol(DP_UNKNOWN),
 	m_addrLock(addrLock),
 	m_protoLock(false)
@@ -63,8 +64,16 @@ public:
 		return m_protocol;
 	}
 
-	void setData(in_addr address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+	unsigned int g2Port() const
 	{
+		return m_g2Port;
+	}
+
+	void setData(in_addr address, unsigned int g2Port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+	{
+		if(!ignoreG2Port)
+			m_g2Port = g2Port;
+
 		if (!m_addrLock) {
 			m_address  = address;
 			m_addrLock = addrLock;
@@ -80,10 +89,9 @@ public:
 
 private:
 	wxString       m_gateway;
-	in_addr        m_address;
-	
+	in_addr        m_address;	
 	//the incoming G2 port, usually the default one unless the calling hotspot is behind a NAT, therefore keep track of it and use it to answer back instead of the default one
-	unsigned int   m_G2Port;
+	unsigned int   m_g2Port;
 	DSTAR_PROTOCOL m_protocol;
 	bool           m_addrLock;
 	bool           m_protoLock;
@@ -98,7 +106,7 @@ public:
 
 	CGatewayRecord* find(const wxString& gateway);
 
-	void update(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+	void update(const wxString& gateway, const wxString& address, unsigned int g2port, bool ignoreG2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
 
 	unsigned int getCount() const;
 
