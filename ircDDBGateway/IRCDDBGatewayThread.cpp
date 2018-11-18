@@ -732,7 +732,6 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!res)
 						break;
 
-					CRepeaterHandler::resolveRepeater(repeater, gateway, address, DP_DEXTRA);
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("REPEATER: %s %s %s"), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateRepeater(repeater, gateway, address, DP_DEXTRA, false, false);
@@ -740,6 +739,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					} else {
 						wxLogMessage(wxT("REPEATER: %s NOT FOUND"), repeater.c_str());
 					}
+
+					//resolve after updating cache so CRepeaterHandler gets latest g2 port from cache
+					CRepeaterHandler::resolveRepeater(repeater, gateway, address, DP_DEXTRA);
 				}
 				break;
 
