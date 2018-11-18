@@ -89,6 +89,8 @@ bool CG2ProtocolHandler::readPackets(in_addr& incomingAddress, unsigned int& inc
 {
 	m_type = GT_NONE;
 
+	incomingPort = 0;
+
 	// No more data?
 	int length = m_socket.read(m_buffer, BUFFER_LENGTH, incomingAddress, incomingPort);
 	if (length <= 0)

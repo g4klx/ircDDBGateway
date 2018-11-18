@@ -1054,7 +1054,8 @@ void CIRCDDBGatewayThread::processG2()
 
 			default:
 				//Probably someone punching a UDP hole to us, keep track of that
-				m_cache.updateGatewayG2(wxT(""), incomingAddress, incomingPort);
+				if(incomingPort > 0 && incomingPort < 65536)
+					m_cache.updateGatewayG2(wxT(""), incomingAddress, incomingPort);
 				return;
 		}
 	}
