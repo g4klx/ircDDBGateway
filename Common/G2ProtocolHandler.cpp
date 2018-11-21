@@ -95,9 +95,6 @@ bool CG2ProtocolHandler::readPackets(in_addr& remoteAddress, unsigned int& remot
 	if (length <= 0)
 		return false;
 
-	if(length >= 1)
-		wxLogMessage(wxT("bla %i"), length);
-
 	m_length = length;
 
 	if (m_buffer[0] != 'D' || m_buffer[1] != 'S' || m_buffer[2] != 'V' || m_buffer[3] != 'T') {
