@@ -1060,11 +1060,8 @@ void CIRCDDBGatewayThread::processG2()
 			default:
 				//Probably someone punching a UDP hole to us, keep track of that
 				if(remoteAddress.s_addr != INADDR_NONE && remotePort > 0  && remotePort < 65536) {
-			
 					wxLogMessage(wxT("Incoming G2 UDP punch from %s:%i"), ::inet_ntoa(remoteAddress), remotePort);
-			
 					m_cache.updateGatewayG2(wxT(""), remoteAddress, remotePort);
-			
 				}
 					
 				return;
