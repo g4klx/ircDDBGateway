@@ -1027,26 +1027,29 @@ void CIRCDDBGatewayThread::processDCS()
 
 void CIRCDDBGatewayThread::processG2()
 {
-	in_addr incomingAddress;
-	unsigned int incomingPort;
+	in_addr remoteAddress;
+	unsigned int remotePort;
 
 	for (;;) {
-		G2_TYPE type = m_g2Handler->read(incomingAddress, incomingPort);
+		G2_TYPE type = m_g2Handler->read(remoteAddress, remotePort);
 
 		switch (type) {
 			case GT_HEADER: {
-					CHeaderData* header = m_g2Handler->readHeader(incomingAddress, incomingPort);
+					CHeaderData* header = m_g2Handler->readHeader(remoteAddress, remotePort);
+			
 					if (header != NULL) {
 						// wxLogMessage(wxT("G2 header - My: %s/%s  Your: %s  Rpt1: %s  Rpt2: %s  Flags: %02X %02X %02X"), header->getMyCall1().c_str(), header->getMyCall2().c_str(), header->getYourCall().c_str(), header->getRptCall1().c_str(), header->getRptCall2().c_str(), header->getFlag1(), header->getFlag2(), header->getFlag3());
 						CG2Handler::process(*header);
-						m_cache.updateGatewayG2(header-> getRptCall1(), incomingAddress, incomingPort);
+						m_cache.updateGatewayG2(header-> getRptCall1(), remoteAddress, remotePort);
+				
 						delete header;
 					}
 				}
 				break;
 
 			case GT_AMBE: {
-					CAMBEData* data = m_g2Handler->readAMBE(incomingAddress, incomingPort);
+					CAMBEData* data = m_g2Handler->readAMBE(remoteAddress, remotePort);
+			
 					if (data != NULL) {
 						CG2Handler::process(*data);
 						delete data;
@@ -1056,9 +1059,12 @@ void CIRCDDBGatewayThread::processG2()
 
 			default:
 				//Probably someone punching a UDP hole to us, keep track of that
-				if(incomingAddress.s_addr != INADDR_NONE && incomingPort > 0  && incomingPort < 65536) {
-					wxLogMessage(wxT("Incoming G2 UDP punch from %s:%i"), ::inet_ntoa(incomingAddress), incomingPort);
-					m_cache.updateGatewayG2(wxT(""), incomingAddress, incomingPort);
+				if(remoteAddress.s_addr != INADDR_NONE && remotePort > 0  && remotePort < 65536) {
+			
+					wxLogMessage(wxT("Incoming G2 UDP punch from %s:%i"), ::inet_ntoa(remoteAddress), remotePort);
+			
+					m_cache.updateGatewayG2(wxT(""), remoteAddress, remotePort);
+			
 				}
 					
 				return;
