@@ -147,7 +147,7 @@ CAMBEData* CG2ProtocolHandler::readAMBE(in_addr remoteAddress, unsigned int remo
 	return data;
 }
 
-void CG2ProtocolHandler::punchUDPHole(const wxString& address)
+void CG2ProtocolHandler::traverseNat(const wxString& address)
 {
 	unsigned char buffer[1];
 	::memset(buffer, 0, 1);

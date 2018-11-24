@@ -52,7 +52,7 @@ public:
 	CHeaderData* readHeader(in_addr incomingAddress, unsigned int incomingPort);
 	CAMBEData*   readAMBE(in_addr incomingAddress, unsigned int incomingPort);
 
-	void punchUDPHole(const wxString& addr);
+	void traverseNat(const wxString& addr);
 
 	void close();
 
