@@ -19,7 +19,7 @@
 #ifndef NatTraversalHandler_H
 #define NatTraversalHandler_H
 
-#define G2_TRAVERSAL_TIMEOUT 60 //seconds
+#define G2_TRAVERSAL_TIMEOUT 29 //seconds
 
 #include "G2ProtocolHandler.h"
 
