@@ -209,6 +209,9 @@
     <ClCompile Include="XLXHostsFileDownloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NatTraversalHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AMBEData.h">
@@ -431,6 +434,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XLXHostsFileDownloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NatTraversalHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
