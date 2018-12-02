@@ -48,11 +48,11 @@ public:
 	bool writeHeader(const CHeaderData& header);
 	bool writeAMBE(const CAMBEData& data);
 
-	G2_TYPE read();
-	CHeaderData* readHeader();
-	CAMBEData*   readAMBE();
+	G2_TYPE read(in_addr& incomingAddress, unsigned int& incomingPort);
+	CHeaderData* readHeader(in_addr incomingAddress, unsigned int incomingPort);
+	CAMBEData*   readAMBE(in_addr incomingAddress, unsigned int incomingPort);
 
-	void punchUDPHole(const wxString& addr);
+	void traverseNat(const wxString& addr);
 
 	void close();
 
@@ -61,10 +61,8 @@ private:
 	G2_TYPE          m_type;
 	unsigned char*   m_buffer;
 	unsigned int     m_length;
-	in_addr          m_address;
-	unsigned int     m_port;
 
-	bool readPackets();
+	bool readPackets(in_addr& incomingAddress, unsigned int& incomingPort);
 };
 
 #endif

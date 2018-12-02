@@ -72,6 +72,7 @@ m_dextraPool(NULL),
 m_dplusPool(NULL),
 m_dcsPool(NULL),
 m_g2Handler(NULL),
+m_natTraversal(NULL),
 m_aprsWriter(NULL),
 m_irc(NULL),
 m_cache(),
@@ -215,6 +216,11 @@ void CIRCDDBGatewayThread::run()
 		wxLogError(wxT("Could not open the G2 protocol handler"));
 		delete m_g2Handler;
 		m_g2Handler = NULL;
+	}
+
+	if(m_g2Handler != NULL) {
+		m_natTraversal = new CNatTraversalHandler();
+		m_natTraversal->setG2Handler(m_g2Handler);
 	}
 
 	// Wait here until we have the essentials to run
@@ -719,7 +725,7 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("USER: %s %s %s %s"), user.c_str(), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateUser(user, repeater, gateway, address, timestamp, DP_DEXTRA, false, false);
-						m_g2Handler->punchUDPHole(address);
+						m_natTraversal->traverseNatG2(address);
 					} else {
 						wxLogMessage(wxT("USER: %s NOT FOUND"), user.c_str());
 					}
@@ -732,14 +738,16 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!res)
 						break;
 
-					CRepeaterHandler::resolveRepeater(repeater, gateway, address, DP_DEXTRA);
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("REPEATER: %s %s %s"), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateRepeater(repeater, gateway, address, DP_DEXTRA, false, false);
-						m_g2Handler->punchUDPHole(address);
+						m_natTraversal->traverseNatG2(address);
 					} else {
 						wxLogMessage(wxT("REPEATER: %s NOT FOUND"), repeater.c_str());
 					}
+
+					//resolve after updating cache so CRepeaterHandler gets latest g2 port from cache
+					CRepeaterHandler::resolveRepeater(repeater, gateway, address, DP_DEXTRA);
 				}
 				break;
 
@@ -754,7 +762,7 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("GATEWAY: %s %s"), gateway.c_str(), address.c_str());
 						m_cache.updateGateway(gateway, address, DP_DEXTRA, false, false);
-						m_g2Handler->punchUDPHole(address);
+						m_natTraversal->traverseNatG2(address);
 					} else {
 						wxLogMessage(wxT("GATEWAY: %s NOT FOUND"), gateway.c_str());
 					}
@@ -1025,22 +1033,29 @@ void CIRCDDBGatewayThread::processDCS()
 
 void CIRCDDBGatewayThread::processG2()
 {
+	in_addr remoteAddress;
+	unsigned int remotePort;
+
 	for (;;) {
-		G2_TYPE type = m_g2Handler->read();
+		G2_TYPE type = m_g2Handler->read(remoteAddress, remotePort);
 
 		switch (type) {
 			case GT_HEADER: {
-					CHeaderData* header = m_g2Handler->readHeader();
+					CHeaderData* header = m_g2Handler->readHeader(remoteAddress, remotePort);
+			
 					if (header != NULL) {
 						// wxLogMessage(wxT("G2 header - My: %s/%s  Your: %s  Rpt1: %s  Rpt2: %s  Flags: %02X %02X %02X"), header->getMyCall1().c_str(), header->getMyCall2().c_str(), header->getYourCall().c_str(), header->getRptCall1().c_str(), header->getRptCall2().c_str(), header->getFlag1(), header->getFlag2(), header->getFlag3());
 						CG2Handler::process(*header);
+						m_cache.updateGatewayG2(header-> getRptCall1(), remoteAddress, remotePort);
+				
 						delete header;
 					}
 				}
 				break;
 
 			case GT_AMBE: {
-					CAMBEData* data = m_g2Handler->readAMBE();
+					CAMBEData* data = m_g2Handler->readAMBE(remoteAddress, remotePort);
+			
 					if (data != NULL) {
 						CG2Handler::process(*data);
 						delete data;
@@ -1049,6 +1064,12 @@ void CIRCDDBGatewayThread::processG2()
 				break;
 
 			default:
+				//Probably someone punching a UDP hole to us, keep track of that
+				if(remoteAddress.s_addr != INADDR_NONE && remotePort > 0  && remotePort < 65536) {
+					wxLogMessage(wxT("Incoming G2 UDP traversal from %s:%i"), ::inet_ntoa(remoteAddress), remotePort);
+					m_cache.updateGatewayG2(wxT(""), remoteAddress, remotePort);
+				}
+					
 				return;
 		}
 	}

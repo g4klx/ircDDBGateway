@@ -232,6 +232,7 @@ private:
 	wxString                  m_g2Gateway;
 	CHeaderData*              m_g2Header;
 	in_addr                   m_g2Address;
+    unsigned int              m_g2Port;
 
 	// Link info
 	LINK_STATUS               m_linkStatus;

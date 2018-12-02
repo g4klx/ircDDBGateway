@@ -33,11 +33,12 @@
 
 class CUserData {
 public:
-	CUserData(const wxString& user, const wxString& repeater, const wxString& gateway, in_addr address) :
+	CUserData(const wxString& user, const wxString& repeater, const wxString& gateway, in_addr address, unsigned int g2Port) :
 	m_user(user),
 	m_repeater(repeater),
 	m_gateway(gateway),
-	m_address(address)
+	m_address(address),
+	m_g2Port(g2Port)
 	{
 	}
 
@@ -61,20 +62,27 @@ public:
 		return m_address;
 	}
 
+	unsigned int getG2Port() const
+	{
+		return m_g2Port;
+	}
+
 private:
 	wxString m_user;
 	wxString m_repeater;
 	wxString m_gateway;
 	in_addr  m_address;
+	unsigned int m_g2Port;
 };
 
 class CRepeaterData {
 public:
-	CRepeaterData(const wxString& repeater, const wxString& gateway, in_addr address, DSTAR_PROTOCOL protocol) :
+	CRepeaterData(const wxString& repeater, const wxString& gateway, in_addr address, DSTAR_PROTOCOL protocol, unsigned int g2Port) :
 	m_repeater(repeater),
 	m_gateway(gateway),
 	m_address(address),
-	m_protocol(protocol)
+	m_protocol(protocol),
+	m_g2Port(g2Port)
 	{
 	}
 
@@ -98,19 +106,26 @@ public:
 		return m_protocol;
 	}
 
+	unsigned int getG2Port() const
+	{
+		return m_g2Port;
+	}
+
 private:
 	wxString       m_repeater;
 	wxString       m_gateway;
 	in_addr        m_address;
 	DSTAR_PROTOCOL m_protocol;
+	unsigned int m_g2Port;
 };
 
 class CGatewayData {
 public:
-	CGatewayData(const wxString& gateway, in_addr address, DSTAR_PROTOCOL protocol) :
+	CGatewayData(const wxString& gateway, in_addr address, DSTAR_PROTOCOL protocol, unsigned int g2Port) :
 	m_gateway(gateway),
 	m_address(address),
-	m_protocol(protocol)
+	m_protocol(protocol),
+	m_g2Port(g2Port)
 	{
 	}
 
@@ -129,10 +144,16 @@ public:
 		return m_protocol;
 	}
 
+    unsigned int getG2Port() const
+	{
+		return m_g2Port;
+	}
+
 private:
 	wxString       m_gateway;
 	in_addr        m_address;
 	DSTAR_PROTOCOL m_protocol;
+	unsigned int   m_g2Port;
 };
 
 class CCacheManager {
@@ -146,7 +167,8 @@ public:
 
 	void updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, const wxString& timeStamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
 	void updateRepeater(const wxString& repeater, const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
-	void updateGateway(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+	void updateGateway(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol,bool addrLock, bool protoLock);
+	void updateGatewayG2(const wxString& gateway, const in_addr& address, unsigned int g2Port);
 
 private:
 	wxMutex        m_mutex;

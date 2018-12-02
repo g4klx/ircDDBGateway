@@ -28,6 +28,7 @@
 #include "IRCDDBGatewayStatusData.h"
 #include "DCSProtocolHandlerPool.h"
 #include "G2ProtocolHandler.h"
+#include "NatTraversalHandler.h"
 #include "RemoteHandler.h"
 #include "CacheManager.h"
 #include "CallsignList.h"
@@ -92,6 +93,7 @@ private:
 	CDPlusProtocolHandlerPool*     m_dplusPool;
 	CDCSProtocolHandlerPool*       m_dcsPool;
 	CG2ProtocolHandler*       m_g2Handler;
+	CNatTraversalHandler*     m_natTraversal;
 	CAPRSWriter*              m_aprsWriter;
 	CIRCDDB*                  m_irc;
 	CCacheManager             m_cache;
