@@ -189,7 +189,6 @@
     <ClCompile Include="IRCDDBGatewayConfig.cpp" />
     <ClCompile Include="LogEvent.cpp" />
     <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="NatTraversalHandler.cpp" />
     <ClCompile Include="PollData.cpp" />
     <ClCompile Include="RemoteHandler.cpp" />
     <ClCompile Include="RemoteLinkData.cpp" />
@@ -261,7 +260,6 @@
     <ClInclude Include="IRCDDBGatewayConfig.h" />
     <ClInclude Include="LogEvent.h" />
     <ClInclude Include="Logger.h" />
-    <ClInclude Include="NatTraversalHandler.h" />
     <ClInclude Include="PollData.h" />
     <ClInclude Include="ReflectorCallback.h" />
     <ClInclude Include="RemoteHandler.h" />

@@ -29,7 +29,9 @@ CG2ProtocolHandler::CG2ProtocolHandler(unsigned int port, const wxString& addr) 
 m_socket(addr, port),
 m_type(GT_NONE),
 m_buffer(NULL),
-m_length(0U)
+m_length(0U),
+m_address(),
+m_port(0U)
 {
 	m_buffer = new unsigned char[BUFFER_LENGTH];
 }
@@ -74,33 +76,29 @@ bool CG2ProtocolHandler::writeAMBE(const CAMBEData& data)
 	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
 }
 
-G2_TYPE CG2ProtocolHandler::read(in_addr& remoteAddress, unsigned int& remotePort)
+G2_TYPE CG2ProtocolHandler::read()
 {
 	bool res = true;
 
 	// Loop until we have no more data from the socket or we have data for the higher layers
 	while (res)
-		res = readPackets(remoteAddress, remotePort);
+		res = readPackets();
 
 	return m_type;
 }
 
-bool CG2ProtocolHandler::readPackets(in_addr& remoteAddress, unsigned int& remotePort)
+bool CG2ProtocolHandler::readPackets()
 {
 	m_type = GT_NONE;
-	remotePort = 0;
 
 	// No more data?
-	int length = m_socket.read(m_buffer, BUFFER_LENGTH, remoteAddress, remotePort);
+	int length = m_socket.read(m_buffer, BUFFER_LENGTH, m_address, m_port);
 	if (length <= 0)
 		return false;
 
 	m_length = length;
 
 	if (m_buffer[0] != 'D' || m_buffer[1] != 'S' || m_buffer[2] != 'V' || m_buffer[3] != 'T') {
-		if(length == 1 && m_buffer[0] == 0)
-			return false;//we have been udp punched
-
 		return true;
 	} else {
 		// Header or data packet type?
@@ -113,7 +111,7 @@ bool CG2ProtocolHandler::readPackets(in_addr& remoteAddress, unsigned int& remot
 	}
 }
 
-CHeaderData* CG2ProtocolHandler::readHeader(in_addr remoteAddress, unsigned int remotePort)
+CHeaderData* CG2ProtocolHandler::readHeader()
 {
 	if (m_type != GT_HEADER)
 		return NULL;
@@ -121,7 +119,7 @@ CHeaderData* CG2ProtocolHandler::readHeader(in_addr remoteAddress, unsigned int 
 	CHeaderData* header = new CHeaderData;
 
 	// G2 checksums are unreliable
-	bool res = header->setG2Data(m_buffer, m_length, false, remoteAddress, remotePort);
+	bool res = header->setG2Data(m_buffer, m_length, false, m_address, m_port);
 	if (!res) {
 		delete header;
 		return NULL;
@@ -130,15 +128,14 @@ CHeaderData* CG2ProtocolHandler::readHeader(in_addr remoteAddress, unsigned int 
 	return header;
 }
 
-CAMBEData* CG2ProtocolHandler::readAMBE(in_addr remoteAddress, unsigned int remotePort)
+CAMBEData* CG2ProtocolHandler::readAMBE()
 {
 	if (m_type != GT_AMBE)
 		return NULL;
 
 	CAMBEData* data = new CAMBEData;
 
-	bool res = data->setG2Data(m_buffer, m_length, remoteAddress, remotePort
-);
+	bool res = data->setG2Data(m_buffer, m_length, m_address, m_port);
 	if (!res) {
 		delete data;
 		return NULL;
@@ -147,7 +144,7 @@ CAMBEData* CG2ProtocolHandler::readAMBE(in_addr remoteAddress, unsigned int remo
 	return data;
 }
 
-void CG2ProtocolHandler::traverseNat(const wxString& address)
+void CG2ProtocolHandler::punchUDPHole(const wxString& address)
 {
 	unsigned char buffer[1];
 	::memset(buffer, 0, 1);

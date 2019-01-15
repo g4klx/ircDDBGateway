@@ -109,7 +109,6 @@ m_g2Repeater(),
 m_g2Gateway(),
 m_g2Header(NULL),
 m_g2Address(),
-m_g2Port(G2_DV_PORT),
 m_linkStatus(LS_NONE),
 m_linkRepeater(),
 m_linkGateway(),
@@ -633,7 +632,6 @@ void CRepeaterHandler::processRepeater(CHeaderData& header)
 	m_g2User.Clear();
 	m_g2Repeater.Clear();
 	m_g2Gateway.Clear();
-	m_g2Port = G2_DV_PORT;
 
 	// Check if this user is restricted
 	m_restricted = false;
@@ -831,7 +829,7 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 			break;
 
 		case G2_OK:
-			data.setDestination(m_g2Address, m_g2Port);
+			data.setDestination(m_g2Address, G2_DV_PORT);
 			m_g2Handler->writeAMBE(data);
 
 			if (data.isEnd()) {
@@ -1215,7 +1213,7 @@ void CRepeaterHandler::resolveUserInt(const wxString& user, const wxString& repe
 			m_g2Repeater = repeater;
 			m_g2Gateway  = gateway;
 
-			m_g2Header->setDestination(m_g2Address, m_g2Port);
+			m_g2Header->setDestination(m_g2Address, G2_DV_PORT);
 			m_g2Header->setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(*m_g2Header);
 
@@ -1228,7 +1226,6 @@ void CRepeaterHandler::resolveUserInt(const wxString& user, const wxString& repe
 			m_g2User.Clear();
 			m_g2Repeater.Clear();
 			m_g2Gateway.Clear();
-			m_g2Port = G2_DV_PORT;
 
 			delete m_g2Header;
 			m_g2Header = NULL;
@@ -1248,10 +1245,7 @@ void CRepeaterHandler::resolveRepeaterInt(const wxString& repeater, const wxStri
 			m_g2Repeater = repeater;
 			m_g2Gateway  = gateway;
 
-			CRepeaterData* rpt = m_cache->findRepeater(repeater);
-			m_g2Port = rpt != NULL ? rpt->getG2Port() : G2_DV_PORT;
-
-			m_g2Header->setDestination(m_g2Address, m_g2Port);
+			m_g2Header->setDestination(m_g2Address, G2_DV_PORT);
 			m_g2Header->setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(*m_g2Header);
 
@@ -1264,7 +1258,6 @@ void CRepeaterHandler::resolveRepeaterInt(const wxString& repeater, const wxStri
 			m_g2User.Clear();
 			m_g2Repeater.Clear();
 			m_g2Gateway.Clear();
-			m_g2Port = G2_DV_PORT;
 
 			delete m_g2Header;
 			m_g2Header = NULL;
@@ -1466,7 +1459,6 @@ void CRepeaterHandler::clockInt(unsigned int ms)
 			m_g2User.Clear();
 			m_g2Repeater.Clear();
 			m_g2Gateway.Clear();
-			m_g2Port = G2_DV_PORT;
 
 			delete m_g2Header;
 			m_g2Header = NULL;
@@ -1991,8 +1983,7 @@ void CRepeaterHandler::g2CommandHandler(const wxString& callsign, const wxString
 			m_g2Status = G2_OK;
 			m_g2Address = data->getAddress();
 			m_g2Gateway = data->getGateway();
-			m_g2Port = data->getG2Port();
-			header.setDestination(m_g2Address, m_g2Port);
+			header.setDestination(m_g2Address, G2_DV_PORT);
 			header.setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(header);
 			delete data;
@@ -2034,9 +2025,7 @@ void CRepeaterHandler::g2CommandHandler(const wxString& callsign, const wxString
 			m_g2Address  = data->getAddress();
 			m_g2Repeater = data->getRepeater();
 			m_g2Gateway  = data->getGateway();
-			m_g2Port     = data->getG2Port();
-			wxLogMessage(wxT("%s is trying to G2 route to gateway %s on port %d"), user.c_str(), m_g2Gateway.c_str(), m_g2Port);
-			header.setDestination(m_g2Address, m_g2Port);
+			header.setDestination(m_g2Address, G2_DV_PORT);
 			header.setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(header);
 
