@@ -147,6 +147,7 @@ CAMBEData* CG2ProtocolHandler::readAMBE(in_addr remoteAddress, unsigned int remo
 	return data;
 }
 
+#if defined(ENABLE_NAT_TRAVERSAL)
 void CG2ProtocolHandler::traverseNat(const wxString& address)
 {
 	unsigned char buffer[1];
@@ -158,6 +159,7 @@ void CG2ProtocolHandler::traverseNat(const wxString& address)
 
 	m_socket.write(buffer, 1, addr, G2_DV_PORT);
 }
+#endif
 
 void CG2ProtocolHandler::close()
 {

@@ -52,7 +52,9 @@ public:
 	CHeaderData* readHeader(in_addr incomingAddress, unsigned int incomingPort);
 	CAMBEData*   readAMBE(in_addr incomingAddress, unsigned int incomingPort);
 
+#if defined(ENABLE_NAT_TRAVERSAL)
 	void traverseNat(const wxString& addr);
+#endif
 
 	void close();
 

@@ -16,6 +16,8 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#if defined(ENABLE_NAT_TRAVERSAL)
+
 #include "NatTraversalHandler.h"
 
 const unsigned int CACHE_SIZE = 500U;
@@ -55,3 +57,5 @@ void CNatTraversalHandler::traverseNatG2(const wxString& address)
         }
     }
 }
+
+#endif

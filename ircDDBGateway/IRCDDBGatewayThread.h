@@ -93,7 +93,9 @@ private:
 	CDPlusProtocolHandlerPool*     m_dplusPool;
 	CDCSProtocolHandlerPool*       m_dcsPool;
 	CG2ProtocolHandler*       m_g2Handler;
+#if defined(ENABLE_NAT_TRAVERSAL)
 	CNatTraversalHandler*     m_natTraversal;
+#endif
 	CAPRSWriter*              m_aprsWriter;
 	CIRCDDB*                  m_irc;
 	CCacheManager             m_cache;

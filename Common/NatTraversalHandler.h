@@ -16,6 +16,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#if defined(ENABLE_NAT_TRAVERSAL)
 #ifndef NatTraversalHandler_H
 #define NatTraversalHandler_H
 
@@ -73,5 +74,7 @@ private:
     CNatTraversalCache_t m_g2cache;    
     CG2ProtocolHandler* m_g2Handler;
 };
+
+#endif
 
 #endif
