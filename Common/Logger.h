@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2002,2003,2009,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2002,2003,2009,2011,2012,2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,14 +28,15 @@ public:
 	CLogger(const wxString& directory, const wxString& name);
 	virtual ~CLogger();
 
-	virtual void DoLog(wxLogLevel level, const wxChar* msg, time_t timestamp);
-	virtual void DoLogString(const wxChar* msg, time_t timestamp);
+	virtual void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info);
 
 private:
 	wxString   m_name;
 	wxFFile*   m_file;
 	wxFileName m_fileName;
 	int        m_day;
+
+	void writeLog(const wxChar* msg, time_t timestamp);
 };
 
 #endif
