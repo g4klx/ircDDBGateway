@@ -48,9 +48,9 @@ public:
 	bool writeHeader(const CHeaderData& header);
 	bool writeAMBE(const CAMBEData& data);
 
-	G2_TYPE read(in_addr& incomingAddress, unsigned int& incomingPort);
-	CHeaderData* readHeader(in_addr incomingAddress, unsigned int incomingPort);
-	CAMBEData*   readAMBE(in_addr incomingAddress, unsigned int incomingPort);
+	G2_TYPE read();
+	CHeaderData* readHeader();
+	CAMBEData*   readAMBE();
 
 #if defined(ENABLE_NAT_TRAVERSAL)
 	void traverseNat(const wxString& addr);
@@ -63,8 +63,10 @@ private:
 	G2_TYPE          m_type;
 	unsigned char*   m_buffer;
 	unsigned int     m_length;
+	in_addr          m_address;
+	unsigned int     m_port;
 
-	bool readPackets(in_addr& incomingAddress, unsigned int& incomingPort);
+	bool readPackets();
 };
 
 #endif

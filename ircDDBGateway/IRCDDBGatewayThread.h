@@ -28,7 +28,6 @@
 #include "IRCDDBGatewayStatusData.h"
 #include "DCSProtocolHandlerPool.h"
 #include "G2ProtocolHandler.h"
-#include "NatTraversalHandler.h"
 #include "RemoteHandler.h"
 #include "CacheManager.h"
 #include "CallsignList.h"
@@ -36,6 +35,9 @@
 #include "IRCDDB.h"
 #include "Timer.h"
 #include "Defs.h"
+#if defined(ENABLE_NAT_TRAVERSAL)
+#include "NatTraversalHandler.h"
+#endif
 
 #include <wx/wx.h>
 

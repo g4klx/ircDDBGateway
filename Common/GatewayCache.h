@@ -35,10 +35,9 @@
 
 class CGatewayRecord {
 public:
-	CGatewayRecord(const wxString& gateway, in_addr address, unsigned int g2Port, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock) :
+	CGatewayRecord(const wxString& gateway, in_addr address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock) :
 	m_gateway(gateway),
 	m_address(address),
-	m_g2Port(g2Port),
 	m_protocol(DP_UNKNOWN),
 	m_addrLock(addrLock),
 	m_protoLock(false)
@@ -54,11 +53,6 @@ public:
 		return m_gateway;
 	}
 
-	void setGateway(const wxString& gateway)
-	{
-		m_gateway = gateway;
-	}
-
 	in_addr getAddress() const
 	{
 		return m_address;
@@ -67,11 +61,6 @@ public:
 	DSTAR_PROTOCOL getProtocol() const
 	{
 		return m_protocol;
-	}
-
-	unsigned int getG2Port() const
-	{
-		return m_g2Port;
 	}
 
 	void setData(in_addr address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
@@ -89,20 +78,9 @@ public:
 		}
 	}
 
-	void setG2Data(in_addr address, unsigned int g2Port)
-	{
-		if (!m_addrLock) {
-			m_address  = address;
-		}
-
-		m_g2Port = g2Port;
-	}
-
 private:
 	wxString       m_gateway;
-	in_addr        m_address;	
-	//the incoming G2 port, keep track of it and use it to answer back instead of the default one. This helps us defeat NAT with no port forwarding to G2_DVPORT
-	unsigned int   m_g2Port;
+	in_addr        m_address;
 	DSTAR_PROTOCOL m_protocol;
 	bool           m_addrLock;
 	bool           m_protoLock;
@@ -118,13 +96,10 @@ public:
 	CGatewayRecord* find(const wxString& gateway);
 
 	void update(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
-	void updateG2(const wxString& gateway, in_addr address, unsigned int g2Port);
 
 	unsigned int getCount() const;
 
 private:
-	CGatewayRecord* findByAddress(in_addr address);
-
 	CGatewayCache_t m_cache;
 };
 
