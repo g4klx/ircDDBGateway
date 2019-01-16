@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2002,2003,2009,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2002,2003,2009,2011,2012,2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -55,11 +55,10 @@ CLogger::~CLogger()
 	delete m_file;
 }
 
-void CLogger::DoLog(wxLogLevel level, const wxChar* msg, time_t timestamp)
+void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info)
 {
 	wxASSERT(m_file != NULL);
 	wxASSERT(m_file->IsOpened());
-	wxASSERT(msg != NULL);
 
 	wxString letter;
 
@@ -75,18 +74,18 @@ void CLogger::DoLog(wxLogLevel level, const wxChar* msg, time_t timestamp)
 		default:               letter = wxT("U"); break;
 	}
 
-	struct tm* tm = ::gmtime(&timestamp);
+	struct tm* tm = ::gmtime(&info.timestamp);
 
 	wxString message;
-	message.Printf(wxT("%s: %04d-%02d-%02d %02d:%02d:%02d: %s\n"), letter.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, msg);
+	message.Printf(wxT("%s: %04d-%02d-%02d %02d:%02d:%02d: %s\n"), letter.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, msg.c_str());
 
-	DoLogString(message.c_str(), timestamp);
+	writeLog(message.c_str(), info.timestamp);
 
 	if (level == wxLOG_FatalError)
 		::abort();
 }
 
-void CLogger::DoLogString(const wxChar* msg, time_t timestamp)
+void CLogger::writeLog(const wxChar* msg, time_t timestamp)
 {
 	wxASSERT(m_file != NULL);
 	wxASSERT(m_file->IsOpened());
