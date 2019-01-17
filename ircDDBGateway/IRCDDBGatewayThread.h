@@ -35,6 +35,9 @@
 #include "IRCDDB.h"
 #include "Timer.h"
 #include "Defs.h"
+#if defined(ENABLE_NAT_TRAVERSAL)
+#include "NatTraversalHandler.h"
+#endif
 
 #include <wx/wx.h>
 
@@ -92,6 +95,9 @@ private:
 	CDPlusProtocolHandlerPool*     m_dplusPool;
 	CDCSProtocolHandlerPool*       m_dcsPool;
 	CG2ProtocolHandler*       m_g2Handler;
+#if defined(ENABLE_NAT_TRAVERSAL)
+	CNatTraversalHandler*     m_natTraversal;
+#endif
 	CAPRSWriter*              m_aprsWriter;
 	CIRCDDB*                  m_irc;
 	CCacheManager             m_cache;

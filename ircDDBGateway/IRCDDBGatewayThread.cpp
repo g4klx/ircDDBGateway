@@ -72,6 +72,9 @@ m_dextraPool(NULL),
 m_dplusPool(NULL),
 m_dcsPool(NULL),
 m_g2Handler(NULL),
+#if defined(ENABLE_NAT_TRAVERSAL)
+m_natTraversal(NULL),
+#endif
 m_aprsWriter(NULL),
 m_irc(NULL),
 m_cache(),
@@ -216,6 +219,13 @@ void CIRCDDBGatewayThread::run()
 		delete m_g2Handler;
 		m_g2Handler = NULL;
 	}
+
+#if defined(ENABLE_NAT_TRAVERSAL)
+	if(m_g2Handler != NULL) {
+		m_natTraversal = new CNatTraversalHandler();
+		m_natTraversal->setG2Handler(m_g2Handler);
+	}
+#endif
 
 	// Wait here until we have the essentials to run
 	while (!m_killed && (m_dextraPool == NULL || m_dplusPool == NULL || m_dcsPool == NULL || m_g2Handler == NULL || (m_icomRepeaterHandler == NULL && m_hbRepeaterHandler == NULL && m_dummyRepeaterHandler == NULL) || m_gatewayCallsign.IsEmpty()))
@@ -719,6 +729,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("USER: %s %s %s %s"), user.c_str(), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateUser(user, repeater, gateway, address, timestamp, DP_DEXTRA, false, false);
+#if defined(ENABLE_NAT_TRAVERSAL)
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("USER: %s NOT FOUND"), user.c_str());
 					}
@@ -735,6 +748,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("REPEATER: %s %s %s"), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateRepeater(repeater, gateway, address, DP_DEXTRA, false, false);
+#if defined(ENABLE_NAT_TRAVERSAL)
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("REPEATER: %s NOT FOUND"), repeater.c_str());
 					}
@@ -752,6 +768,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("GATEWAY: %s %s"), gateway.c_str(), address.c_str());
 						m_cache.updateGateway(gateway, address, DP_DEXTRA, false, false);
+#if defined(ENABLE_NAT_TRAVERSAL)						
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("GATEWAY: %s NOT FOUND"), gateway.c_str());
 					}
