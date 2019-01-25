@@ -740,13 +740,10 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 	unsigned char buffer[DV_FRAME_MAX_LENGTH_BYTES];
 	data.getData(buffer, DV_FRAME_MAX_LENGTH_BYTES);
 
-	// Data signatures only appear at the beginning of the frame
-	if (!m_fastData && m_frames < 21U) {
-		if (::memcmp(buffer, KENWOOD_DATA_MODE_BYTES, VOICE_FRAME_LENGTH_BYTES) == 0)
-			m_fastData = true;
-		else if (::memcmp(buffer, ICOM_DATA_MODE_BYTES1, VOICE_FRAME_LENGTH_BYTES) == 0)
-			m_fastData = true;
-		else if (::memcmp(buffer, ICOM_DATA_MODE_BYTES2, VOICE_FRAME_LENGTH_BYTES) == 0)
+	// Check for the fast data signature
+	if (!m_fastData) {
+		unsigned char slowDataType = buffer[VOICE_FRAME_LENGTH_BYTES] & SLOW_DATA_TYPE_MASK;
+		if (slowDataType == SLOW_DATA_TYPE_FAST_DATA1 || slowDataType == SLOW_DATA_TYPE_FAST_DATA2)
 			m_fastData = true;
 	}
 

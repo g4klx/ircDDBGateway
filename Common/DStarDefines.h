@@ -58,10 +58,6 @@ const bool NULL_SLOW_DATA_BITS[] = {false, true,  true,  false, true,  false, fa
 									true,  false, false, true,  false, true,  false, false,
 									true,  false, true,  false, true,  true,  true,  true};
 
-const unsigned char KENWOOD_DATA_MODE_BYTES[] = {0xEEU, 0xC2U, 0xA1U, 0xC8U, 0x42U, 0x6EU, 0x52U, 0x51U, 0xC3U};
-const unsigned char ICOM_DATA_MODE_BYTES1[]   = {0xB2U, 0x4DU, 0x22U, 0x48U, 0xC0U, 0x16U, 0x28U, 0x26U, 0xC8U};
-const unsigned char ICOM_DATA_MODE_BYTES2[]   = {0x70U, 0x4FU, 0x93U, 0x40U, 0x64U, 0x74U, 0x6DU, 0x30U, 0x2BU};
-
 const unsigned int VOICE_FRAME_LENGTH_BITS   = 72U;
 const unsigned int VOICE_FRAME_LENGTH_BYTES  = VOICE_FRAME_LENGTH_BITS / 8U;
 
@@ -86,10 +82,14 @@ const unsigned int DATA_BLOCK_SIZE_BYTES = 21U * DV_FRAME_LENGTH_BYTES;
 const unsigned int LONG_CALLSIGN_LENGTH  = 8U;
 const unsigned int SHORT_CALLSIGN_LENGTH = 4U;
 
-const unsigned char SLOW_DATA_TYPE_MASK   = 0xF0U;
-const unsigned char SLOW_DATA_TYPE_GPS    = 0x30U;
-const unsigned char SLOW_DATA_TYPE_TEXT   = 0x40U;
-const unsigned char SLOW_DATA_TYPE_HEADER = 0x50U;
+const unsigned char SLOW_DATA_TYPE_MASK       = 0xF0U;
+const unsigned char SLOW_DATA_TYPE_GPS        = 0x30U;
+const unsigned char SLOW_DATA_TYPE_TEXT       = 0x40U;
+const unsigned char SLOW_DATA_TYPE_HEADER     = 0x50U;
+const unsigned char SLOW_DATA_TYPE_FAST_DATA1 = 0x80U;
+const unsigned char SLOW_DATA_TYPE_FAST_DATA2 = 0x90U;
+const unsigned char SLOW_DATA_TYPE_SQUELCH    = 0xC0U;
+const unsigned char SLOW_DATA_LENGTH_MASK     = 0x0FU;
 
 const unsigned char DATA_MASK           = 0x80U;
 const unsigned char REPEATER_MASK       = 0x40U;
