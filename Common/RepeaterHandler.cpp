@@ -744,7 +744,7 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 	if (!m_fastData) {
 		unsigned char slowDataType = (buffer[VOICE_FRAME_LENGTH_BYTES] ^ SCRAMBLER_BYTE1) & SLOW_DATA_TYPE_MASK;
 		unsigned char guard = data[4U] ^ SCRAMBLER_BYTE5;
-		if ((slowDataType == SLOW_DATA_TYPE_FAST_DATA1 || slowDataType == SLOW_DATA_TYPE_FAST_DATA2) && guard == FAST_DATA_GUARD_BYTE) {
+		if ((slowDataType == SLOW_DATA_TYPE_FAST_DATA1 || slowDataType == SLOW_DATA_TYPE_FAST_DATA2) && guard == FAST_DATA_GUARD_BYTE)
 			m_fastData = true;
 	}
 
