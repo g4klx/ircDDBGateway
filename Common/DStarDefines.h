@@ -1,5 +1,5 @@
 /*
- *	Copyright (C) 2009-2015,2018 by Jonathan Naylor, G4KLX
+ *	Copyright (C) 2009-2015,2018,2019 by Jonathan Naylor, G4KLX
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -111,6 +111,10 @@ const unsigned int  DSTAR_FRAMES_PER_SEC = 50U;
 const unsigned char SCRAMBLER_BYTE1 = 0x70U;
 const unsigned char SCRAMBLER_BYTE2 = 0x4FU;
 const unsigned char SCRAMBLER_BYTE3 = 0x93U;
+const unsigned char SCRAMBLER_BYTE4 = 0x40U;
+const unsigned char SCRAMBLER_BYTE5 = 0x64U;
+
+const unsigned char FAST_DATA_GUARD_BYTE = 0x02U;
 
 const unsigned int  DPLUS_PORT  = 20001U;
 const unsigned int  DEXTRA_PORT = 30001U;

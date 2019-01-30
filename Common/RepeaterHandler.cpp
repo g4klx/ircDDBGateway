@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -743,7 +743,8 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 	// Check for the fast data signature
 	if (!m_fastData) {
 		unsigned char slowDataType = (buffer[VOICE_FRAME_LENGTH_BYTES] ^ SCRAMBLER_BYTE1) & SLOW_DATA_TYPE_MASK;
-		if (slowDataType == SLOW_DATA_TYPE_FAST_DATA1 || slowDataType == SLOW_DATA_TYPE_FAST_DATA2)
+		unsigned char guard = data[4U] ^ SCRAMBLER_BYTE5;
+		if ((slowDataType == SLOW_DATA_TYPE_FAST_DATA1 || slowDataType == SLOW_DATA_TYPE_FAST_DATA2) && guard == FAST_DATA_GUARD_BYTE) {
 			m_fastData = true;
 	}
 
