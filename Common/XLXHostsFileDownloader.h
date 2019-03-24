@@ -19,7 +19,9 @@
 
 #ifndef XLXHostsFileDownloader_H
 #define XLXHostsFileDownloader_H
-//#define XLX_USE_WGET
+#if !defined (_WINDOWS__)
+#define XLX_USE_WGET //for som reason libwx is missing the net stuff on some distros, therefore always use wget if we are not compiling under windows
+#endif
 #include <wx/wx.h>
 
 class CXLXHostsFileDownloader {
