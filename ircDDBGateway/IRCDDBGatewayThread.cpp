@@ -1117,7 +1117,8 @@ void CIRCDDBGatewayThread::loadGateways()
 
 void CIRCDDBGatewayThread::loadReflectors()
 {
-	loadXLXReflectors();
+	if(m_xlxEnabled)
+		loadXLXReflectors();
 	
 	if (m_dplusEnabled) {
 		wxFileName fileName(wxFileName::GetHomeDir(), DPLUS_HOSTS_FILE_NAME);
