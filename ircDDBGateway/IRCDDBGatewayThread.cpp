@@ -1262,6 +1262,10 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 	CHostFile hostFile = CHostFile(m_xlxHostsFileName, true);
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
+
+		if(!reflector.StartsWith(_T("XLX")))
+			continue;
+
 		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
 		bool lock          = hostFile.getLock(i);
 
