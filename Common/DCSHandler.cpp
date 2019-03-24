@@ -169,10 +169,10 @@ void CDCSHandler::getInfo(IReflectorCallback* handler, CRemoteRepeaterData& data
 			if (reflector->m_destination == handler) {
 				if (reflector->m_direction == DIR_INCOMING && reflector->m_repeater.IsEmpty()) {
 					if (reflector->m_linkState != DCS_UNLINKING)
-						data.addLink(reflector->m_reflector, PROTO_DCS, reflector->m_linkState == DCS_LINKED, DIR_INCOMING, true);
+						data.addLink(GET_DISP_REFLECTOR(reflector), PROTO_DCS, reflector->m_linkState == DCS_LINKED, DIR_INCOMING, true);
 				} else {
 					if (reflector->m_linkState != DCS_UNLINKING)
-						data.addLink(reflector->m_reflector, PROTO_DCS, reflector->m_linkState == DCS_LINKED, reflector->m_direction, false);
+						data.addLink(GET_DISP_REFLECTOR(reflector), PROTO_DCS, reflector->m_linkState == DCS_LINKED, reflector->m_direction, false);
 				}
 			}
 		}
