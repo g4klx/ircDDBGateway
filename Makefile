@@ -9,7 +9,7 @@ export BINDIR  := "/usr/bin"
 export CXX     := $(shell wx-config --cxx)
 export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
 export GUILIBS := $(shell wx-config --libs adv,core,base)
-export LIBS    := $(shell wx-config --libs base)
+export LIBS    := $(shell wx-config --libs base,net)
 export LDFLAGS := 
 
 .PHONY: all
