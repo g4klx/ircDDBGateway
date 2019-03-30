@@ -104,9 +104,8 @@ m_miscellaneous(NULL)
 	m_config->getDCS(dcsEnabled, ccsEnabled, ccsHost);
 	
 	bool xlxEnabled;
-	bool xlxOverrideLocal;
 	wxString xlxHostsFileUrl;
-	m_config->getXLX(xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_config->getXLX(xlxEnabled, xlxHostsFileUrl);
 
 	GATEWAY_TYPE gatewayType;
 	wxString gatewayCallsign, gatewayAddress, icomAddress, hbAddress, description1, description2, url;
@@ -212,7 +211,7 @@ m_miscellaneous(NULL)
 	m_dcs = new CDCSSet(noteBook, -1, APPLICATION_NAME, dcsEnabled, ccsEnabled, ccsHost);
 	noteBook->AddPage(m_dcs, _("DCS and CCS"), false);
 	
-	m_xlx = new CXLXSet(noteBook, -1, APPLICATION_NAME, xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_xlx = new CXLXSet(noteBook, -1, APPLICATION_NAME, xlxEnabled, xlxHostsFileUrl);
 	noteBook->AddPage(m_xlx, _("XLX Hosts File"), false);
 
 #if defined(DEXTRA_LINK) || defined(DCS_LINK)
@@ -526,9 +525,8 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setDCS(dcsEnabled, ccsEnabled, ccsHost);
 	
 	bool xlxEnabled  = m_xlx->getXLXEnabled();
-	bool xlxOverrideLocal = m_xlx->getXLXOverrideLocal();
 	wxString xlxHostsFileUrl = m_xlx->getXLXHostsFileUrl();
-	m_config->setXLX(xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_config->setXLX(xlxEnabled, xlxHostsFileUrl);
 
 	wxString starNetBand1             = m_starNet1->getBand();
 	wxString starNetCallsign1         = m_starNet1->getCallsign();
