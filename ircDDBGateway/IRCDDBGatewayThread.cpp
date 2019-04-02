@@ -1117,7 +1117,7 @@ void CIRCDDBGatewayThread::loadGateways()
 
 void CIRCDDBGatewayThread::loadReflectors()
 {
-	if(m_xlxEnabled)
+	if (m_xlxEnabled)
 		loadXLXReflectors();
 	
 	if (m_dplusEnabled) {
@@ -1263,7 +1263,7 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
 
-		if(!reflector.StartsWith(_T("XLX")))
+		if (!reflector.StartsWith(wxT("XLX")))
 			continue;
 
 		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
@@ -1282,9 +1282,9 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
 
-			//if(m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
+			//if (m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
 				m_cache.updateGateway(reflector, addrText, DP_DCS, lock, true);
-			//else if(m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
+			//else if (m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
 			//	m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
 
 			count++;

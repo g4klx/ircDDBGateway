@@ -39,7 +39,7 @@ CCallsignList*           CDCSHandler::m_blackList = NULL;
 
 CDCSHandler::CDCSHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDCSProtocolHandler* protoHandler, const in_addr& address, unsigned int port, DIRECTION direction) :
 m_reflector(reflector.Clone()),
-m_xlxReflector(_T("")),
+m_xlxReflector(),
 m_isXlx(false),
 m_repeater(repeater.Clone()),
 m_handler(protoHandler),
@@ -80,10 +80,10 @@ m_rptCall2()
 		m_linkState = DCS_LINKED;
 	} else {
 		m_linkState = DCS_LINKING;
-		m_isXlx = m_reflector.StartsWith(_T("XLX"));
-		if(m_isXlx) {
+		m_isXlx = m_reflector.StartsWith(wxT("XLX"));
+		if (m_isXlx) {
 			m_xlxReflector = m_reflector.Clone();
-			m_reflector = _T("DCS") + m_reflector.Right(m_reflector.length() - 3);
+			m_reflector = wxT("DCS") + m_reflector.Right(m_reflector.length() - 3);
 		}
 		m_tryTimer.start();
 	}

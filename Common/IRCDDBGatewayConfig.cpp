@@ -266,7 +266,7 @@ const bool         DEFAULT_DCS_ENABLED           = true;
 const bool         DEFAULT_CCS_ENABLED           = true;
 const wxString     DEFAULT_CCS_HOST              = wxT("CCS704  ");
 const bool	       DEFAULT_XLX_ENABLED           = true;
-const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = _T("http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster");//we use the XLXDMRMaster list because it starts with XLX instead of DCS, XRF etc ....
+const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = wxT("http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster");//we use the XLXDMRMaster list because it starts with XLX instead of DCS, XRF etc ....
 const wxString     DEFAULT_STARNET_BAND          = wxEmptyString;
 const wxString     DEFAULT_STARNET_CALLSIGN      = wxEmptyString;
 const wxString     DEFAULT_STARNET_LOGOFF        = wxEmptyString;
