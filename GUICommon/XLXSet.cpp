@@ -88,6 +88,8 @@ bool CXLXSet::Validate()
 	if (url.GetError() == wxURL_NOERR)
 		return true;
 
+	wxMessageDialog dialog(this, _("The XLX host file URL is not valid"), m_title + _(" Error"), wxICON_ERROR);
+	dialog.ShowModal();
 	return false;
 #else
 	return true;
