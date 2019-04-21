@@ -760,7 +760,7 @@ m_y(DEFAULT_WINDOW_Y)
 	m_config->Read(m_name + KEY_XLX_ENABLED, &m_xlxEnabled, DEFAULT_XLX_ENABLED);
 		
 	m_config->Read(m_name + KEY_XLX_HOSTS_FILE_URL, &m_xlxHostsFileUrl, DEFAULT_XLX_HOSTS_FILE_URL);
-	if(m_xlxEnabled && m_xlxHostsFileUrl.IsEmpty())//To avoid support nightmare, fill the url with the default one when xlx is enabled and the url is left empty
+	if(m_xlxEnabled && m_xlxHostsFileUrl.Trim().IsEmpty())//To avoid support nightmare, fill the url with the default one when xlx is enabled and the url is left empty
 		m_xlxHostsFileUrl = DEFAULT_XLX_HOSTS_FILE_URL;
 
 	m_config->Read(m_name + KEY_STARNET_BAND1, &m_starNet1Band, DEFAULT_STARNET_BAND);
@@ -1434,7 +1434,7 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_XLX_ENABLED)) {
 			val.ToLong(&temp1);
 			m_xlxEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_XLX_HOSTS_FILE_URL) && !val.IsEmpty()) { //always load default url if the value in the config file is empty
+		} else if (key.IsSameAs(KEY_XLX_HOSTS_FILE_URL) && !val.Trim().IsEmpty()) { //always load default url if the value in the config file is empty
 			m_xlxHostsFileUrl = val;
 		} else if (key.IsSameAs(KEY_STARNET_BAND1)) {
 			m_starNet1Band = val;

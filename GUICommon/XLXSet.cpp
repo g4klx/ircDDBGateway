@@ -20,6 +20,8 @@
 #include "XLXSet.h"
 #include "Defs.h"
 
+#include <wx/url.h>
+
 // TODO F4FXL try to figure out why below symbols are not found under ubuntu
 //#include <wx/url.h>
 
@@ -79,13 +81,19 @@ bool CXLXSet::Validate()
 	if (n == wxNOT_FOUND)
 		return false;
 
+#if defined(__WINDOWS__)
 	// TODO F4FXL try to figure out why below symbols are not found under ubuntu
-	/*wxString value = m_xlxHostsFileUrl->GetValue();
+	wxString value = m_xlxHostsFileUrl->GetValue();
 	wxURL url(value);
-	if (url.GetError() != wxURL_NOERR)
-		return false;*/
+	if (url.GetError() == wxURL_NOERR)
+		return true;
 
+	wxMessageDialog dialog(this, _("The XLX host file URL is not valid"), m_title + _(" Error"), wxICON_ERROR);
+	dialog.ShowModal();
+	return false;
+#else
 	return true;
+#endif
 }
 
 
@@ -102,13 +110,16 @@ wxString CXLXSet::getXLXHostsFileUrl() const
 {
 	wxString value = m_xlxHostsFileUrl->GetValue();
 	
-	
+#if defined(__WINDOWS__)
 	// TODO F4FXL try to figure out why below symbols are not found under ubuntu
-	//wxURL url(value);
-	//if (url.GetError() == wxURL_NOERR)
-	//	return value;
-		
+	wxURL url(value);
+	if (url.GetError() == wxURL_NOERR)
+		return value;
+
 	return wxEmptyString;
+#else
+	return value;
+#endif
 }
 
 void CXLXSet::onEnabled(wxCommandEvent &event)

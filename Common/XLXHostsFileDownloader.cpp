@@ -66,8 +66,8 @@ wxString CXLXHostsFileDownloader::Download(const wxString & xlxHostsFileURL)
 		return wxEmptyString;
 	}
 	
-	wxInputStream* in = NULL;
-	if((in = http.GetInputStream(path)) && in->IsOk()) {
+	wxInputStream* in = http.GetInputStream(path);
+	if(in != NULL && in->IsOk()) {
 		wxFile file;
 		wxString xlxHostsFileName = wxFileName::CreateTempFileName(_T("XLX_Hosts_"), &file);
 		wxLogMessage(_T("Created temporary file %s"), xlxHostsFileName);
