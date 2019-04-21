@@ -79,7 +79,7 @@ bool CMobileGPSSet::Validate()
 	wxString address = getAddress();
 
 	if (address.IsEmpty()) {
-		wxMessageDialog dialog(this, _("The Repeater Address is not valid"), m_title + _(" Error"), wxICON_ERROR);
+		wxMessageDialog dialog(this, _("The Mobile GPS Address is not valid"), m_title + _(" Error"), wxICON_ERROR);
 		dialog.ShowModal();
 		return false;
 	}
@@ -87,7 +87,7 @@ bool CMobileGPSSet::Validate()
 	unsigned int port = getPort();
 
 	if (port == 0U || port > 65535U) {
-		wxMessageDialog dialog(this, _("The Repeater Port is not valid"), m_title + _(" Error"), wxICON_ERROR);
+		wxMessageDialog dialog(this, _("The Mobile GPS Port is not valid"), m_title + _(" Error"), wxICON_ERROR);
 		dialog.ShowModal();
 		return false;
 	}
