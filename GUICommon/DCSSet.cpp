@@ -21,7 +21,6 @@
 #include "Defs.h"
 
 #include <wx/filename.h>
-#include <wx/msw/msgdlg.h>
 
 const unsigned int CONTROL_WIDTH = 130U;
 
@@ -114,8 +113,7 @@ bool CDCSSet::Validate()
 	bool ccsHostSelected = m_ccsHosts->GetCurrentSelection() != wxNOT_FOUND;
 
 	if (ccsEnabled && !ccsHostSelected)	{
-		wxMessageDialog dialog(this, _("CCS is enabled and no CCS host has been selected. Either disable CCS or select a CCS host."), m_title + _(" Error"), wxICON_ERROR);
-		dialog.ShowModal();
+		wxMessageBox(_("CCS is enabled and no CCS host has been selected. Either disable CCS or select a CCS host."));
 		return false;
 	}
 
