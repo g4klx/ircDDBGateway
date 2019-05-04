@@ -1,7 +1,14 @@
+ifeq ($(TARGET), opendv)
+export DATADIR := "/usr/share/opendv"
+export LOGDIR  := "/var/log/opendv"
+export CONFDIR := "/etc"
+export BINDIR  := "/usr/sbin"
+else
 export DATADIR := "/usr/share/ircddbgateway"
 export LOGDIR  := "/var/log"
 export CONFDIR := "/etc"
 export BINDIR  := "/usr/bin"
+endif
 
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
 # Add -DDEXTRA_LINK to the end of the CFLAGS line below to add DExtra linking to StarNet
