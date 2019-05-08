@@ -38,7 +38,7 @@ make
 make -f MakefileGUI #only required if you want to build the GUI programs
 sudo make install
 ```
-Now you should edit the configuration in the file /etc/ircddbgateway
+Now you should edit the configuration in the file /etc/ircddbgateway to match your needs.
 ```shell
 sudo systemctl enable ircddbgatewayd.service #enable service
 sudo service ircddbgatewayd start
