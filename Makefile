@@ -1,7 +1,14 @@
+ifeq ($(TARGET), opendv)
+export DATADIR := "/usr/share/opendv"
+export LOGDIR  := "/var/log/opendv"
+export CONFDIR := "/etc"
+export BINDIR  := "/usr/sbin"
+else
 export DATADIR := "/usr/share/ircddbgateway"
 export LOGDIR  := "/var/log"
 export CONFDIR := "/etc"
 export BINDIR  := "/usr/bin"
+endif
 
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
 # Add -DDEXTRA_LINK to the end of the CFLAGS line below to add DExtra linking to StarNet
@@ -54,6 +61,18 @@ ircDDB/IRCDDB.a: force
 
 .PHONY: install
 install:	all
+ifeq ($(TARGET), opendv)
+	useradd --user-group -M --system opendv --shell /bin/false || true
+
+	#  Add the opendv user to the audio group so that it can open audio
+	#  devices when using the audio based drivers such as the Sound Card
+	#  one. Maybe this should be moved to DStarRepeater instead ...
+	usermod --groups audio --append opendv || true
+	usermod --groups dialout --append opendv || true
+	usermod --groups gpio --append opendv || true
+	mkdir /var/log/opendv || true
+	chown opendv:opendv /var/log/opendv
+endif
 	$(MAKE) -C Data install
 	$(MAKE) -C APRSTransmit install
 	$(MAKE) -C ircDDBGateway install
