@@ -90,4 +90,7 @@ REF088	ref088.dstargateway.org
 REF089	ref089.dstargateway.org
 REF367	xrf367.ad6dm.net
 REF425	xlx425.xlx.ar-dns.net
+REF520  xlx.dtdxa.com
+REF555  xlx555.dtdxa.com
+REF911  xlx911.patrweb.com
 # EOF - Sun, 19 May 2019 12:38:29 GMT
