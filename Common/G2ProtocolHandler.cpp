@@ -144,7 +144,8 @@ CAMBEData* CG2ProtocolHandler::readAMBE()
 	return data;
 }
 
-void CG2ProtocolHandler::punchUDPHole(const wxString& address)
+#if defined(ENABLE_NAT_TRAVERSAL)
+void CG2ProtocolHandler::traverseNat(const wxString& address)
 {
 	unsigned char buffer[1];
 	::memset(buffer, 0, 1);
@@ -155,6 +156,7 @@ void CG2ProtocolHandler::punchUDPHole(const wxString& address)
 
 	m_socket.write(buffer, 1, addr, G2_DV_PORT);
 }
+#endif
 
 void CG2ProtocolHandler::close()
 {

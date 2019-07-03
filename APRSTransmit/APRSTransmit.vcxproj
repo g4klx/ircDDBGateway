@@ -80,9 +80,11 @@
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\$(ProjectName)</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(WXWIN)\include;$(WXWIN)\lib\vc_dll\mswu;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(WXWIN)\include;$(WXWIN)\lib\vc_x64_dll\mswu;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -141,7 +141,6 @@ const wxString  KEY_DCS_ENABLED          = wxT("dcsEnabled");
 const wxString  KEY_CCS_ENABLED          = wxT("ccsEnabled");
 const wxString  KEY_CCS_HOST             = wxT("ccsHost");
 const wxString  KEY_XLX_ENABLED		     = wxT("xlxEnabled");
-const wxString  KEY_XLX_OVERRIDE_LOCAL	 = wxT("xlxOverrideLocal");
 const wxString  KEY_XLX_HOSTS_FILE_URL	 = wxT("xlxHostsFileUrl");
 const wxString  KEY_STARNET_BAND1            = wxT("starNetBand1");
 const wxString  KEY_STARNET_CALLSIGN1        = wxT("starNetCallsign1");
@@ -267,8 +266,7 @@ const bool         DEFAULT_DCS_ENABLED           = true;
 const bool         DEFAULT_CCS_ENABLED           = true;
 const wxString     DEFAULT_CCS_HOST              = wxT("CCS704  ");
 const bool	       DEFAULT_XLX_ENABLED           = true;
-const bool	       DEFAULT_XLX_OVERRIDE_LOCAL    = true;
-const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = _T("http://xlxapi.rlx.lu/api.php?do=GetReflectorHostname");
+const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = wxT("http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster");//we use the XLXDMRMaster list because it starts with XLX instead of DCS, XRF etc ....
 const wxString     DEFAULT_STARNET_BAND          = wxEmptyString;
 const wxString     DEFAULT_STARNET_CALLSIGN      = wxEmptyString;
 const wxString     DEFAULT_STARNET_LOGOFF        = wxEmptyString;
@@ -422,7 +420,6 @@ m_dcsEnabled(DEFAULT_DCS_ENABLED),
 m_ccsEnabled(DEFAULT_CCS_ENABLED),
 m_ccsHost(DEFAULT_CCS_HOST),
 m_xlxEnabled(DEFAULT_XLX_ENABLED),
-m_xlxOverrideLocal(DEFAULT_XLX_OVERRIDE_LOCAL),
 m_xlxHostsFileUrl(DEFAULT_XLX_HOSTS_FILE_URL),
 m_starNet1Band(DEFAULT_STARNET_BAND),
 m_starNet1Callsign(DEFAULT_STARNET_CALLSIGN),
@@ -761,10 +758,10 @@ m_y(DEFAULT_WINDOW_Y)
 	m_config->Read(m_name + KEY_CCS_HOST, &m_ccsHost, DEFAULT_CCS_HOST);
 	
 	m_config->Read(m_name + KEY_XLX_ENABLED, &m_xlxEnabled, DEFAULT_XLX_ENABLED);
-	
-	m_config->Read(m_name + KEY_XLX_OVERRIDE_LOCAL, &m_xlxOverrideLocal, DEFAULT_XLX_OVERRIDE_LOCAL);
-	
+		
 	m_config->Read(m_name + KEY_XLX_HOSTS_FILE_URL, &m_xlxHostsFileUrl, DEFAULT_XLX_HOSTS_FILE_URL);
+	if(m_xlxEnabled && m_xlxHostsFileUrl.Trim().IsEmpty())//To avoid support nightmare, fill the url with the default one when xlx is enabled and the url is left empty
+		m_xlxHostsFileUrl = DEFAULT_XLX_HOSTS_FILE_URL;
 
 	m_config->Read(m_name + KEY_STARNET_BAND1, &m_starNet1Band, DEFAULT_STARNET_BAND);
 
@@ -1045,7 +1042,6 @@ m_dcsEnabled(DEFAULT_DCS_ENABLED),
 m_ccsEnabled(DEFAULT_CCS_ENABLED),
 m_ccsHost(DEFAULT_CCS_HOST),
 m_xlxEnabled(DEFAULT_XLX_ENABLED),
-m_xlxOverrideLocal(DEFAULT_XLX_OVERRIDE_LOCAL),
 m_xlxHostsFileUrl(DEFAULT_XLX_HOSTS_FILE_URL),
 m_starNet1Band(DEFAULT_STARNET_BAND),
 m_starNet1Callsign(DEFAULT_STARNET_CALLSIGN),
@@ -1438,10 +1434,7 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_XLX_ENABLED)) {
 			val.ToLong(&temp1);
 			m_xlxEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_XLX_OVERRIDE_LOCAL)) {
-			val.ToLong(&temp1);
-			m_xlxOverrideLocal = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_XLX_HOSTS_FILE_URL)) {
+		} else if (key.IsSameAs(KEY_XLX_HOSTS_FILE_URL) && !val.Trim().IsEmpty()) { //always load default url if the value in the config file is empty
 			m_xlxHostsFileUrl = val;
 		} else if (key.IsSameAs(KEY_STARNET_BAND1)) {
 			m_starNet1Band = val;
@@ -1968,17 +1961,15 @@ void CIRCDDBGatewayConfig::setDCS(bool dcsEnabled, bool ccsEnabled, const wxStri
 	m_ccsHost    = ccsHost;
 }
 
-void CIRCDDBGatewayConfig::getXLX(bool& xlxEnabled, bool& xlxOverrideLocal, wxString& xlxHostsFileUrl)
+void CIRCDDBGatewayConfig::getXLX(bool& xlxEnabled, wxString& xlxHostsFileUrl)
 {
 	xlxEnabled = m_xlxEnabled;
-	xlxOverrideLocal = m_xlxOverrideLocal;
 	xlxHostsFileUrl = m_xlxHostsFileUrl;
 }
 
-void CIRCDDBGatewayConfig::setXLX(bool xlxEnabled, bool xlxOverrideLocal, wxString xlxHostsFileUrl)
+void CIRCDDBGatewayConfig::setXLX(bool xlxEnabled, wxString xlxHostsFileUrl)
 {
 	m_xlxEnabled = xlxEnabled;
-	m_xlxOverrideLocal = xlxOverrideLocal;
 	m_xlxHostsFileUrl = xlxHostsFileUrl;
 }
 
@@ -2419,7 +2410,6 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_CCS_ENABLED, m_ccsEnabled);
 	m_config->Write(m_name + KEY_CCS_HOST, m_ccsHost);
 	m_config->Write(m_name + KEY_XLX_ENABLED, m_xlxEnabled);
-	m_config->Write(m_name + KEY_XLX_OVERRIDE_LOCAL, m_xlxOverrideLocal);
 	m_config->Write(m_name + KEY_XLX_HOSTS_FILE_URL, m_xlxHostsFileUrl);
 	m_config->Write(m_name + KEY_STARNET_BAND1, m_starNet1Band);
 	m_config->Write(m_name + KEY_STARNET_CALLSIGN1, m_starNet1Callsign);
@@ -2630,7 +2620,6 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%d"), KEY_CCS_ENABLED.c_str(), m_ccsEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_CCS_HOST.c_str(), m_ccsHost.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_XLX_ENABLED.c_str(), m_xlxEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%d"), KEY_XLX_OVERRIDE_LOCAL.c_str(), m_xlxOverrideLocal ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_XLX_HOSTS_FILE_URL.c_str(), m_xlxHostsFileUrl.c_str()); file.AddLine(buffer);	
 	buffer.Printf(wxT("%s=%s"), KEY_STARNET_BAND1.c_str(), m_starNet1Band.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_STARNET_CALLSIGN1.c_str(), m_starNet1Callsign.c_str()); file.AddLine(buffer);

@@ -2,17 +2,25 @@ OBJECTS = TimerControlApp.o TimerControlConfig.o TimerControlFrame.o TimerContro
 		  TimerControlRemoteControlHandler.o TimerControlRemoteSet.o TimerControlRepeaterPanel.o TimerControlThread.o \
 		  TimerControlThreadHelper.o
 
+.PHONY: all
 all:		timercontrol
 
-timercontrol:	$(OBJECTS)
+timercontrol:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a $(LDFLAGS) $(GUILIBS) -o timercontrol
+
+-include $(OBJECTS:.o=.d)
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -c -o $@ $<
+		$(CXX) -MM $(CFLAGS) -I../Common -I../GUICommon $< > $*.d
 
+.PHONY: install
 install:
 		install -g bin -o root -m 0775 timercontrol $(BINDIR)
 
+.PHONY: clean
 clean:
 		$(RM) timercontrol *.o *.d *.bak *~
 
+../GUICommon/GUICommon.a:
+../Common/Common.a:

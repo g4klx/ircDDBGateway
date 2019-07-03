@@ -1,7 +1,14 @@
+ifeq ($(TARGET), opendv)
+export DATADIR := "/usr/share/opendv"
+export LOGDIR  := "/var/log/opendv"
+export CONFDIR := "/etc"
+export BINDIR  := "/usr/sbin"
+else
 export DATADIR := "/usr/share/ircddbgateway"
 export LOGDIR  := "/var/log"
 export CONFDIR := "/etc"
 export BINDIR  := "/usr/bin"
+endif
 
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
 # Add -DDEXTRA_LINK to the end of the CFLAGS line below to add DExtra linking to StarNet
@@ -9,48 +16,50 @@ export BINDIR  := "/usr/bin"
 export CXX     := $(shell wx-config --cxx)
 export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
 export GUILIBS := $(shell wx-config --libs adv,core,base)
-export LIBS    := $(shell wx-config --libs base)
+export LIBS    := $(shell wx-config --libs base,net)
 export LDFLAGS := 
 
+.PHONY: all
 all:	ircDDBGateway/ircddbgateway ircDDBGatewayConfig/ircddbgatewayconfig APRSTransmit/aprstransmitd RemoteControl/remotecontrol \
 	StarNetServer/starnetserver TextTransmit/texttransmitd TimerControl/timercontrol TimeServer/timeserver VoiceTransmit/voicetransmitd
 
-ircDDBGateway/ircddbgateway:	GUICommon/GUICommon.a Common/Common.a ircDDB/IRCDDB.a
+ircDDBGateway/ircddbgateway:	GUICommon/GUICommon.a Common/Common.a ircDDB/IRCDDB.a force
 	$(MAKE) -C ircDDBGateway -f MakefileGUI
 
-ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a
+ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a force
 	$(MAKE) -C ircDDBGatewayConfig
 
-APRSTransmit/aprstransmitd:	Common/Common.a
+APRSTransmit/aprstransmitd:	Common/Common.a force
 	$(MAKE) -C APRSTransmit
 
-RemoteControl/remotecontrol:	Common/Common.a
+RemoteControl/remotecontrol:	Common/Common.a force
 	$(MAKE) -C RemoteControl -f MakefileGUI
 
-StarNetServer/starnetserver:	Common/Common.a ircDDB/IRCDDB.a
+StarNetServer/starnetserver:	Common/Common.a ircDDB/IRCDDB.a force
 	$(MAKE) -C StarNetServer -f MakefileGUI
 
-TextTransmit/texttransmitd:	Common/Common.a
+TextTransmit/texttransmitd:	Common/Common.a force
 	$(MAKE) -C TextTransmit
 
-TimerControl/timercontrol:	Common/Common.a GUICommon/GUICommon.a
+TimerControl/timercontrol:	Common/Common.a GUICommon/GUICommon.a force
 	$(MAKE) -C TimerControl -f MakefileGUI
 
-TimeServer/timeserver:	Common/Common.a GUICommon/GUICommon.a
+TimeServer/timeserver:	Common/Common.a GUICommon/GUICommon.a force
 	$(MAKE) -C TimeServer -f MakefileGUI
 
-VoiceTransmit/voicetransmitd:	Common/Common.a
+VoiceTransmit/voicetransmitd:	Common/Common.a force
 	$(MAKE) -C VoiceTransmit
 
-GUICommon/GUICommon.a:
+GUICommon/GUICommon.a: force
 	$(MAKE) -C GUICommon
 
-Common/Common.a:
+Common/Common.a: force
 	$(MAKE) -C Common
 
-ircDDB/IRCDDB.a:
+ircDDB/IRCDDB.a: force
 	$(MAKE) -C ircDDB
 
+.PHONY: install
 install:	all
 	$(MAKE) -C Data install
 	$(MAKE) -C APRSTransmit install
@@ -63,6 +72,7 @@ install:	all
 	$(MAKE) -C VoiceTransmit install
 	$(MAKE) -C ircDDBGatewayConfig install
 
+.PHONY: clean
 clean:
 	$(MAKE) -C Common clean
 	$(MAKE) -C ircDDB clean
@@ -76,3 +86,7 @@ clean:
 	$(MAKE) -C TimeServer -f MakefileGUI clean
 	$(MAKE) -C VoiceTransmit clean
 	$(MAKE) -C ircDDBGatewayConfig clean
+
+.PHONY: force
+force:
+	true;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -208,6 +208,7 @@ private:
 	unsigned char             m_flag2;
 	unsigned char             m_flag3;
 	bool                      m_restricted;
+	bool                      m_fastData;
 
 	// Statistics
 	unsigned int              m_frames;

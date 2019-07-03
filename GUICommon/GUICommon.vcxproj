@@ -77,6 +77,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
+    <IncludePath>$(WXWIN)\include;$(WXWIN)\lib\vc_dll\mswu;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(WXWIN)\include;$(WXWIN)\lib\vc_x64_dll\mswu;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -139,6 +143,7 @@
     <ClCompile Include="DExtraSet.cpp" />
     <ClCompile Include="DPlusSet.cpp" />
     <ClCompile Include="DPRSSet.cpp" />
+    <ClCompile Include="MobileGPSSet.cpp" />
     <ClCompile Include="PortTextCtrl.cpp" />
     <ClCompile Include="RemoteSet.cpp" />
     <ClCompile Include="RepeaterDataSet.cpp" />
@@ -155,6 +160,7 @@
     <ClInclude Include="DExtraSet.h" />
     <ClInclude Include="DPlusSet.h" />
     <ClInclude Include="DPRSSet.h" />
+    <ClInclude Include="MobileGPSSet.h" />
     <ClInclude Include="PortTextCtrl.h" />
     <ClInclude Include="RemoteSet.h" />
     <ClInclude Include="RepeaterDataSet.h" />

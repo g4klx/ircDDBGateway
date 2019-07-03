@@ -1,17 +1,26 @@
 OBJECTS = IRCDDBGatewayApp.o IRCDDBGatewayFrame.o IRCDDBGatewayLogRedirect.o IRCDDBGatewayStatusData.o IRCDDBGatewayThread.o \
 	  IRCDDBGatewayThreadHelper.o
 
+.PHONY: all
 all:		ircddbgateway
 
-ircddbgateway:	$(OBJECTS)
+ircddbgateway:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a ../ircDDB/IRCDDB.a $(LDFLAGS) $(GUILIBS) -o ircddbgateway
+
+-include $(OBJECTS:.o=.d)
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -I../ircDDB -c -o $@ $<
+		$(CXX) -MM $(CFLAGS) -I../Common -I../GUICommon -I../ircDDB $< > $*.d
 
+.PHONY: install
 install:
 		install -g bin -o root -m 0775 ircddbgateway $(BINDIR)
 
+.PHONY: clean
 clean:
 		$(RM) ircddbgateway *.o *.d *.bak *~
+
+../GUICommon/GUICommon.a:
+../Common/Common.a:
 

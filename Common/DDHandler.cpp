@@ -254,7 +254,7 @@ CDDData* CDDHandler::read()
 	if (m_maxRoutes == 0U)
 		return NULL;
 
-#if !defined(WIN32)
+#if defined(__WINDOWS__)
 	return NULL;
 #else
 	// Check that the read() won't block

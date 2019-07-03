@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018,2019 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,18 +15,32 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
-#ifndef	Version_H
-#define	Version_H
+
+#ifndef	MobileGPSSet_H
+#define	MobileGPSSet_H
+
+#include "AddressTextCtrl.h"
+#include "PortTextCtrl.h"
+#include "Defs.h"
 
 #include <wx/wx.h>
 
-const wxString VENDOR_NAME = wxT("G4KLX");
+class CMobileGPSSet: public wxPanel {
+public:
+	CMobileGPSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& address, unsigned int port);
+	virtual ~CMobileGPSSet();
 
-#if defined(__WXDEBUG__)
-const wxString VERSION = wxT("20190402 - DEBUG");
-#else
-const wxString VERSION = wxT("20190402");
-#endif
+	virtual bool Validate();
+
+	virtual bool         getEnabled() const;
+	virtual wxString     getAddress() const;
+	virtual unsigned int getPort() const;
+
+private:
+	wxString          m_title;
+	wxChoice*         m_enabled;
+	CAddressTextCtrl* m_address;
+	CPortTextCtrl*    m_port;
+};
 
 #endif

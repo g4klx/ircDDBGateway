@@ -109,12 +109,13 @@ bool CDCSSet::Validate()
 	if (n == wxNOT_FOUND)
 		return false;
 
-	n = m_ccsEnabled->GetCurrentSelection();
-	if (n == wxNOT_FOUND)
-		return false;
+	bool ccsEnabled = m_ccsEnabled->GetCurrentSelection() == 1;
+	bool ccsHostSelected = m_ccsHosts->GetCurrentSelection() != wxNOT_FOUND;
 
-	if (m_ccsHosts->GetCurrentSelection() == wxNOT_FOUND)
+	if (ccsEnabled && !ccsHostSelected)	{
+		wxMessageBox(_("CCS is enabled and no CCS host has been selected. Either disable CCS or select a CCS host."));
 		return false;
+	}
 
 	return true;
 }

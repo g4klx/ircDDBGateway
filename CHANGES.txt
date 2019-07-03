@@ -1486,4 +1486,5 @@ Support the GPS data from the Kenwood TH-D74.
 --------
 
 Add support for external GPS input for mobile systems.
+Add audio bypass processing for fast data mode.
 

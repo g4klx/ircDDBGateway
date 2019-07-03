@@ -65,6 +65,7 @@ m_starNet3(NULL),
 m_starNet4(NULL),
 m_starNet5(NULL),
 m_remote(NULL),
+m_mobileGPS(NULL),
 m_miscellaneous(NULL)
 {
 	SetMenuBar(createMenuBar());
@@ -103,9 +104,8 @@ m_miscellaneous(NULL)
 	m_config->getDCS(dcsEnabled, ccsEnabled, ccsHost);
 	
 	bool xlxEnabled;
-	bool xlxOverrideLocal;
 	wxString xlxHostsFileUrl;
-	m_config->getXLX(xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_config->getXLX(xlxEnabled, xlxHostsFileUrl);
 
 	GATEWAY_TYPE gatewayType;
 	wxString gatewayCallsign, gatewayAddress, icomAddress, hbAddress, description1, description2, url;
@@ -211,7 +211,7 @@ m_miscellaneous(NULL)
 	m_dcs = new CDCSSet(noteBook, -1, APPLICATION_NAME, dcsEnabled, ccsEnabled, ccsHost);
 	noteBook->AddPage(m_dcs, _("DCS and CCS"), false);
 	
-	m_xlx = new CXLXSet(noteBook, -1, APPLICATION_NAME, xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_xlx = new CXLXSet(noteBook, -1, APPLICATION_NAME, xlxEnabled, xlxHostsFileUrl);
 	noteBook->AddPage(m_xlx, _("XLX Hosts File"), false);
 
 #if defined(DEXTRA_LINK) || defined(DCS_LINK)
@@ -314,6 +314,14 @@ m_miscellaneous(NULL)
 	m_remote = new CRemoteSet(noteBook, -1, APPLICATION_NAME, remoteEnabled, remotePassword, remotePort);
 	noteBook->AddPage(m_remote, wxT("Remote"), false);
 
+	bool mobileGPSEnabled;
+	wxString mobileGPSAddress;
+	unsigned int mobileGPSPort;
+	m_config->getMobileGPS(mobileGPSEnabled, mobileGPSAddress, mobileGPSPort);
+
+	m_mobileGPS = new CMobileGPSSet(noteBook, -1, APPLICATION_NAME, mobileGPSEnabled, mobileGPSAddress, mobileGPSPort);
+	noteBook->AddPage(m_mobileGPS, wxT("Mobile GPS"), false);
+
 	TEXT_LANG language;
 	bool infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled;
 	m_config->getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
@@ -321,15 +329,15 @@ m_miscellaneous(NULL)
 	m_miscellaneous = new CIRCDDBGatewayConfigMiscellaneousSet(noteBook, -1, APPLICATION_NAME, language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
 	noteBook->AddPage(m_miscellaneous, wxT("Misc"), false);
 
-        sizer->Add(noteBook, 0, wxEXPAND | wxALL, BORDER_SIZE);
+	sizer->Add(noteBook, 0, wxEXPAND | wxALL, BORDER_SIZE);
 
-        panel->SetSizer(sizer);
+	panel->SetSizer(sizer);
 
-        mainSizer->Add(panel, 0, wxEXPAND | wxALL, BORDER_SIZE);
+	mainSizer->Add(panel, 0, wxEXPAND | wxALL, BORDER_SIZE);
 
-        mainSizer->SetSizeHints(this);
+	mainSizer->SetSizeHints(this);
 
-        SetSizer(mainSizer);
+	SetSizer(mainSizer);
 }
 
 CIRCDDBGatewayConfigFrame::~CIRCDDBGatewayConfigFrame()
@@ -371,7 +379,7 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 		!m_repeaterInfo4->Validate() ||
 		!m_ircDDB->Validate() || !m_ircDDB2->Validate() || !m_ircDDB3->Validate() || !m_ircDDB4->Validate() || !m_dprs->Validate() || !m_dplus->Validate() || !m_dcs->Validate() || !m_xlx->Validate() ||
 		!m_starNet1->Validate() || !m_starNet2->Validate() || !m_starNet3->Validate() || !m_starNet4->Validate() ||
-		!m_starNet5->Validate() || !m_remote->Validate() || !m_miscellaneous->Validate())
+		!m_starNet5->Validate() || !m_remote->Validate() || !m_mobileGPS->Validate() || !m_miscellaneous->Validate())
 		return;
 
 	GATEWAY_TYPE gatewayType = m_gateway->getType();
@@ -517,9 +525,8 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setDCS(dcsEnabled, ccsEnabled, ccsHost);
 	
 	bool xlxEnabled  = m_xlx->getXLXEnabled();
-	bool xlxOverrideLocal = m_xlx->getXLXOverrideLocal();
 	wxString xlxHostsFileUrl = m_xlx->getXLXHostsFileUrl();
-	m_config->setXLX(xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_config->setXLX(xlxEnabled, xlxHostsFileUrl);
 
 	wxString starNetBand1             = m_starNet1->getBand();
 	wxString starNetCallsign1         = m_starNet1->getCallsign();
@@ -605,6 +612,11 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	wxString remotePassword = m_remote->getPassword();
 	unsigned int remotePort = m_remote->getPort();
 	m_config->setRemote(remoteEnabled, remotePassword, remotePort);
+
+	bool mobileGPSEnabled      = m_mobileGPS->getEnabled();
+	wxString mobileGPSAddress  = m_mobileGPS->getAddress();
+	unsigned int mobileGPSPort = m_mobileGPS->getPort();
+	m_config->setMobileGPS(mobileGPSEnabled, mobileGPSAddress, mobileGPSPort);
 
 	TEXT_LANG language = m_miscellaneous->getLanguage();
 	bool infoEnabled   = m_miscellaneous->getInfoEnabled();

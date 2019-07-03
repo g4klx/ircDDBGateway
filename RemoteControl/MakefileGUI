@@ -2,17 +2,25 @@ OBJECTS = RemoteControlApp.o RemoteControlCallsignData.o RemoteControlConfig.o R
 		  RemoteControlPreferences.o RemoteControlRemoteControlHandler.o RemoteControlRemoteSet.o RemoteControlRepeaterData.o \
 		  RemoteControlRepeaterPanel.o RemoteControlStarNetGroup.o RemoteControlStarNetPanel.o RemoteControlStarNetUser.o
 
+.PHONY: all
 all:		remotecontrol
 
-remotecontrol:	$(OBJECTS)
+remotecontrol:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 		$(CXX) $(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a $(LDFLAGS) $(GUILIBS) -o remotecontrol
+
+-include $(OBJECTS:.o=.d)
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -I../Common -I../GUICommon -c -o $@ $<
+		$(CXX) -MM $(CFLAGS) -I../Common -I../GUICommon $< > $*.d
 
+.PHONY: install
 install:
 		install -g bin -o root -m 0775 remotecontrol $(BINDIR)
 
+.PHONY: clean
 clean:
 		$(RM) remotecontrol *.o *.d *.bak *~
 
+../GUICommon/GUICommon.a:
+../Common/Common.a:

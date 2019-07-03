@@ -35,6 +35,9 @@
 #include "IRCDDB.h"
 #include "Timer.h"
 #include "Defs.h"
+#if defined(ENABLE_NAT_TRAVERSAL)
+#include "NatTraversalHandler.h"
+#endif
 
 #include <wx/wx.h>
 
@@ -58,7 +61,7 @@ public:
 	virtual void setDExtra(bool enabled, unsigned int maxDongles);
 	virtual void setDPlus(bool enabled, unsigned int maxDongles, const wxString& login);
 	virtual void setDCS(bool enabled);
-	virtual void setXLX(bool enabled, bool overrideLocal, const wxString& fileName);
+	virtual void setXLX(bool enabled, const wxString& fileName);
 	virtual void setCCS(bool enabled, const wxString& host);
 	virtual void setLog(bool enabled);
 	virtual void setAPRSWriter(CAPRSWriter* writer);
@@ -92,6 +95,9 @@ private:
 	CDPlusProtocolHandlerPool*     m_dplusPool;
 	CDCSProtocolHandlerPool*       m_dcsPool;
 	CG2ProtocolHandler*       m_g2Handler;
+#if defined(ENABLE_NAT_TRAVERSAL)
+	CNatTraversalHandler*     m_natTraversal;
+#endif
 	CAPRSWriter*              m_aprsWriter;
 	CIRCDDB*                  m_irc;
 	CCacheManager             m_cache;
@@ -103,7 +109,6 @@ private:
 	wxString                  m_dplusLogin;
 	bool                      m_dcsEnabled;
 	bool			  m_xlxEnabled;
-	bool			  m_xlxOverrideLocal;
 	wxString		  m_xlxHostsFileName;
 	bool                      m_ccsEnabled;
 	wxString                  m_ccsHost;

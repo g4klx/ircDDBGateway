@@ -72,6 +72,9 @@ m_dextraPool(NULL),
 m_dplusPool(NULL),
 m_dcsPool(NULL),
 m_g2Handler(NULL),
+#if defined(ENABLE_NAT_TRAVERSAL)
+m_natTraversal(NULL),
+#endif
 m_aprsWriter(NULL),
 m_irc(NULL),
 m_cache(),
@@ -216,6 +219,13 @@ void CIRCDDBGatewayThread::run()
 		delete m_g2Handler;
 		m_g2Handler = NULL;
 	}
+
+#if defined(ENABLE_NAT_TRAVERSAL)
+	if(m_g2Handler != NULL) {
+		m_natTraversal = new CNatTraversalHandler();
+		m_natTraversal->setG2Handler(m_g2Handler);
+	}
+#endif
 
 	// Wait here until we have the essentials to run
 	while (!m_killed && (m_dextraPool == NULL || m_dplusPool == NULL || m_dcsPool == NULL || m_g2Handler == NULL || (m_icomRepeaterHandler == NULL && m_hbRepeaterHandler == NULL && m_dummyRepeaterHandler == NULL) || m_gatewayCallsign.IsEmpty()))
@@ -573,11 +583,10 @@ void CIRCDDBGatewayThread::setDCS(bool enabled)
 	m_dcsEnabled = enabled;
 }
 
-void CIRCDDBGatewayThread::setXLX(bool enabled, bool overrideLocal, const wxString& xlxHostsFileName)
+void CIRCDDBGatewayThread::setXLX(bool enabled, const wxString& xlxHostsFileName)
 {
 	m_xlxEnabled 	 = enabled;
 	m_xlxHostsFileName = xlxHostsFileName;
-	m_xlxOverrideLocal = overrideLocal;
 }
 
 void CIRCDDBGatewayThread::setCCS(bool enabled, const wxString& host)
@@ -719,7 +728,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogInfo(wxT("USER: %s %s %s %s"), user.c_str(), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateUser(user, repeater, gateway, address, timestamp, DP_DEXTRA, false, false);
-						m_g2Handler->punchUDPHole(address);
+#if defined(ENABLE_NAT_TRAVERSAL)
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogInfo(wxT("USER: %s NOT FOUND"), user.c_str());
 					}
@@ -736,7 +747,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogInfo(wxT("REPEATER: %s %s %s"), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateRepeater(repeater, gateway, address, DP_DEXTRA, false, false);
-						m_g2Handler->punchUDPHole(address);
+#if defined(ENABLE_NAT_TRAVERSAL)
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("REPEATER: %s NOT FOUND"), repeater.c_str());
 					}
@@ -754,7 +767,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogInfo(wxT("GATEWAY: %s %s"), gateway.c_str(), address.c_str());
 						m_cache.updateGateway(gateway, address, DP_DEXTRA, false, false);
-						m_g2Handler->punchUDPHole(address);
+#if defined(ENABLE_NAT_TRAVERSAL)						
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("GATEWAY: %s NOT FOUND"), gateway.c_str());
 					}
@@ -1102,9 +1117,8 @@ void CIRCDDBGatewayThread::loadGateways()
 
 void CIRCDDBGatewayThread::loadReflectors()
 {
-	if(m_xlxEnabled && !m_xlxOverrideLocal) {
+	if (m_xlxEnabled)
 		loadXLXReflectors();
-	}
 	
 	if (m_dplusEnabled) {
 		wxFileName fileName(wxFileName::GetHomeDir(), DPLUS_HOSTS_FILE_NAME);
@@ -1146,10 +1160,6 @@ void CIRCDDBGatewayThread::loadReflectors()
 #endif
 		if (fileName.IsFileReadable())
 			loadDCSReflectors(fileName.GetFullPath());
-	}
-
-	if(m_xlxEnabled && m_xlxOverrideLocal) {
-		loadXLXReflectors();
 	}
 }
 
@@ -1252,6 +1262,10 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 	CHostFile hostFile = CHostFile(m_xlxHostsFileName, true);
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
+
+		if (!reflector.StartsWith(wxT("XLX")))
+			continue;
+
 		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
 		bool lock          = hostFile.getLock(i);
 
@@ -1268,10 +1282,10 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
 
-			if(m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
+			//if (m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
 				m_cache.updateGateway(reflector, addrText, DP_DCS, lock, true);
-			else if(m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
-				m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
+			//else if (m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
+			//	m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
 
 			count++;
 		}

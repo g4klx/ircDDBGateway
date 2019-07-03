@@ -39,6 +39,8 @@ CCallsignList*           CDCSHandler::m_blackList = NULL;
 
 CDCSHandler::CDCSHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDCSProtocolHandler* protoHandler, const in_addr& address, unsigned int port, DIRECTION direction) :
 m_reflector(reflector.Clone()),
+m_xlxReflector(),
+m_isXlx(false),
 m_repeater(repeater.Clone()),
 m_handler(protoHandler),
 m_yourAddress(address),
@@ -78,6 +80,11 @@ m_rptCall2()
 		m_linkState = DCS_LINKED;
 	} else {
 		m_linkState = DCS_LINKING;
+		m_isXlx = m_reflector.StartsWith(wxT("XLX"));
+		if (m_isXlx) {
+			m_xlxReflector = m_reflector.Clone();
+			m_reflector = wxT("DCS") + m_reflector.Right(m_reflector.length() - 3);
+		}
 		m_tryTimer.start();
 	}
 }
@@ -162,10 +169,10 @@ void CDCSHandler::getInfo(IReflectorCallback* handler, CRemoteRepeaterData& data
 			if (reflector->m_destination == handler) {
 				if (reflector->m_direction == DIR_INCOMING && reflector->m_repeater.IsEmpty()) {
 					if (reflector->m_linkState != DCS_UNLINKING)
-						data.addLink(reflector->m_reflector, PROTO_DCS, reflector->m_linkState == DCS_LINKED, DIR_INCOMING, true);
+						data.addLink(GET_DISP_REFLECTOR(reflector), PROTO_DCS, reflector->m_linkState == DCS_LINKED, DIR_INCOMING, true);
 				} else {
 					if (reflector->m_linkState != DCS_UNLINKING)
-						data.addLink(reflector->m_reflector, PROTO_DCS, reflector->m_linkState == DCS_LINKED, reflector->m_direction, false);
+						data.addLink(GET_DISP_REFLECTOR(reflector), PROTO_DCS, reflector->m_linkState == DCS_LINKED, reflector->m_direction, false);
 				}
 			}
 		}
@@ -634,10 +641,10 @@ bool CDCSHandler::processInt(CConnectData& connect, CD_TYPE type)
 				return false;
 
 			if (m_linkState == DCS_LINKING) {
-				wxLogMessage(wxT("DCS ACK message received from %s"), m_reflector.c_str());
+				wxLogMessage(wxT("DCS ACK message received from %s"), GET_DISP_REFLECTOR(this).c_str());
 
 				if (m_direction == DIR_OUTGOING && m_destination != NULL)
-					m_destination->linkUp(DP_DCS, m_reflector);
+					m_destination->linkUp(DP_DCS, GET_DISP_REFLECTOR(this));
 
 				m_tryTimer.stop();
 				m_stateChange = true;
@@ -651,16 +658,16 @@ bool CDCSHandler::processInt(CConnectData& connect, CD_TYPE type)
 				return false;
 
 			if (m_linkState == DCS_LINKING) {
-				wxLogMessage(wxT("DCS NAK message received from %s"), m_reflector.c_str());
+				wxLogMessage(wxT("DCS NAK message received from %s"), GET_DISP_REFLECTOR(this).c_str());
 
 				if (m_direction == DIR_OUTGOING && m_destination != NULL)
-					m_destination->linkRefused(DP_DCS, m_reflector);
+					m_destination->linkRefused(DP_DCS, GET_DISP_REFLECTOR(this));
 
 				return true;
 			}
 
 			if (m_linkState == DCS_UNLINKING) {
-				wxLogMessage(wxT("DCS NAK message received from %s"), m_reflector.c_str());
+				wxLogMessage(wxT("DCS NAK message received from %s"), GET_DISP_REFLECTOR(this).c_str());
 
 				if (m_direction == DIR_OUTGOING && m_destination != NULL)
 					m_destination->linkFailed(DP_DCS, m_reflector, false);
@@ -675,10 +682,10 @@ bool CDCSHandler::processInt(CConnectData& connect, CD_TYPE type)
 				return false;
 
 			if (m_linkState == DCS_LINKED) {
-				wxLogMessage(wxT("DCS disconnect message received from %s"), m_reflector.c_str());
+				wxLogMessage(wxT("DCS disconnect message received from %s"), GET_DISP_REFLECTOR(this).c_str());
 
 				if (m_direction == DIR_OUTGOING && m_destination != NULL)
-					m_destination->linkFailed(DP_DCS, m_reflector, false);
+					m_destination->linkFailed(DP_DCS, GET_DISP_REFLECTOR(this), false);
 
 				m_stateChange = true;
 			}
@@ -706,20 +713,20 @@ bool CDCSHandler::clockInt(unsigned int ms)
 
 		switch (m_linkState) {
 			case DCS_LINKING:
-				wxLogMessage(wxT("DCS link to %s has failed to connect"), m_reflector.c_str());
+				wxLogMessage(wxT("DCS link to %s has failed to connect"), GET_DISP_REFLECTOR(this).c_str());
 				break;
 			case DCS_LINKED:
-				wxLogMessage(wxT("DCS link to %s has failed (poll inactivity)"), m_reflector.c_str());
+				wxLogMessage(wxT("DCS link to %s has failed (poll inactivity)"), GET_DISP_REFLECTOR(this).c_str());
 				break;
 			case DCS_UNLINKING:
-				wxLogMessage(wxT("DCS link to %s has failed to disconnect cleanly"), m_reflector.c_str());
+				wxLogMessage(wxT("DCS link to %s has failed to disconnect cleanly"), GET_DISP_REFLECTOR(this).c_str());
 				break;
 			default:
 				break;
 		}
 
 		if (m_direction == DIR_OUTGOING) {
-			bool reconnect = m_destination->linkFailed(DP_DCS, m_reflector, true);
+			bool reconnect = m_destination->linkFailed(DP_DCS, GET_DISP_REFLECTOR(this), true);
 			if (reconnect) {
 				CConnectData reply(m_gatewayType, m_repeater, m_reflector, CT_LINK1, m_yourAddress, m_yourPort);
 				m_handler->writeConnect(reply);
@@ -844,7 +851,7 @@ void CDCSHandler::writeStatus(wxFFile& file)
 						wxString text;
 						text.Printf(wxT("%04d-%02d-%02d %02d:%02d:%02d: DCS link - Type: Repeater Rptr: %s Refl: %s Dir: Outgoing\n"),
 							tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, 
-							reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
+							reflector->m_repeater.c_str(), GET_DISP_REFLECTOR(reflector).c_str());
 						file.Write(text);
 					}
 					break;
@@ -854,7 +861,7 @@ void CDCSHandler::writeStatus(wxFFile& file)
 						wxString text;
 						text.Printf(wxT("%04d-%02d-%02d %02d:%02d:%02d: DCS link - Type: Repeater Rptr: %s Refl: %s Dir: Incoming\n"),
 							tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, 
-							reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
+							reflector->m_repeater.c_str(), GET_DISP_REFLECTOR(reflector).c_str());
 						file.Write(text);
 					}
 					break;

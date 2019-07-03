@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -95,6 +95,7 @@ m_flag1(0x00U),
 m_flag2(0x00U),
 m_flag3(0x00U),
 m_restricted(false),
+m_fastData(false),
 m_frames(0U),
 m_silence(0U),
 m_errors(0U),
@@ -582,6 +583,9 @@ void CRepeaterHandler::processRepeater(CHeaderData& header)
 	m_silence = 0U;
 	m_errors  = 0U;
 
+	// Assume voice mode
+	m_fastData = false;
+
 	// An RF header resets the reconnect timer
 	m_linkReconnectTimer.start();
 
@@ -736,32 +740,42 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 	unsigned char buffer[DV_FRAME_MAX_LENGTH_BYTES];
 	data.getData(buffer, DV_FRAME_MAX_LENGTH_BYTES);
 
-	if (::memcmp(buffer, NULL_AMBE_DATA_BYTES, VOICE_FRAME_LENGTH_BYTES) == 0)
-		m_silence++;
+	// Check for the fast data signature
+	if (!m_fastData) {
+		unsigned char slowDataType = (buffer[VOICE_FRAME_LENGTH_BYTES] ^ SCRAMBLER_BYTE1) & SLOW_DATA_TYPE_MASK;
+		if (slowDataType == SLOW_DATA_TYPE_FAST_DATA1 || slowDataType == SLOW_DATA_TYPE_FAST_DATA2)
+			m_fastData = true;
+	}
 
-	// Don't do DTMF decoding or blanking if off and not on crossband either
-	if (m_dtmfEnabled && m_g2Status != G2_XBAND) {
-		bool pressed = m_dtmf.decode(buffer, data.isEnd());
-		if (pressed) {
-			// Replace the DTMF with silence
-			::memcpy(buffer, NULL_AMBE_DATA_BYTES, VOICE_FRAME_LENGTH_BYTES);
-			data.setData(buffer, DV_FRAME_LENGTH_BYTES);
-		}
+	// Don't do AMBE processing when in Fast Data mode
+	if (!m_fastData) {
+		if (::memcmp(buffer, NULL_AMBE_DATA_BYTES, VOICE_FRAME_LENGTH_BYTES) == 0)
+			m_silence++;
 
-		bool dtmfDone = m_dtmf.hasCommand();
-		if (dtmfDone) {
-			wxString command = m_dtmf.translate();
+		// Don't do DTMF decoding or blanking if off and not on crossband either
+		if (m_dtmfEnabled && m_g2Status != G2_XBAND) {
+			bool pressed = m_dtmf.decode(buffer, data.isEnd());
+			if (pressed) {
+				// Replace the DTMF with silence
+				::memcpy(buffer, NULL_AMBE_DATA_BYTES, VOICE_FRAME_LENGTH_BYTES);
+				data.setData(buffer, DV_FRAME_LENGTH_BYTES);
+			}
 
-			// Only process the DTMF command if the your call is CQCQCQ and not a restricted user
-			if (!m_restricted && m_yourCall.Left(4U).IsSameAs(wxT("CQCQ"))) {
-				if (command.IsEmpty()) {
-					// Do nothing
-				} else if (isCCSCommand(command)) {
-					ccsCommandHandler(command, m_myCall1, wxT("DTMF"));
-				} else if (command.IsSameAs(wxT("       I"))) {
-					m_infoNeeded = true;
-				} else {
-					reflectorCommandHandler(command, m_myCall1, wxT("DTMF"));
+			bool dtmfDone = m_dtmf.hasCommand();
+			if (dtmfDone) {
+				wxString command = m_dtmf.translate();
+
+				// Only process the DTMF command if the your call is CQCQCQ and not a restricted user
+				if (!m_restricted && m_yourCall.Left(4U).IsSameAs(wxT("CQCQ"))) {
+					if (command.IsEmpty()) {
+						// Do nothing
+					} else if (isCCSCommand(command)) {
+						ccsCommandHandler(command, m_myCall1, wxT("DTMF"));
+					} else if (command.IsSameAs(wxT("       I"))) {
+						m_infoNeeded = true;
+					} else {
+						reflectorCommandHandler(command, m_myCall1, wxT("DTMF"));
+					}
 				}
 			}
 		}

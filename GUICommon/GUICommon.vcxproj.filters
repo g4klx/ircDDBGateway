@@ -53,6 +53,9 @@
     <ClCompile Include="XLXSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MobileGPSSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddressTextCtrl.h">
@@ -95,6 +98,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XLXSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MobileGPSSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

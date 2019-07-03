@@ -39,6 +39,8 @@
 #include <wx/wx.h>
 #include <wx/ffile.h>
 
+#define GET_DISP_REFLECTOR(refl) (refl->m_isXlx ? refl->m_xlxReflector : refl->m_reflector)
+
 enum DCS_STATE {
 	DCS_LINKING,
 	DCS_LINKED,
@@ -109,6 +111,8 @@ private:
 	static CCallsignList*           m_blackList;
 
 	wxString             m_reflector;
+	wxString             m_xlxReflector;
+	bool                 m_isXlx;	
 	wxString             m_repeater;
 	CDCSProtocolHandler* m_handler;
 	in_addr              m_yourAddress;
