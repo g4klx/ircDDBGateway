@@ -87,9 +87,9 @@ void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogReco
 
 	struct tm* tm;
 	if (utc){
-		tm = ::gmtime(&timestamp);
+		tm = ::gmtime(&info.timestamp);
 	}else{
-		tm = ::localtime(&timestamp);
+		tm = ::localtime(&info.timestamp);
 	}
 
 	wxString message;
@@ -133,8 +133,4 @@ void CLogger::writeLog(const wxChar* msg, time_t timestamp)
 
 	m_file->Write(wxString(msg));
 	m_file->Flush();
-}
-
-void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info) {
-	DoLog(level, msg.c_str(), info.timestamp);
 }

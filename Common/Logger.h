@@ -30,8 +30,6 @@ public:
 
 	virtual void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info);
 
-	virtual void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info);
-
 private:
 	wxString   m_name;
 	wxFFile*   m_file;
