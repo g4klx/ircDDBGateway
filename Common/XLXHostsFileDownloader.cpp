@@ -31,6 +31,7 @@ wxString CXLXHostsFileDownloader::Download(const wxString & xlxHostsFileURL)
 	wxLogMessage(_T("Downloading XLX reflector list from %s"), xlxHostsFileURL.c_str());
 
 	wxString xlxHostsFileName = wxFileName::CreateTempFileName(_T("XLX_Hosts_"));
+	wxLogMessage(_T("Downloading XLX host file..."));
 	wxString commandLine = _T("wget -q -O ") + xlxHostsFileName + _T(" ") + xlxHostsFileURL;
 	bool execResult = wxShell(commandLine);
 	

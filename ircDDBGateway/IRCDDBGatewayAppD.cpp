@@ -42,6 +42,8 @@
 #include <signal.h>
 #include <fcntl.h>
 
+#include "../GlobalDefines.h"
+
 const wxChar*       NAME_PARAM = wxT("Gateway Name");
 const wxChar* NOLOGGING_SWITCH = wxT("nolog");
 const wxChar*     DEBUG_SWITCH = wxT("debug");
@@ -122,9 +124,9 @@ int main(int argc, char** argv)
 
 	wxString pidFileName;
 	if (!name.IsEmpty())
-		pidFileName.Printf(wxT("/var/run/opendv/ircddbgateway_%s.pid"), name.c_str());
+		pidFileName.Printf(wxT(PID_FILE_T), name.c_str());
 	else
-		pidFileName = wxT("/var/run/opendv/ircddbgateway.pid");
+		pidFileName = wxT(PID_FILE);
 	pidFileName.Replace(wxT(" "), wxT("_"));
 
 	char fileName[128U];
@@ -198,6 +200,7 @@ bool CIRCDDBGatewayAppD::init()
 		new wxLogNull;
 	}
 
+#if !defined(OPENWRT) || OPENWRT != 1
 	wxString appName;
 	if (!m_name.IsEmpty())
 		appName = APPLICATION_NAME + wxT(" ") + m_name;
@@ -211,6 +214,7 @@ bool CIRCDDBGatewayAppD::init()
 		wxLogError(wxT("Another copy of the ircDDB Gateway is running, exiting"));
 		return false;
 	}
+#endif
 
 	wxLogInfo(wxT("Starting ") + APPLICATION_NAME + wxT(" daemon - ") + VERSION);
 
