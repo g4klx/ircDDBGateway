@@ -1,7 +1,7 @@
 #ifndef __GLOBAL_DEFS__
 #define __GLOBAL_DEFS__
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(LINUX)
 #define DATA_DIR   "/opt/mmdvm/conf/dstar"
 #define LOG_DIR    "/opt/mmdvm/logs"
 #define CONF_DIR   "/opt/mmdvm/conf"
