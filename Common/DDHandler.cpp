@@ -26,10 +26,8 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
-#if defined(__linux__)
 #include <linux/if_tun.h>
 #include <linux/sockios.h>
-#endif
 #include <netinet/in.h>
 #endif
 

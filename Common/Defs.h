@@ -20,7 +20,6 @@
 #define	Defs_H
 
 #include <wx/wx.h>
-#include "../GlobalDefines.h"
 
 const wxString DEXTRA_HOSTS_FILE_NAME  = wxT("DExtra_Hosts.txt");
 const wxString DPLUS_HOSTS_FILE_NAME   = wxT("DPlus_Hosts.txt");

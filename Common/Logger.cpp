@@ -18,12 +18,6 @@
 
 #include "Logger.h"
 
-#if defined(LOG_LOCALTIME) && LOG_LOCALTIME == 1
-static const bool utc = false;
-#else
-static const bool utc = true;
-#endif
-
 CLogger::CLogger(const wxString& directory, const wxString& name) :
 wxLog(),
 m_name(name),
@@ -38,12 +32,7 @@ m_day(0)
 
 	time_t timestamp;
 	::time(&timestamp);
-	struct tm* tm;
-	if (utc){
-		tm = ::gmtime(&timestamp);
-	}else{
-		tm = ::localtime(&timestamp);
-	}
+	struct tm* tm = ::gmtime(&timestamp);
 
 	wxString text;
 	text.Printf(wxT("%s-%04d-%02d-%02d"), m_name.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
@@ -85,12 +74,7 @@ void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogReco
 		default:               letter = wxT("U"); break;
 	}
 
-	struct tm* tm;
-	if (utc){
-		tm = ::gmtime(&info.timestamp);
-	}else{
-		tm = ::localtime(&info.timestamp);
-	}
+	struct tm* tm = ::gmtime(&info.timestamp);
 
 	wxString message;
 	message.Printf(wxT("%s: %04d-%02d-%02d %02d:%02d:%02d: %s\n"), letter.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, msg.c_str());
@@ -107,12 +91,7 @@ void CLogger::writeLog(const wxChar* msg, time_t timestamp)
 	wxASSERT(m_file->IsOpened());
 	wxASSERT(msg != NULL);
 
-	struct tm* tm;
-	if (utc){
-		tm = ::gmtime(&timestamp);
-	}else{
-		tm = ::localtime(&timestamp);
-	}
+	struct tm* tm = ::gmtime(&timestamp);
 
 	int day = tm->tm_yday;
 	if (day != m_day) {
@@ -134,3 +113,4 @@ void CLogger::writeLog(const wxChar* msg, time_t timestamp)
 	m_file->Write(wxString(msg));
 	m_file->Flush();
 }
+
