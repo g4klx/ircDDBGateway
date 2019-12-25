@@ -119,7 +119,7 @@ dcsEnabled=1
 ccsEnabled=1
 ccsHost=CCS704  
 xlxEnabled=1
-xlxHostsFileUrl=xlxHostsFileUrl=http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster
+xlxHostsFileUrl=http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster
 starNetBand1=A
 starNetCallsign1=        
 starNetLogoff1=        
