@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -48,7 +48,6 @@ private:
 	wxString       m_address;
 	CCacheManager* m_cache;
 	CTimer         m_timer;
-	CTimer         m_pollTimer;
 	bool           m_killed;
 
 	bool poll(const wxString& callsign, const wxString& hostname, unsigned int port, unsigned char id);
