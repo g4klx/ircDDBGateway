@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include "TCPReaderWriterClient.h"
 #include "RingBuffer.h"
+#include "Timer.h"
 
 #include <wx/wx.h>
 typedef void (*ReadAPRSFrameCallback)(const wxString&);
@@ -41,6 +42,8 @@ public:
 
 	virtual void stop();
 
+	void clock(unsigned int ms);
+
 	void setReadAPRSCallback(ReadAPRSFrameCallback cb);
 
 private:
@@ -51,11 +54,14 @@ private:
 	CRingBuffer<char*>     m_queue;
 	bool                   m_exit;
 	bool                   m_connected;
+	CTimer                 m_reconnectTimer;
+	unsigned int           m_tries;
 	ReadAPRSFrameCallback  m_APRSReadCallback;
 	wxString               m_filter;
 	wxString               m_clientName;
 
 	bool connect();
+	void startReconnectionTimer();
 };
 
 #endif
