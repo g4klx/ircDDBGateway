@@ -53,6 +53,9 @@
     <ClCompile Include="ConnectData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConsoleLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DCSHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -257,6 +260,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConnectData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DCSHandler.h">
