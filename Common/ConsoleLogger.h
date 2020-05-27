@@ -1,5 +1,6 @@
 /*
- *   Copyright (C) 2010-2013,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2002,2003,2009,2011,2012,2019 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2020 by Adam Kolakowski SQ7LRX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,39 +17,25 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef	IRCDDBGatewayAppD_H
-#define	IRCDDBGatewayAppD_H
-
-#include "IRCDDBGatewayThread.h"
+#ifndef	ConsoleLogger_H
+#define	ConsoleLogger_H
 
 #include <wx/wx.h>
-#include <wx/config.h>
-#include <wx/snglinst.h>
 
-class CIRCDDBGatewayAppD {
 
+class CConsoleLogger : public wxLog {
 public:
-	CIRCDDBGatewayAppD(bool nolog, bool debug, bool foreground, const wxString& logDir, const wxString& confDir, const wxString& name);
-	~CIRCDDBGatewayAppD();
+	CConsoleLogger();
+	virtual ~CConsoleLogger();
 
-	bool init();
-
-	void run();
-
-	void kill();
+	virtual void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info);
 
 private:
-	wxString                 m_name;
-	bool                     m_nolog;
-	bool                     m_debug;
-	bool                     m_foreground;
-	wxString                 m_logDir;
-	wxString                 m_confDir;
-	CIRCDDBGatewayThread*    m_thread;
-	wxSingleInstanceChecker* m_checker;
+	const static char S_LEVELS[];
 
-	bool createThread();
-	void initLogging(wxLog *logger);
+	wxMessageOutput *m_stdout;
+	wxMessageOutput *m_stderr;
 };
 
 #endif
+

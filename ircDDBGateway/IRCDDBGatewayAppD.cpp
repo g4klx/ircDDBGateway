@@ -26,6 +26,7 @@
 #include "APRSWriter.h"
 #include "Version.h"
 #include "Logger.h"
+#include "ConsoleLogger.h"
 #include "IRCDDB.h"
 #include "IRCDDBClient.h"
 #include "IRCDDBMultiClient.h"
@@ -48,6 +49,7 @@ const wxChar*     DEBUG_SWITCH = wxT("debug");
 const wxChar*    LOGDIR_OPTION = wxT("logdir");
 const wxChar*   CONFDIR_OPTION = wxT("confdir");
 const wxChar*    DAEMON_SWITCH = wxT("daemon");
+const wxChar*   FGROUND_SWITCH = wxT("foreground");
 
 const wxString LOG_BASE_NAME    = wxT("ircDDBGateway");
 
@@ -70,6 +72,7 @@ int main(int argc, char** argv)
 	parser.AddSwitch(NOLOGGING_SWITCH, wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddSwitch(DEBUG_SWITCH,     wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddSwitch(DAEMON_SWITCH,    wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
+	parser.AddSwitch(FGROUND_SWITCH,   wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(LOGDIR_OPTION,    wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(CONFDIR_OPTION,   wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddParam(NAME_PARAM, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
@@ -80,9 +83,10 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	bool  nolog = parser.Found(NOLOGGING_SWITCH);
-	bool  debug = parser.Found(DEBUG_SWITCH);
-	bool daemon = parser.Found(DAEMON_SWITCH);
+	bool      nolog = parser.Found(NOLOGGING_SWITCH);
+	bool      debug = parser.Found(DEBUG_SWITCH);
+	bool     daemon = parser.Found(DAEMON_SWITCH);
+	bool foreground = parser.Found(FGROUND_SWITCH);
 
 	wxString logDir;
 	bool found = parser.Found(LOGDIR_OPTION, &logDir);
@@ -97,6 +101,12 @@ int main(int argc, char** argv)
 	wxString name;
 	if (parser.GetParamCount() > 0U)
 		name = parser.GetParam(0U);
+
+	if (daemon && foreground) {
+		::fprintf(stderr, "ircddbgatewayd: -daemon and -foreground are mutually exclusive, exiting\n");
+		::wxUninitialize();
+		return 1;
+	}
 
 	if (daemon) {
 		pid_t pid = ::fork();
@@ -138,7 +148,7 @@ int main(int argc, char** argv)
 		::fclose(fp);
 	}
 
-	m_gateway = new CIRCDDBGatewayAppD(nolog, debug, logDir, confDir, name);
+	m_gateway = new CIRCDDBGatewayAppD(nolog, debug, foreground, logDir, confDir, name);
 	if (!m_gateway->init()) {
 		::wxUninitialize();
 		return 1;
@@ -157,10 +167,11 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-CIRCDDBGatewayAppD::CIRCDDBGatewayAppD(bool nolog, bool debug, const wxString& logDir, const wxString& confDir, const wxString& name) :
+CIRCDDBGatewayAppD::CIRCDDBGatewayAppD(bool nolog, bool debug, bool foreground, const wxString& logDir, const wxString& confDir, const wxString& name) :
 m_name(name),
 m_nolog(nolog),
 m_debug(debug),
+m_foreground(foreground),
 m_logDir(logDir),
 m_confDir(confDir),
 m_thread(NULL),
@@ -174,7 +185,9 @@ CIRCDDBGatewayAppD::~CIRCDDBGatewayAppD()
 
 bool CIRCDDBGatewayAppD::init()
 {
-	if (!m_nolog) {
+	if (m_foreground) {
+		initLogging(new CConsoleLogger());
+	} else if (!m_nolog) {
 		wxString logBaseName = LOG_BASE_NAME;
 		if (!m_name.IsEmpty()) {
 			logBaseName.Append(wxT("_"));
@@ -184,16 +197,7 @@ bool CIRCDDBGatewayAppD::init()
 		if (m_logDir.IsEmpty())
 			m_logDir = wxT(LOG_DIR);
 
-		wxLog* log = new CLogger(m_logDir, logBaseName);
-		wxLog::SetActiveTarget(log);
-
-		if (m_debug) {
-			wxLog::SetVerbose(true);
-			wxLog::SetLogLevel(wxLOG_Debug);
-		} else {
-			wxLog::SetVerbose(false);
-			wxLog::SetLogLevel(wxLOG_Message);
-		}
+		initLogging(new CLogger(m_logDir, logBaseName));
 	} else {
 		new wxLogNull;
 	}
@@ -212,12 +216,29 @@ bool CIRCDDBGatewayAppD::init()
 		return false;
 	}
 
-	wxLogInfo(wxT("Starting ") + APPLICATION_NAME + wxT(" daemon - ") + VERSION);
+	wxLogMessage(wxT("Starting ") + APPLICATION_NAME + wxT(" daemon - ") + VERSION);
 
 	// Log the version of wxWidgets and the Operating System
 	wxLogInfo(wxT("Using wxWidgets %d.%d.%d on %s"), wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, ::wxGetOsDescription().c_str());
 
+	if (!m_nolog && m_foreground) {
+		wxLogWarning(wxT("Running in foreground, logging to file disabled. Use -nolog when running this application in foreground to suppress this "));
+	}
+
 	return createThread();
+}
+
+void CIRCDDBGatewayAppD::initLogging(wxLog *logger)
+{
+	wxLog::SetActiveTarget(logger);
+
+		if (m_debug) {
+			wxLog::SetVerbose(true);
+			wxLog::SetLogLevel(wxLOG_Debug);
+		} else {
+			wxLog::SetVerbose(false);
+			wxLog::SetLogLevel(wxLOG_Message);
+		}
 }
 
 void CIRCDDBGatewayAppD::run()
@@ -878,7 +899,7 @@ bool CIRCDDBGatewayAppD::createThread()
 	bool xlxEnabled;
 	wxString xlxHostsFileUrl;
 	config.getXLX(xlxEnabled, xlxHostsFileUrl);
-	wxLogInfo(wxT("XLX enabled: %d, Override Local %d, Hosts file url: %s"), int(xlxEnabled), xlxHostsFileUrl.c_str());
+	wxLogInfo(wxT("XLX enabled: %d, Hosts file url: %s"), int(xlxEnabled), xlxHostsFileUrl.c_str());
 
 	if (repeaterBand1.Len() > 1U || repeaterBand2.Len() > 1U ||
 		repeaterBand3.Len() > 1U || repeaterBand4.Len() > 1U) {
