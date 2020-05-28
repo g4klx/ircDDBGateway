@@ -69,6 +69,7 @@ You can optionally specify some make variables to alter the default behavior:
 | LOGDIR    | `/var/log` | location of log files            |
 | CONFDIR   | `/etc`     | location of configuration files  |
 | BINDIR    | `/usr/bin` | program binaries installed here  |
+| DESTDIR   | _not set_  | destination for staged build     |
 
 ### Example
 

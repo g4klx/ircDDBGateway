@@ -15,7 +15,7 @@ remotecontrold:	$(OBJECTS) ../Common/Common.a
 
 .PHONY: install
 install:
-		install -g bin -o root -m 0775 remotecontrold $(BINDIR)
+		install -g root -o root -m 0755 remotecontrold $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:

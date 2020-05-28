@@ -14,7 +14,7 @@ aprstransmitd:	$(OBJECTS) ../Common/Common.a
 
 .PHONY: install
 install:
-		install -g bin -o root -m 0775 aprstransmitd $(BINDIR)
+		install -g root -o root -m 0755 aprstransmitd $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:
