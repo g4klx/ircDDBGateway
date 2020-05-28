@@ -1,20 +1,28 @@
+export BUILD?=debug
 ifeq ($(TARGET), opendv)
-export DATADIR := "/usr/share/opendv"
-export LOGDIR  := "/var/log/opendv"
-export CONFDIR := "/etc"
-export BINDIR  := "/usr/sbin"
+export DATADIR ?= "/usr/share/opendv"
+export LOGDIR  ?= "/var/log/opendv"
+export CONFDIR ?= "/etc"
+export BINDIR  ?= "/usr/sbin"
 else
-export DATADIR := "/usr/share/ircddbgateway"
-export LOGDIR  := "/var/log"
-export CONFDIR := "/etc"
-export BINDIR  := "/usr/bin"
+export DATADIR ?= "/usr/share/ircddbgateway"
+export LOGDIR  ?= "/var/log"
+export CONFDIR ?= "/etc"
+export BINDIR  ?= "/usr/bin"
 endif
 
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
 # Add -DDEXTRA_LINK to the end of the CFLAGS line below to add DExtra linking to StarNet
 
+DEBUGFLAGS     := -g -D_DEBUG
+RELEASEFLAGS   := -DNDEBUG -DwxDEBUG_LEVEL=0
 export CXX     := $(shell wx-config --cxx)
 export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
+ifeq ($(BUILD), debug)
+	export CFLAGS  := $(CFLAGS) $(DEBUGFLAGS)
+else ($(BUILD), release)
+	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
+endif
 export GUILIBS := $(shell wx-config --libs adv,core,base)
 export LIBS    := $(shell wx-config --libs base,net)
 export LDFLAGS := 

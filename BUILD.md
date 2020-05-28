@@ -1,8 +1,6 @@
-ircDDB Gateway - 20180627
-=========================
+# Building ircDDBGateway
 
-Windows
--------
+## Windows
 
 To use the ircDDB Gateway software you will first need to build the latest
 version of wxWidgets (http://www.wxwidgets.org), the version I used was 3.0.4.
@@ -39,12 +37,19 @@ on the same machine as the development/compilation was done on. You can find the
 latest versions at https://support.microsoft.com/en-gb/help/2977003/the-latest-supported-visual-c-downloads
 
 
-Linux
------
+## Linux
 
-You need to ensure that wxGTK is already installed on your machine, under
-Ubuntu these are available from the standard repositories, the version of
-wxWidgets is adequate.
+You need to ensure that wxGTK is already installed on your machine.
+
+Debian, Ubuntu:
+```sh
+sudo apt install libwxgtk3.0-dev
+```
+
+Fedora, CentOS, RedHat:
+```sh
+sudo dnf install wxGTK3-devel
+```
 
 To install them from scratch, you need to get wxGTK from 
 <http://www.wxwidgets.org>. If you do a "make install" on it then they'll
@@ -53,3 +58,27 @@ be installed in the right places and nothing more needs to be done.
 To actually build the software, type "make" in the same directory as this file
 and all should build without errors, there may be a warning or two though. Once
 compiled log in as root or use the sudo command, and do "make install".
+
+You can optionally specify some make variables to alter the default behavior:
+
+| Parameter | Default   | Description                       |
+| --------- | --------- | --------------------------------- |
+| BUILD     | `debug`   | `debug` or `release`              |
+| TARGET    | _not set_ | when set to `opendv`, installs files in legacy locations |
+| DATADIR   | `/usr/share/ircddbgateway` | where AMBE voice and host lists are kept |
+| LOGDIR    | `/var/log` | location of log files            |
+| CONFDIR   | `/etc`     | location of configuration files  |
+| BINDIR    | `/usr/bin` | program binaries installed here  |
+
+### Example
+
+```sh
+cd ircDDBGateway
+make -j4 BUILD=release CONFDIR=/etc/dstar
+sudo make install
+```
+
+This would build and install all the programs in this repo using 4 threads
+(parallel build jobs), in release mode (no debug symbols) with a modified
+configuration directory.
+
