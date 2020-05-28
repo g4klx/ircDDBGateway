@@ -14,7 +14,7 @@ starnetserverd:	$(OBJECTS) ../Common/Common.a ../ircDDB/IRCDDB.a
 
 .PHONY: install
 install:
-		install -g bin -o root -m 0775 starnetserverd $(BINDIR)
+		install -g root -o root -m 0755 starnetserverd $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:

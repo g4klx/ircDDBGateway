@@ -1,14 +1,14 @@
-export BUILD?=debug
+export BUILD   ?= debug
 ifeq ($(TARGET), opendv)
-export DATADIR ?= "/usr/share/opendv"
-export LOGDIR  ?= "/var/log/opendv"
-export CONFDIR ?= "/etc"
-export BINDIR  ?= "/usr/sbin"
+export DATADIR ?= /usr/share/opendv
+export LOGDIR  ?= /var/log/opendv
+export CONFDIR ?= /etc
+export BINDIR  ?= /usr/sbin
 else
-export DATADIR ?= "/usr/share/ircddbgateway"
-export LOGDIR  ?= "/var/log"
-export CONFDIR ?= "/etc"
-export BINDIR  ?= "/usr/bin"
+export DATADIR ?= /usr/share/ircddbgateway
+export LOGDIR  ?= /var/log
+export CONFDIR ?= /etc
+export BINDIR  ?= /usr/bin
 endif
 
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
@@ -20,7 +20,7 @@ export CXX     := $(shell wx-config --cxx)
 export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
 ifeq ($(BUILD), debug)
 	export CFLAGS  := $(CFLAGS) $(DEBUGFLAGS)
-else ($(BUILD), release)
+else ifeq ($(BUILD), release)
 	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
 endif
 export GUILIBS := $(shell wx-config --libs adv,core,base)
@@ -67,8 +67,12 @@ Common/Common.a: force
 ircDDB/IRCDDB.a: force
 	$(MAKE) -C ircDDB
 
+.PHONY: installdirs
+installdirs: force
+	/bin/mkdir -p $(DESTDIR)$(DATADIR) $(DESTDIR)$(LOGDIR) $(DESTDIR)$(CONFDIR) $(DESTDIR)$(BINDIR)
+
 .PHONY: install
-install:	all
+install: all installdirs
 ifeq ($(TARGET), opendv)
 	useradd --user-group -M --system opendv --shell /bin/false || true
 

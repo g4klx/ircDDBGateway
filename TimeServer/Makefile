@@ -14,7 +14,7 @@ timeserverd:	$(OBJECTS) ../Common/Common.a
 
 .PHONY: install
 install:
-		install -g bin -o root -m 0775 timeserverd $(BINDIR)
+		install -g root -o root -m 0755 timeserverd $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:
