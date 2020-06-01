@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #ifndef	APRSWriter_H
 #define	APRSWriter_H
 
-#include "APRSWriterThread.h"
 #include "UDPReaderWriter.h"
 #include "APRSCollector.h"
 #include "DStarDefines.h"
@@ -68,7 +67,7 @@ WX_DECLARE_STRING_HASH_MAP(CAPRSEntry*, CEntry_t);
 
 class CAPRSWriter {
 public:
-	CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& password, const wxString& address);
+	CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway);
 	~CAPRSWriter();
 
 	bool open();
@@ -81,20 +80,20 @@ public:
 
 	void writeData(const wxString& callsign, const CAMBEData& data);
 
-	bool isConnected() const;
-
 	void clock(unsigned int ms);
 
 	void close();
 
 private:
-	CAPRSWriterThread* m_thread;
 	CTimer             m_idTimer;
 	wxString           m_gateway;
 	CEntry_t           m_array;
-	in_addr            m_address;
-	unsigned int       m_port;
-	CUDPReaderWriter*  m_socket;
+	in_addr            m_aprsAddress;
+	unsigned int       m_aprsPort;
+	CUDPReaderWriter   m_aprsSocket;
+	in_addr            m_mobileAddress;
+	unsigned int       m_mobilePort;
+	CUDPReaderWriter*  m_mobileSocket;
 
 	bool pollGPS();
 	void sendIdFramesFixed();

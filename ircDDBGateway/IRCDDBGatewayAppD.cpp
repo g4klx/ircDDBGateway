@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -275,15 +275,15 @@ bool CIRCDDBGatewayAppD::createThread()
 
 	m_thread->setGateway(gatewayType, gatewayCallsign, gatewayAddress);
 
-	wxString aprsHostname, aprsPassword;
+	wxString aprsAddress;
 	unsigned int aprsPort;
 	bool aprsEnabled;
-	config.getDPRS(aprsEnabled, aprsPassword, aprsHostname, aprsPort);
-	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsHostname.c_str(), aprsPort);
+	config.getDPRS(aprsEnabled, aprsAddress, aprsPort);
+	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsAddress.c_str(), aprsPort);
 
 	CAPRSWriter* aprs = NULL;
-	if (aprsEnabled && !gatewayCallsign.IsEmpty() && !aprsHostname.IsEmpty() && aprsPort != 0U) {
-		aprs = new CAPRSWriter(aprsHostname, aprsPort, gatewayCallsign, aprsPassword, gatewayAddress);
+	if (aprsEnabled && !aprsAddress.IsEmpty() && aprsPort != 0U) {
+		aprs = new CAPRSWriter(aprsAddress, aprsPort, gatewayCallsign);
 
 		bool res = aprs->open();
 		if (!res)

@@ -154,7 +154,6 @@
     <ClCompile Include="AnnouncementUnit.cpp" />
     <ClCompile Include="APRSCollector.cpp" />
     <ClCompile Include="APRSWriter.cpp" />
-    <ClCompile Include="APRSWriterThread.cpp" />
     <ClCompile Include="AudioUnit.cpp" />
     <ClCompile Include="CacheManager.cpp" />
     <ClCompile Include="CallsignList.cpp" />
@@ -223,7 +222,6 @@
     <ClInclude Include="AnnouncementUnit.h" />
     <ClInclude Include="APRSCollector.h" />
     <ClInclude Include="APRSWriter.h" />
-    <ClInclude Include="APRSWriterThread.h" />
     <ClInclude Include="AudioUnit.h" />
     <ClInclude Include="CacheManager.h" />
     <ClInclude Include="CallsignList.h" />

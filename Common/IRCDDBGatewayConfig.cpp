@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -129,8 +129,7 @@ const wxString  KEY_IRCDDB_HOSTNAME4     = wxT("ircddbHostname4");
 const wxString  KEY_IRCDDB_USERNAME4     = wxT("ircddbUsername4");
 const wxString  KEY_IRCDDB_PASSWORD4     = wxT("ircddbPassword4");
 const wxString  KEY_APRS_ENABLED         = wxT("aprsEnabled");
-const wxString  KEY_APRS_PASSWORD        = wxT("aprsPassword");
-const wxString  KEY_APRS_HOSTNAME        = wxT("aprsHostname");
+const wxString  KEY_APRS_ADDRESS         = wxT("aprsAddress");
 const wxString  KEY_APRS_PORT            = wxT("aprsPort");
 const wxString  KEY_DEXTRA_ENABLED       = wxT("dextraEnabled");
 const wxString  KEY_DEXTRA_MAXDONGLES    = wxT("dextraMaxDongles");
@@ -254,9 +253,8 @@ const wxString     DEFAULT_IRCDDB_HOSTNAME4		 = wxEmptyString;
 const wxString     DEFAULT_IRCDDB_USERNAME4		 = wxEmptyString;
 const wxString     DEFAULT_IRCDDB_PASSWORD4		 = wxEmptyString;
 const bool         DEFAULT_APRS_ENABLED          = false;
-const wxString     DEFAULT_APRS_PASSWORD         = wxT("00000");
-const wxString     DEFAULT_APRS_HOSTNAME         = wxT("rotate.aprs2.net");
-const unsigned int DEFAULT_APRS_PORT             = 14580U;
+const wxString     DEFAULT_APRS_ADDRESS          = wxT("127.0.0.1");
+const unsigned int DEFAULT_APRS_PORT             = 8673U;
 const bool         DEFAULT_DEXTRA_ENABLED        = true;
 const unsigned int DEFAULT_DEXTRA_MAXDONGLES     = 5U;
 const bool         DEFAULT_DPLUS_ENABLED         = false;
@@ -408,8 +406,7 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
-m_aprsPassword(DEFAULT_APRS_PASSWORD),
-m_aprsHostname(DEFAULT_APRS_HOSTNAME),
+m_aprsAddress(DEFAULT_APRS_ADDRESS),
 m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
@@ -732,9 +729,7 @@ m_y(DEFAULT_WINDOW_Y)
 
 	m_config->Read(m_name + KEY_APRS_ENABLED, &m_aprsEnabled, DEFAULT_APRS_ENABLED);
 
-	m_config->Read(m_name + KEY_APRS_PASSWORD, &m_aprsPassword, DEFAULT_APRS_PASSWORD);
-
-	m_config->Read(m_name + KEY_APRS_HOSTNAME, &m_aprsHostname, DEFAULT_APRS_HOSTNAME);
+	m_config->Read(m_name + KEY_APRS_ADDRESS, &m_aprsAddress, DEFAULT_APRS_ADDRESS);
 
 	m_config->Read(m_name + KEY_APRS_PORT, &temp, long(DEFAULT_APRS_PORT));
 	m_aprsPort = (unsigned int)temp;
@@ -1030,8 +1025,7 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
-m_aprsPassword(DEFAULT_APRS_PASSWORD),
-m_aprsHostname(DEFAULT_APRS_HOSTNAME),
+m_aprsAddress(DEFAULT_APRS_ADDRESS),
 m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
@@ -1402,10 +1396,8 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_APRS_ENABLED)) {
 			val.ToLong(&temp1);
 			m_aprsEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_APRS_PASSWORD)) {
-			m_aprsPassword = val;
-		} else if (key.IsSameAs(KEY_APRS_HOSTNAME)) {
-			m_aprsHostname = val;
+		} else if (key.IsSameAs(KEY_APRS_ADDRESS)) {
+			m_aprsAddress = val;
 		} else if (key.IsSameAs(KEY_APRS_PORT)) {
 			val.ToULong(&temp2);
 			m_aprsPort = (unsigned int)temp2;
@@ -1854,14 +1846,6 @@ void CIRCDDBGatewayConfig::getIrcDDB2(bool& enabled, wxString& hostname, wxStrin
 	enabled = m_ircddbEnabled2;
 	hostname = m_ircddbHostname2;
 	username = m_ircddbUsername2;
-
-	/*if(username.IsEmpty()){
-		//no user specified for openquad? use the one from the default network !
-		username = m_ircddbUsername;
-		if(username[0] >= '0' &&  username[0] <= '9')
-			username = wxT("r") + username;
-	}*/
-
 	password = m_ircddbPassword2;
 }
 
@@ -1905,19 +1889,17 @@ void CIRCDDBGatewayConfig::setIrcDDB4(bool enabled, const wxString& hostname, co
 	m_ircddbPassword4 = password;
 }
 
-void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& password, wxString& hostname, unsigned int& port) const
+void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& address, unsigned int& port) const
 {
-	enabled  = m_aprsEnabled;
-	password = m_aprsPassword;
-	hostname = m_aprsHostname;
-	port     = m_aprsPort;
+	enabled = m_aprsEnabled;
+	address = m_aprsAddress;
+	port    = m_aprsPort;
 }
 
-void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& password, const wxString& hostname, unsigned int port)
+void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& address, unsigned int port)
 {
 	m_aprsEnabled  = enabled;
-	m_aprsPassword = password;
-	m_aprsHostname = hostname;
+	m_aprsAddress = address;
 	m_aprsPort     = port;
 }
 
@@ -2398,8 +2380,7 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_IRCDDB_USERNAME4, m_ircddbUsername4);
 	m_config->Write(m_name + KEY_IRCDDB_PASSWORD4, m_ircddbPassword4);
 	m_config->Write(m_name + KEY_APRS_ENABLED, m_aprsEnabled);
-	m_config->Write(m_name + KEY_APRS_PASSWORD, m_aprsPassword);
-	m_config->Write(m_name + KEY_APRS_HOSTNAME, m_aprsHostname);
+	m_config->Write(m_name + KEY_APRS_ADDRESS, m_aprsAddress);
 	m_config->Write(m_name + KEY_APRS_PORT, long(m_aprsPort));
 	m_config->Write(m_name + KEY_DEXTRA_ENABLED, m_dextraEnabled);
 	m_config->Write(m_name + KEY_DEXTRA_MAXDONGLES, long(m_dextraMaxDongles));
@@ -2608,8 +2589,7 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf("%s=%s", KEY_IRCDDB_USERNAME4.c_str(), m_ircddbUsername4.c_str()); file.AddLine(buffer);
 	buffer.Printf("%s=%s", KEY_IRCDDB_PASSWORD4.c_str(), m_ircddbPassword4.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_APRS_ENABLED.c_str(), m_aprsEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_APRS_PASSWORD.c_str(), m_aprsPassword.c_str()); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_APRS_HOSTNAME.c_str(), m_aprsHostname.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_APRS_ADDRESS.c_str(), m_aprsAddress.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_APRS_PORT.c_str(), m_aprsPort); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DEXTRA_ENABLED.c_str(), m_dextraEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_DEXTRA_MAXDONGLES.c_str(), m_dextraMaxDongles); file.AddLine(buffer);

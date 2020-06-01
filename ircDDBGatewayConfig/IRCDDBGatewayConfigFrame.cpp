@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -194,12 +194,12 @@ m_miscellaneous(NULL)
 	m_ircDDB4 = new CIRCDDBGatewayConfigIrcDDBSet(noteBook, -1, APPLICATION_NAME, ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	noteBook->AddPage(m_ircDDB4, wxT("ircDDB 4th Network"), false);
 
-	wxString aprsHostname, aprsPassword;
+	wxString aprsAddress;
 	unsigned int aprsPort;
 	bool aprsEnabled;
-	m_config->getDPRS(aprsEnabled, aprsPassword, aprsHostname, aprsPort);
+	m_config->getDPRS(aprsEnabled, aprsAddress, aprsPort);
 
-	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled, aprsPassword, aprsHostname, aprsPort);
+	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled, aprsAddress, aprsPort);
 	noteBook->AddPage(m_dprs, wxT("D-PRS"), false);
 
 	m_dextra = new CDExtraSet(noteBook, -1, APPLICATION_NAME, dextraEnabled, maxDExtraDongles, MAX_DEXTRA_LINKS);
@@ -505,10 +505,9 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setIrcDDB4(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 
 	bool aprsEnabled      = m_dprs->getEnabled();
-	wxString aprsPassword = m_dprs->getPassword();
-	wxString aprsHostname = m_dprs->getHostname();
+	wxString aprsAddress  = m_dprs->getAddress();
 	unsigned int aprsPort = m_dprs->getPort();
-	m_config->setDPRS(aprsEnabled, aprsPassword, aprsHostname, aprsPort);
+	m_config->setDPRS(aprsEnabled, aprsAddress, aprsPort);
 
 	bool dextraEnabled            = m_dextra->getEnabled();
 	unsigned int maxDExtraDongles = m_dextra->getMaxDongles();
@@ -640,7 +639,7 @@ void CIRCDDBGatewayConfigFrame::onAbout(wxCommandEvent&)
 {
 	wxAboutDialogInfo info;
 	info.AddDeveloper(wxT("Jonathan Naylor, G4KLX"));
-	info.SetCopyright(wxT("(C) 2010-2018 using GPL v2 or later"));
+	info.SetCopyright(wxT("(C) 2010-2020 using GPL v2 or later"));
 	info.SetName(APPLICATION_NAME);
 	info.SetVersion(VERSION);
 	info.SetDescription(_("This program configures the ircDDB Gateway."));

@@ -118,25 +118,26 @@ bool CAPRSEntry::isOK()
 	}
 }
 
-CAPRSWriter::CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& password, const wxString& address) :
-m_thread(NULL),
+CAPRSWriter::CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway) :
 m_idTimer(1000U),
 m_gateway(),
 m_array(),
-m_address(),
-m_port(0U),
-m_socket(NULL)
+m_aprsAddress(),
+m_aprsPort(port),
+m_aprsSocket(),
+m_mobileAddress(),
+m_mobilePort(0U),
+m_mobileSocket(NULL)
 {
-	wxASSERT(!hostname.IsEmpty());
+	wxASSERT(!address.IsEmpty());
 	wxASSERT(port > 0U);
 	wxASSERT(!gateway.IsEmpty());
-	wxASSERT(!password.IsEmpty());
-
-	m_thread = new CAPRSWriterThread(gateway, password, address, hostname, port);
 
 	m_gateway = gateway;
 	m_gateway.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 	m_gateway.Trim();
+
+	m_aprsAddress = CUDPReaderWriter::lookup(address);
 }
 
 CAPRSWriter::~CAPRSWriter()
@@ -164,21 +165,21 @@ void CAPRSWriter::setPortMobile(const wxString& callsign, const wxString& band, 
 
 	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, 0.0, 0.0, 0.0);
 
-	if (m_socket == NULL) {
-		m_address = CUDPReaderWriter::lookup(address);
-		m_port    = port;
+	if (m_mobileSocket == NULL) {
+		m_mobileAddress = CUDPReaderWriter::lookup(address);
+		m_mobilePort    = port;
 
-		m_socket = new CUDPReaderWriter;
+		m_mobileSocket = new CUDPReaderWriter;
 	}
 }
 
 bool CAPRSWriter::open()
 {
-	if (m_socket != NULL) {
-		bool ret = m_socket->open();
+	if (m_mobileSocket != NULL) {
+		bool ret = m_mobileSocket->open();
 		if (!ret) {
-			delete m_socket;
-			m_socket = NULL;
+			delete m_mobileSocket;
+			m_mobileSocket = NULL;
 			return false;
 		}
 
@@ -190,7 +191,7 @@ bool CAPRSWriter::open()
 
 	m_idTimer.start();
 
-	return m_thread->start();
+	return m_aprsSocket.open();
 }
 
 void CAPRSWriter::writeHeader(const wxString& callsign, const CHeaderData& header)
@@ -233,11 +234,6 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 	if (!complete)
 		return;
 
-	if (!m_thread->isConnected()) {
-		collector->reset();
-		return;
-	}
-
 	// Check the transmission timer
 	bool ok = entry->isOK();
 	if (!ok) {
@@ -268,14 +264,14 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 		body = body.Left(n);
 
 	wxString output;
-	output.Printf(wxT("%s,qAR,%s-%s:%s"), header.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(), body.c_str());
+	output.Printf(wxT("%s,qAR,%s-%s:%s\r\n"), header.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(), body.c_str());
 
 	char ascii[500U];
 	::memset(ascii, 0x00, 500U);
 	for (unsigned int i = 0U; i < output.Len(); i++)
 		ascii[i] = output.GetChar(i);
 
-	m_thread->write(ascii);
+	m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 	collector->reset();
 }
@@ -284,9 +280,7 @@ void CAPRSWriter::clock(unsigned int ms)
 {
 	m_idTimer.clock(ms);
 
-	m_thread->clock(ms);
-
-	if (m_socket != NULL) {
+	if (m_mobileSocket != NULL) {
 		if (m_idTimer.hasExpired()) {
 			pollGPS();
 			m_idTimer.start();
@@ -304,33 +298,25 @@ void CAPRSWriter::clock(unsigned int ms)
 		it->second->clock(ms);
 }
 
-bool CAPRSWriter::isConnected() const
-{
-	return m_thread->isConnected();
-}
-
 void CAPRSWriter::close()
 {
-	if (m_socket != NULL) {
-		m_socket->close();
-		delete m_socket;
-	}
+	m_aprsSocket.close();
 
-	m_thread->stop();
+	if (m_mobileSocket != NULL) {
+		m_mobileSocket->close();
+		delete m_mobileSocket;
+	}
 }
 
 bool CAPRSWriter::pollGPS()
 {
-	assert(m_socket != NULL);
+	assert(m_mobileSocket != NULL);
 
-	return m_socket->write((unsigned char*)"ircDDBGateway", 13U, m_address, m_port);
+	return m_mobileSocket->write((unsigned char*)"ircDDBGateway", 13U, m_mobileAddress, m_mobilePort);
 }
 
 void CAPRSWriter::sendIdFramesFixed()
 {
-	if (!m_thread->isConnected())
-		return;
-
 	time_t now;
 	::time(&now);
 	struct tm* tm = ::gmtime(&now);
@@ -408,7 +394,7 @@ void CAPRSWriter::sendIdFramesFixed()
 		lon.Replace(wxT(","), wxT("."));
 
 		wxString output;
-		output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cD%s%caRNG%04.0lf/A=%06.0lf %s %s"),
+		output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cD%s%caRNG%04.0lf/A=%06.0lf %s %s\r\n"),
 			m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 			tm->tm_mday, tm->tm_hour, tm->tm_min,
 			lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
@@ -420,10 +406,10 @@ void CAPRSWriter::sendIdFramesFixed()
 		for (unsigned int i = 0U; i < output.Len(); i++)
 			ascii[i] = output.GetChar(i);
 
-		m_thread->write(ascii);
+		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
-			output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&RNG%04.0lf/A=%06.0lf %s %s"),
+			output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&RNG%04.0lf/A=%06.0lf %s %s\r\n"),
 				entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 				lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
 				lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
@@ -433,7 +419,7 @@ void CAPRSWriter::sendIdFramesFixed()
 			for (unsigned int i = 0U; i < output.Len(); i++)
 				ascii[i] = output.GetChar(i);
 
-			m_thread->write(ascii);
+			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 		}
 	}
 }
@@ -444,11 +430,8 @@ void CAPRSWriter::sendIdFramesMobile()
 	unsigned char buffer[200U];
 	in_addr address;
 	unsigned int port;
-	int ret = m_socket->read(buffer, 200U, address, port);
+	int ret = m_mobileSocket->read(buffer, 200U, address, port);
 	if (ret <= 0)
-		return;
-
-	if (!m_thread->isConnected())
 		return;
 
 	buffer[ret] = '\0';
@@ -556,7 +539,7 @@ void CAPRSWriter::sendIdFramesMobile()
 		}
 
 		wxString output3;
-		output3.Printf(wxT("RNG%04.0lf %s %s"), entry->getRange() * 0.6214, band.c_str(), desc.c_str());
+		output3.Printf(wxT("RNG%04.0lf %s %s\r\n"), entry->getRange() * 0.6214, band.c_str(), desc.c_str());
 
 		char ascii[300U];
 		::memset(ascii, 0x00, 300U);
@@ -568,7 +551,7 @@ void CAPRSWriter::sendIdFramesMobile()
 		for (unsigned int i = 0U; i < output3.Len(); i++, n++)
 			ascii[n] = output3.GetChar(i);
 
-		m_thread->write(ascii);
+		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
 			output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&/A=%06.0lf"),
@@ -586,8 +569,7 @@ void CAPRSWriter::sendIdFramesMobile()
 			for (unsigned int i = 0U; i < output3.Len(); i++, n++)
 				ascii[n] = output3.GetChar(i);
 
-			m_thread->write(ascii);
+			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 		}
 	}
 }
-

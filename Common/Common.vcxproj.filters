@@ -23,9 +23,6 @@
     <ClCompile Include="APRSWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="APRSWriterThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AudioUnit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -227,9 +224,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="APRSWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="APRSWriterThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AudioUnit.h">
