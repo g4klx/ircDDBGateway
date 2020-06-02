@@ -23,19 +23,15 @@ ifeq ($(BUILD), debug)
 else ifeq ($(BUILD), release)
 	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
 endif
-export GUILIBS := $(shell wx-config --libs adv,core,base)
 export LIBS    := $(shell wx-config --libs base,net)
 export LDFLAGS := 
 
 .PHONY: all
-all:	ircDDBGateway/ircddbgatewayd ircDDBGatewayConfig/ircddbgatewayconfig RemoteControl/remotecontrold \
+all:	ircDDBGateway/ircddbgatewayd RemoteControl/remotecontrold \
 	StarNetServer/starnetserverd TextTransmit/texttransmitd TimerControl/timercontrold TimeServer/timeserverd VoiceTransmit/voicetransmitd
 
 ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a force
 	$(MAKE) -C ircDDBGateway
-
-ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a force
-	$(MAKE) -C ircDDBGatewayConfig
 
 APRSTransmit/aprstransmitd:	Common/Common.a force
 	$(MAKE) -C APRSTransmit
@@ -49,17 +45,14 @@ StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a force
 TextTransmit/texttransmitd:	Common/Common.a force
 	$(MAKE) -C TextTransmit
 
-TimerControl/timercontrold:	Common/Common.a GUICommon/GUICommon.a force
+TimerControl/timercontrold:	Common/Common.a force
 	$(MAKE) -C TimerControl
 
-TimeServer/timeserverd:	Common/Common.a GUICommon/GUICommon.a force
+TimeServer/timeserverd:	Common/Common.a force
 	$(MAKE) -C TimeServer
 
 VoiceTransmit/voicetransmitd:	Common/Common.a force
 	$(MAKE) -C VoiceTransmit
-
-GUICommon/GUICommon.a: force
-	$(MAKE) -C GUICommon
 
 Common/Common.a: force
 	$(MAKE) -C Common
@@ -100,7 +93,6 @@ endif
 clean:
 	$(MAKE) -C Common clean
 	$(MAKE) -C ircDDB clean
-	$(MAKE) -C GUICommon clean
 	$(MAKE) -C APRSTransmit clean
 	$(MAKE) -C ircDDBGateway clean
 	$(MAKE) -C RemoteControl clean
