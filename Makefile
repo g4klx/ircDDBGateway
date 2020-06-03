@@ -87,7 +87,6 @@ endif
 	$(MAKE) -C TimerControl install
 	$(MAKE) -C TimeServer install
 	$(MAKE) -C VoiceTransmit install
-	$(MAKE) -C ircDDBGatewayConfig install
 
 .PHONY: clean
 clean:
