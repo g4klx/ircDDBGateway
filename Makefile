@@ -23,7 +23,7 @@ ifeq ($(BUILD), debug)
 else ifeq ($(BUILD), release)
 	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
 endif
-export LIBS    := $(shell wx-config --libs base,net)
+export LIBS    := $(shell wx-config --libs base,net) -lgps
 export LDFLAGS := 
 
 .PHONY: all

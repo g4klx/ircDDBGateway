@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,12 +25,12 @@
 #include "IRCDDBGatewayConfig.h"
 #include "RepeaterInfoSet.h"
 #include "RepeaterDataSet.h"
-#include "MobileGPSSet.h"
 #include "StarNetSet.h"
 #include "RemoteSet.h"
 #include "DExtraSet.h"
 #include "DPlusSet.h"
 #include "DPRSSet.h"
+#include "GPSDSet.h"
 #include "DCSSet.h"
 #include "XLXSet.h"
 #include "Defs.h"
@@ -73,7 +73,7 @@ private:
 	CStarNetSet*                          m_starNet4;
 	CStarNetSet*                          m_starNet5;
 	CRemoteSet*                           m_remote;
-	CMobileGPSSet*                        m_mobileGPS;
+	CGPSDSet*                             m_gpsd;
 	CIRCDDBGatewayConfigMiscellaneousSet* m_miscellaneous;
 
 	DECLARE_EVENT_TABLE()

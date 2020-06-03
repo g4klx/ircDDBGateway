@@ -124,10 +124,13 @@ m_gateway(),
 m_array(),
 m_aprsAddress(),
 m_aprsPort(port),
-m_aprsSocket(),
-m_mobileAddress(),
-m_mobilePort(0U),
-m_mobileSocket(NULL)
+m_aprsSocket()
+#if !defined(_WIN32) && !defined(_WIN64)
+,m_gpsdEnabled(false),
+m_gpsdAddress(),
+m_gpsdPort(),
+m_gpsdData()
+#endif
 {
 	wxASSERT(!address.IsEmpty());
 	wxASSERT(port > 0U);
@@ -157,38 +160,44 @@ void CAPRSWriter::setPortFixed(const wxString& callsign, const wxString& band, d
 	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, latitude, longitude, agl);
 }
 
-void CAPRSWriter::setPortMobile(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, unsigned int port)
+void CAPRSWriter::setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port)
 {
+#if !defined(_WIN32) && !defined(_WIN64)
+	wxASSERT(!address.IsEmpty());
+	wxASSERT(!port.IsEmpty());
+
 	wxString temp = callsign;
 	temp.resize(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
 	temp.Append(band);
 
 	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, 0.0, 0.0, 0.0);
 
-	if (m_mobileSocket == NULL) {
-		m_mobileAddress = CUDPReaderWriter::lookup(address);
-		m_mobilePort    = port;
-
-		m_mobileSocket = new CUDPReaderWriter;
-	}
+	m_gpsdEnabled = true;
+	m_gpsdAddress = address;
+	m_gpsdPort    = port;
+#endif
 }
 
 bool CAPRSWriter::open()
 {
-	if (m_mobileSocket != NULL) {
-		bool ret = m_mobileSocket->open();
-		if (!ret) {
-			delete m_mobileSocket;
-			m_mobileSocket = NULL;
+#if !defined(_WIN32) && !defined(_WIN64)
+	if (m_gpsdEnabled) {
+		int ret = ::gps_open(m_gpsdAddress.mb_str(), m_gpsdPort.mb_str(), &m_gpsdData);
+		if (ret != 0) {
+			wxLogError(wxT("Error when opening access to gpsd - %d - %s"), errno, ::gps_errstr(errno));
 			return false;
 		}
+
+		::gps_stream(&m_gpsdData, WATCH_ENABLE | WATCH_JSON, NULL);
 
 		// Poll the GPS every minute
 		m_idTimer.setTimeout(60U);
 	} else {
 		m_idTimer.setTimeout(20U * 60U);
 	}
-
+#else
+	m_idTimer.setTimeout(20U * 60U);
+#endif
 	m_idTimer.start();
 
 	return m_aprsSocket.open();
@@ -280,20 +289,22 @@ void CAPRSWriter::clock(unsigned int ms)
 {
 	m_idTimer.clock(ms);
 
-	if (m_mobileSocket != NULL) {
+#if !defined(_WIN32) && !defined(_WIN64)
+	if (m_gpsdEnabled) {
 		if (m_idTimer.hasExpired()) {
-			pollGPS();
+			sendIdFramesMobile();
 			m_idTimer.start();
 		}
 
-		sendIdFramesMobile();
 	} else {
+#endif
 		if (m_idTimer.hasExpired()) {
 			sendIdFramesFixed();
 			m_idTimer.start();
 		}
+#if !defined(_WIN32) && !defined(_WIN64)
 	}
-
+#endif
 	for (CEntry_t::iterator it = m_array.begin(); it != m_array.end(); ++it)
 		it->second->clock(ms);
 }
@@ -302,17 +313,12 @@ void CAPRSWriter::close()
 {
 	m_aprsSocket.close();
 
-	if (m_mobileSocket != NULL) {
-		m_mobileSocket->close();
-		delete m_mobileSocket;
+#if !defined(_WIN32) && !defined(_WIN64)
+	if (m_gpsdEnabled) {
+		::gps_stream(&m_gpsdData, WATCH_DISABLE, NULL);
+		::gps_close(&m_gpsdData);
 	}
-}
-
-bool CAPRSWriter::pollGPS()
-{
-	assert(m_mobileSocket != NULL);
-
-	return m_mobileSocket->write((unsigned char*)"ircDDBGateway", 13U, m_mobileAddress, m_mobilePort);
+#endif
 }
 
 void CAPRSWriter::sendIdFramesFixed()
@@ -426,29 +432,28 @@ void CAPRSWriter::sendIdFramesFixed()
 
 void CAPRSWriter::sendIdFramesMobile()
 {
-	// Grab GPS data if it's available
-	unsigned char buffer[200U];
-	in_addr address;
-	unsigned int port;
-	int ret = m_mobileSocket->read(buffer, 200U, address, port);
-	if (ret <= 0)
+	if (!m_gpsdEnabled)
 		return;
 
-	buffer[ret] = '\0';
-
-	// Parse the GPS data
-	char* pLatitude  = ::strtok((char*)buffer, ",\n");	// Latitude
-	char* pLongitude = ::strtok(NULL, ",\n");		// Longitude
-	char* pAltitude  = ::strtok(NULL, ",\n");		// Altitude (m)
-	char* pVelocity  = ::strtok(NULL, ",\n");		// Velocity (kms/h)
-	char* pBearing   = ::strtok(NULL, "\n");		// Bearing
-
-	if (pLatitude == NULL || pLongitude == NULL || pAltitude == NULL)
+	if (!::gps_waiting(&m_gpsdData, 0))
 		return;
 
-	double rawLatitude  = ::atof(pLatitude);
-	double rawLongitude = ::atof(pLongitude);
-	double rawAltitude  = ::atof(pAltitude);
+	if (::gps_read(&m_gpsdData, NULL, 0) <= 0)
+		return;
+
+	bool latlonSet   = (m_gpsdData.set & LATLON_SET) == LATLON_SET;
+	bool altitudeSet = (m_gpsdData.set & ALTITUDE_SET) == ALTITUDE_SET;
+	bool velocitySet = (m_gpsdData.set & SPEED_SET) == SPEED_SET;
+	bool bearingSet  = (m_gpsdData.set & TRACK_SET) == TRACK_SET;
+
+	if (!latlonSet)
+		return;
+
+	float rawLatitude  = float(m_gpsdData.fix.latitude);
+	float rawLongitude = float(m_gpsdData.fix.longitude);
+	float rawAltitude  = float(m_gpsdData.fix.altMSL);
+	float rawVelocity  = float(m_gpsdData.fix.speed);
+	float rawBearing   = float(m_gpsdData.fix.track);
 
 	time_t now;
 	::time(&now);
@@ -531,12 +536,8 @@ void CAPRSWriter::sendIdFramesMobile()
 			rawAltitude * 3.28);
 
 		wxString output2;
-		if (pBearing != NULL && pVelocity != NULL) {
-			double rawBearing   = ::atof(pBearing);
-			double rawVelocity  = ::atof(pVelocity);
-
+		if (bearingSet && velocitySet)
 			output2.Printf(wxT("%03.0lf/%03.0lf"), rawBearing, rawVelocity * 0.539957F);
-		}
 
 		wxString output3;
 		output3.Printf(wxT("RNG%04.0lf %s %s\r\n"), entry->getRange() * 0.6214, band.c_str(), desc.c_str());
@@ -554,11 +555,17 @@ void CAPRSWriter::sendIdFramesMobile()
 		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
-			output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&/A=%06.0lf"),
-				entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
-				lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
-				lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
-				rawAltitude * 3.28);
+			if (altitudeSet)
+				output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&/A=%06.0lf"),
+					entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+					lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+					lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
+					rawAltitude * 3.28);
+			else
+				output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&"),
+					entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+					lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+					lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'));
 
 			::memset(ascii, 0x00, 300U);
 			unsigned int n = 0U;

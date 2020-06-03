@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "MobileGPSSet.h"
+#include "GPSDSet.h"
 
 const unsigned int CONTROL_WIDTH1 = 130U;
 const unsigned int CONTROL_WIDTH2 = 80U;
@@ -26,7 +26,7 @@ const unsigned int PORT_LENGTH    = 5U;
 
 const unsigned int BORDER_SIZE = 5U;
 
-CMobileGPSSet::CMobileGPSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& address, unsigned int port) :
+CGPSDSet::CGPSDSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& address, const wxString& port) :
 wxPanel(parent, id),
 m_title(title),
 m_enabled(NULL),
@@ -54,10 +54,7 @@ m_port(NULL)
 	wxStaticText* portLabel = new wxStaticText(this, -1, _("Port"));
 	sizer->Add(portLabel, 0, wxALL | wxALIGN_RIGHT, BORDER_SIZE);
 
-	wxString buffer;
-	buffer.Printf(wxT("%u"), port);
-
-	m_port = new CPortTextCtrl(this, -1, buffer, wxDefaultPosition, wxSize(CONTROL_WIDTH2, -1));
+	m_port = new CPortTextCtrl(this, -1, port, wxDefaultPosition, wxSize(CONTROL_WIDTH2, -1));
 	m_port->SetMaxLength(PORT_LENGTH);
 	sizer->Add(m_port, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 
@@ -67,11 +64,11 @@ m_port(NULL)
 }
 
 
-CMobileGPSSet::~CMobileGPSSet()
+CGPSDSet::~CGPSDSet()
 {
 }
 
-bool CMobileGPSSet::Validate()
+bool CGPSDSet::Validate()
 {
 	if (m_enabled->GetCurrentSelection() == wxNOT_FOUND)
 		return false;
@@ -84,9 +81,10 @@ bool CMobileGPSSet::Validate()
 		return false;
 	}
 
-	unsigned int port = getPort();
+	unsigned long port;
+	getPort().ToULong(&port);
 
-	if (port == 0U || port > 65535U) {
+	if (port == 0UL || port > 65535UL) {
 		wxMessageDialog dialog(this, _("The Mobile GPS Port is not valid"), m_title + _(" Error"), wxICON_ERROR);
 		dialog.ShowModal();
 		return false;
@@ -95,7 +93,7 @@ bool CMobileGPSSet::Validate()
 	return true;
 }
 
-bool CMobileGPSSet::getEnabled() const
+bool CGPSDSet::getEnabled() const
 {
 	int c = m_enabled->GetCurrentSelection();
 	if (c == wxNOT_FOUND)
@@ -104,15 +102,13 @@ bool CMobileGPSSet::getEnabled() const
 	return c == 1;
 }
 
-wxString CMobileGPSSet::getAddress() const
+wxString CGPSDSet::getAddress() const
 {
 	return m_address->GetValue();
 }
 
-unsigned int CMobileGPSSet::getPort() const
+wxString CGPSDSet::getPort() const
 {
-	unsigned long n;
-	m_port->GetValue().ToULong(&n);
-
-	return n;
+	return m_port->GetValue();
 }
+

@@ -27,6 +27,10 @@
 #include "Timer.h"
 #include "Defs.h"
 
+#if !defined(_WIN32) && !defined(_WIN64)
+#include <gps.h>
+#endif
+
 #include <wx/wx.h>
 
 class CAPRSEntry {
@@ -74,7 +78,7 @@ public:
 
 	void setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
 
-	void setPortMobile(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, unsigned int port);
+	void setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port);
 
 	void writeHeader(const wxString& callsign, const CHeaderData& header);
 
@@ -91,11 +95,13 @@ private:
 	in_addr            m_aprsAddress;
 	unsigned int       m_aprsPort;
 	CUDPReaderWriter   m_aprsSocket;
-	in_addr            m_mobileAddress;
-	unsigned int       m_mobilePort;
-	CUDPReaderWriter*  m_mobileSocket;
+#if !defined(_WIN32) && !defined(_WIN64)
+	bool               m_gpsdEnabled;
+	wxString           m_gpsdAddress;
+	wxString           m_gpsdPort;
+	struct gps_data_t  m_gpsdData;
+#endif
 
-	bool pollGPS();
 	void sendIdFramesFixed();
 	void sendIdFramesMobile();
 };
