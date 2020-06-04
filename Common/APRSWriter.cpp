@@ -190,6 +190,8 @@ bool CAPRSWriter::open()
 
 		::gps_stream(&m_gpsdData, WATCH_ENABLE | WATCH_JSON, NULL);
 
+		wxLogMessage(wxT("Connected to GPSD"));
+
 		// Poll the GPS every minute
 		m_idTimer.setTimeout(60U);
 	} else {
@@ -200,7 +202,13 @@ bool CAPRSWriter::open()
 #endif
 	m_idTimer.start();
 
-	return m_aprsSocket.open();
+	bool ret = m_aprsSocket.open();
+	if (!ret)
+		return false;
+
+	wxLogMessage(wxT("Opened connection to the APRS Gateway"));
+
+	return true;
 }
 
 void CAPRSWriter::writeHeader(const wxString& callsign, const CHeaderData& header)
