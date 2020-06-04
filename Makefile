@@ -27,7 +27,7 @@ export LIBS    := $(shell wx-config --libs base,net) -lgps
 export LDFLAGS := 
 
 .PHONY: all
-all:	ircDDBGateway/ircddbgatewayd RemoteControl/remotecontrold \
+all:	ircDDBGateway/ircddbgatewayd APRSTransmit/aprstransmitd RemoteControl/remotecontrold \
 	StarNetServer/starnetserverd TextTransmit/texttransmitd TimerControl/timercontrold TimeServer/timeserverd VoiceTransmit/voicetransmitd
 
 ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a force

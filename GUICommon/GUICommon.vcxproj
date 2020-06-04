@@ -143,7 +143,7 @@
     <ClCompile Include="DExtraSet.cpp" />
     <ClCompile Include="DPlusSet.cpp" />
     <ClCompile Include="DPRSSet.cpp" />
-    <ClCompile Include="MobileGPSSet.cpp" />
+    <ClCompile Include="GPSDSet.cpp" />
     <ClCompile Include="PortTextCtrl.cpp" />
     <ClCompile Include="RemoteSet.cpp" />
     <ClCompile Include="RepeaterDataSet.cpp" />
@@ -160,7 +160,7 @@
     <ClInclude Include="DExtraSet.h" />
     <ClInclude Include="DPlusSet.h" />
     <ClInclude Include="DPRSSet.h" />
-    <ClInclude Include="MobileGPSSet.h" />
+    <ClInclude Include="GPSDSet.h" />
     <ClInclude Include="PortTextCtrl.h" />
     <ClInclude Include="RemoteSet.h" />
     <ClInclude Include="RepeaterDataSet.h" />

@@ -32,6 +32,9 @@
     <ClCompile Include="DPRSSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GPSDSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="PortTextCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,9 +54,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="XLXSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MobileGPSSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -79,6 +79,9 @@
     <ClInclude Include="DPRSSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GPSDSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="PortTextCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -98,9 +101,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XLXSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MobileGPSSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
