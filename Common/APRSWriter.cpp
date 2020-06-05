@@ -191,22 +191,16 @@ bool CAPRSWriter::open()
 		::gps_stream(&m_gpsdData, WATCH_ENABLE | WATCH_JSON, NULL);
 
 		wxLogMessage(wxT("Connected to GPSD"));
-
-		// Poll the GPS every minute
-		m_idTimer.setTimeout(60U);
-	} else {
-		m_idTimer.setTimeout(20U * 60U);
 	}
-#else
-	m_idTimer.setTimeout(20U * 60U);
 #endif
-	m_idTimer.start();
-
 	bool ret = m_aprsSocket.open();
 	if (!ret)
 		return false;
 
 	wxLogMessage(wxT("Opened connection to the APRS Gateway"));
+
+	m_idTimer.setTimeout(60U);
+	m_idTimer.start();
 
 	return true;
 }
@@ -288,6 +282,8 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 	for (unsigned int i = 0U; i < output.Len(); i++)
 		ascii[i] = output.GetChar(i);
 
+	wxLogDebug(wxT("APRS ==> %s"), output.c_str());
+
 	m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 	collector->reset();
@@ -308,6 +304,7 @@ void CAPRSWriter::clock(unsigned int ms)
 #endif
 		if (m_idTimer.hasExpired()) {
 			sendIdFramesFixed();
+			m_idTimer.setTimeout(20U * 60U);
 			m_idTimer.start();
 		}
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -420,6 +417,8 @@ void CAPRSWriter::sendIdFramesFixed()
 		for (unsigned int i = 0U; i < output.Len(); i++)
 			ascii[i] = output.GetChar(i);
 
+		wxLogDebug(wxT("APRS ==> %s"), output.c_str());
+
 		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
@@ -432,6 +431,8 @@ void CAPRSWriter::sendIdFramesFixed()
 			::memset(ascii, 0x00, 300U);
 			for (unsigned int i = 0U; i < output.Len(); i++)
 				ascii[i] = output.GetChar(i);
+
+			wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
 			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 		}
@@ -563,6 +564,8 @@ void CAPRSWriter::sendIdFramesMobile()
 		for (unsigned int i = 0U; i < output3.Len(); i++, n++)
 			ascii[n] = output3.GetChar(i);
 
+		wxLogDebug(wxT("APRS ==> %s%s%s"), output1.c_str(), output2.c_str(), output3.c_str());
+
 		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
@@ -587,7 +590,10 @@ void CAPRSWriter::sendIdFramesMobile()
 			for (unsigned int i = 0U; i < output3.Len(); i++, n++)
 				ascii[n] = output3.GetChar(i);
 
+			wxLogDebug(wxT("APRS ==> %s%s%s"), output1.c_str(), output2.c_str(), output3.c_str());
+
 			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 		}
 	}
 }
+
