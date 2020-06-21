@@ -14,6 +14,9 @@ endif
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
 # Add -DDEXTRA_LINK to the end of the CFLAGS line below to add DExtra linking to StarNet
 
+# Add -DUSE_GPS to the end of the CFLAGS line to enable the use of gpsd, and add -lgps to
+# end of the LIBS line.
+
 DEBUGFLAGS     := -g -D_DEBUG
 RELEASEFLAGS   := -DNDEBUG -DwxDEBUG_LEVEL=0
 export CXX     := $(shell wx-config --cxx)
@@ -23,7 +26,7 @@ ifeq ($(BUILD), debug)
 else ifeq ($(BUILD), release)
 	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
 endif
-export LIBS    := $(shell wx-config --libs base,net) -lgps
+export LIBS    := $(shell wx-config --libs base,net)
 export LDFLAGS := 
 
 .PHONY: all

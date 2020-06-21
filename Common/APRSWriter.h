@@ -27,7 +27,7 @@
 #include "Timer.h"
 #include "Defs.h"
 
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 #include <gps.h>
 #endif
 
@@ -95,7 +95,7 @@ private:
 	in_addr            m_aprsAddress;
 	unsigned int       m_aprsPort;
 	CUDPReaderWriter   m_aprsSocket;
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 	bool               m_gpsdEnabled;
 	wxString           m_gpsdAddress;
 	wxString           m_gpsdPort;

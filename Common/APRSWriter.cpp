@@ -125,7 +125,7 @@ m_array(),
 m_aprsAddress(),
 m_aprsPort(port),
 m_aprsSocket()
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 ,m_gpsdEnabled(false),
 m_gpsdAddress(),
 m_gpsdPort(),
@@ -162,7 +162,7 @@ void CAPRSWriter::setPortFixed(const wxString& callsign, const wxString& band, d
 
 void CAPRSWriter::setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port)
 {
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 	wxASSERT(!address.IsEmpty());
 	wxASSERT(!port.IsEmpty());
 
@@ -180,7 +180,7 @@ void CAPRSWriter::setPortGPSD(const wxString& callsign, const wxString& band, do
 
 bool CAPRSWriter::open()
 {
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 	if (m_gpsdEnabled) {
 		int ret = ::gps_open(m_gpsdAddress.mb_str(), m_gpsdPort.mb_str(), &m_gpsdData);
 		if (ret != 0) {
@@ -293,7 +293,7 @@ void CAPRSWriter::clock(unsigned int ms)
 {
 	m_idTimer.clock(ms);
 
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 	if (m_gpsdEnabled) {
 		if (m_idTimer.hasExpired()) {
 			sendIdFramesMobile();
@@ -307,7 +307,7 @@ void CAPRSWriter::clock(unsigned int ms)
 			m_idTimer.setTimeout(20U * 60U);
 			m_idTimer.start();
 		}
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 	}
 #endif
 	for (CEntry_t::iterator it = m_array.begin(); it != m_array.end(); ++it)
@@ -318,7 +318,7 @@ void CAPRSWriter::close()
 {
 	m_aprsSocket.close();
 
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(USE_GPSD)
 	if (m_gpsdEnabled) {
 		::gps_stream(&m_gpsdData, WATCH_DISABLE, NULL);
 		::gps_close(&m_gpsdData);
@@ -439,6 +439,7 @@ void CAPRSWriter::sendIdFramesFixed()
 	}
 }
 
+#if defined(USE_GPSD)
 void CAPRSWriter::sendIdFramesMobile()
 {
 	if (!m_gpsdEnabled)
@@ -596,4 +597,4 @@ void CAPRSWriter::sendIdFramesMobile()
 		}
 	}
 }
-
+#endif
