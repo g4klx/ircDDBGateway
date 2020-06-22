@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -72,6 +72,9 @@ m_dextraPool(NULL),
 m_dplusPool(NULL),
 m_dcsPool(NULL),
 m_g2Handler(NULL),
+#if defined(ENABLE_NAT_TRAVERSAL)
+m_natTraversal(NULL),
+#endif
 m_aprsWriter(NULL),
 m_irc(NULL),
 m_cache(),
@@ -217,6 +220,13 @@ void CIRCDDBGatewayThread::run()
 		m_g2Handler = NULL;
 	}
 
+#if defined(ENABLE_NAT_TRAVERSAL)
+	if(m_g2Handler != NULL) {
+		m_natTraversal = new CNatTraversalHandler();
+		m_natTraversal->setG2Handler(m_g2Handler);
+	}
+#endif
+
 	// Wait here until we have the essentials to run
 	while (!m_killed && (m_dextraPool == NULL || m_dplusPool == NULL || m_dcsPool == NULL || m_g2Handler == NULL || (m_icomRepeaterHandler == NULL && m_hbRepeaterHandler == NULL && m_dummyRepeaterHandler == NULL) || m_gatewayCallsign.IsEmpty()))
 		::wxMilliSleep(500UL);		// 1/2 sec
@@ -318,10 +328,6 @@ void CIRCDDBGatewayThread::run()
 	CCCSHandler::setHeaderLogger(headerLogger);
 	CCCSHandler::setHost(m_ccsHost);
 
-	// If no ircDDB then APRS is started immediately
-	if (m_aprsWriter != NULL && m_irc == NULL)
-		m_aprsWriter->setEnabled(true);
-
 	if (m_remoteEnabled && !m_remotePassword.IsEmpty() && m_remotePort > 0U) {
 		m_remote = new CRemoteHandler(m_remotePassword, m_remotePort, m_gatewayAddress);
 		bool res = m_remote->open();
@@ -409,6 +415,7 @@ void CIRCDDBGatewayThread::run()
 				}
 			}
 
+			wxLog::FlushActive();
 			::wxMilliSleep(TIME_PER_TIC_MS);
 		}
 	}
@@ -576,11 +583,10 @@ void CIRCDDBGatewayThread::setDCS(bool enabled)
 	m_dcsEnabled = enabled;
 }
 
-void CIRCDDBGatewayThread::setXLX(bool enabled, bool overrideLocal, const wxString& xlxHostsFileName)
+void CIRCDDBGatewayThread::setXLX(bool enabled, const wxString& xlxHostsFileName)
 {
 	m_xlxEnabled 	 = enabled;
 	m_xlxHostsFileName = xlxHostsFileName;
-	m_xlxOverrideLocal = overrideLocal;
 }
 
 void CIRCDDBGatewayThread::setCCS(bool enabled, const wxString& host)
@@ -689,24 +695,18 @@ void CIRCDDBGatewayThread::processIrcDDB()
 				if (m_lastStatus != IS_DISCONNECTED) {
 					wxLogInfo(wxT("Disconnected from ircDDB"));
 					m_lastStatus = IS_DISCONNECTED;
-					if (m_aprsWriter != NULL)
-						m_aprsWriter->setEnabled(false);
 				}
 				break;
 			case 7:
 				if (m_lastStatus != IS_CONNECTED) {
 					wxLogInfo(wxT("Connected to ircDDB"));
 					m_lastStatus = IS_CONNECTED;
-					if (m_aprsWriter != NULL)
-						m_aprsWriter->setEnabled(true);
 				}
 				break;
 			default:
 				if (m_lastStatus != IS_CONNECTING) {
 					wxLogInfo(wxT("Connecting to ircDDB"));
 					m_lastStatus = IS_CONNECTING;
-					if (m_aprsWriter != NULL)
-						m_aprsWriter->setEnabled(false);
 				}
 				break;
 		}
@@ -728,6 +728,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("USER: %s %s %s %s"), user.c_str(), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateUser(user, repeater, gateway, address, timestamp, DP_DEXTRA, false, false);
+#if defined(ENABLE_NAT_TRAVERSAL)
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("USER: %s NOT FOUND"), user.c_str());
 					}
@@ -744,6 +747,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("REPEATER: %s %s %s"), repeater.c_str(), gateway.c_str(), address.c_str());
 						m_cache.updateRepeater(repeater, gateway, address, DP_DEXTRA, false, false);
+#if defined(ENABLE_NAT_TRAVERSAL)
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("REPEATER: %s NOT FOUND"), repeater.c_str());
 					}
@@ -761,6 +767,9 @@ void CIRCDDBGatewayThread::processIrcDDB()
 					if (!address.IsEmpty()) {
 						wxLogMessage(wxT("GATEWAY: %s %s"), gateway.c_str(), address.c_str());
 						m_cache.updateGateway(gateway, address, DP_DEXTRA, false, false);
+#if defined(ENABLE_NAT_TRAVERSAL)						
+						m_natTraversal->traverseNatG2(address);
+#endif
 					} else {
 						wxLogMessage(wxT("GATEWAY: %s NOT FOUND"), gateway.c_str());
 					}
@@ -1108,9 +1117,8 @@ void CIRCDDBGatewayThread::loadGateways()
 
 void CIRCDDBGatewayThread::loadReflectors()
 {
-	if(m_xlxEnabled && !m_xlxOverrideLocal) {
+	if (m_xlxEnabled)
 		loadXLXReflectors();
-	}
 	
 	if (m_dplusEnabled) {
 		wxFileName fileName(wxFileName::GetHomeDir(), DPLUS_HOSTS_FILE_NAME);
@@ -1152,10 +1160,6 @@ void CIRCDDBGatewayThread::loadReflectors()
 #endif
 		if (fileName.IsFileReadable())
 			loadDCSReflectors(fileName.GetFullPath());
-	}
-
-	if(m_xlxEnabled && m_xlxOverrideLocal) {
-		loadXLXReflectors();
 	}
 }
 
@@ -1258,6 +1262,10 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 	CHostFile hostFile = CHostFile(m_xlxHostsFileName, true);
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
+
+		if (!reflector.StartsWith(wxT("XLX")))
+			continue;
+
 		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
 		bool lock          = hostFile.getLock(i);
 
@@ -1274,10 +1282,10 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
 
-			if(m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
+			//if (m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
 				m_cache.updateGateway(reflector, addrText, DP_DCS, lock, true);
-			else if(m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
-				m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
+			//else if (m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
+			//	m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
 
 			count++;
 		}
@@ -1316,7 +1324,7 @@ CIRCDDBGatewayStatusData* CIRCDDBGatewayThread::getStatus() const
 {
 	bool aprsStatus = false;
 	if (m_aprsWriter != NULL)
-		aprsStatus = m_aprsWriter->isConnected();
+		aprsStatus = true;
 
 	CIRCDDBGatewayStatusData* status = new CIRCDDBGatewayStatusData(m_lastStatus, aprsStatus);
 

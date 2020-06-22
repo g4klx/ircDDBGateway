@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -112,10 +112,10 @@ const wxString  KEY_URL4                 = wxT("url4");
 const wxString  KEY_BAND41               = wxT("band4_1");
 const wxString  KEY_BAND42               = wxT("band4_2");
 const wxString  KEY_BAND43               = wxT("band4_3");
-const wxString  KEY_IRCDDB_ENABLED       = wxT("ircddbEnabled");
-const wxString  KEY_IRCDDB_HOSTNAME      = wxT("ircddbHostname");
-const wxString  KEY_IRCDDB_USERNAME      = wxT("ircddbUsername");
-const wxString  KEY_IRCDDB_PASSWORD      = wxT("ircddbPassword");
+const wxString  KEY_IRCDDB_ENABLED1      = wxT("ircddbEnabled");
+const wxString  KEY_IRCDDB_HOSTNAME1     = wxT("ircddbHostname");
+const wxString  KEY_IRCDDB_USERNAME1     = wxT("ircddbUsername");
+const wxString  KEY_IRCDDB_PASSWORD1     = wxT("ircddbPassword");
 const wxString  KEY_IRCDDB_ENABLED2		 = wxT("ircddbEnabled2");
 const wxString  KEY_IRCDDB_HOSTNAME2	 = wxT("ircddbHostname2");
 const wxString  KEY_IRCDDB_USERNAME2	 = wxT("ircddbUsername2");
@@ -129,7 +129,7 @@ const wxString  KEY_IRCDDB_HOSTNAME4     = wxT("ircddbHostname4");
 const wxString  KEY_IRCDDB_USERNAME4     = wxT("ircddbUsername4");
 const wxString  KEY_IRCDDB_PASSWORD4     = wxT("ircddbPassword4");
 const wxString  KEY_APRS_ENABLED         = wxT("aprsEnabled");
-const wxString  KEY_APRS_HOSTNAME        = wxT("aprsHostname");
+const wxString  KEY_APRS_ADDRESS         = wxT("aprsAddress");
 const wxString  KEY_APRS_PORT            = wxT("aprsPort");
 const wxString  KEY_DEXTRA_ENABLED       = wxT("dextraEnabled");
 const wxString  KEY_DEXTRA_MAXDONGLES    = wxT("dextraMaxDongles");
@@ -139,8 +139,7 @@ const wxString  KEY_DPLUS_LOGIN          = wxT("dplusLogin");
 const wxString  KEY_DCS_ENABLED          = wxT("dcsEnabled");
 const wxString  KEY_CCS_ENABLED          = wxT("ccsEnabled");
 const wxString  KEY_CCS_HOST             = wxT("ccsHost");
-const wxString  KEY_XLX_ENABLED		 = wxT("xlxEnabled");
-const wxString  KEY_XLX_OVERRIDE_LOCAL	 = wxT("xlxOverrideLocal");
+const wxString  KEY_XLX_ENABLED		     = wxT("xlxEnabled");
 const wxString  KEY_XLX_HOSTS_FILE_URL	 = wxT("xlxHostsFileUrl");
 const wxString  KEY_STARNET_BAND1            = wxT("starNetBand1");
 const wxString  KEY_STARNET_CALLSIGN1        = wxT("starNetCallsign1");
@@ -201,6 +200,9 @@ const wxString  KEY_ECHO_ENABLED             = wxT("echoEnabled");
 const wxString  KEY_LOG_ENABLED              = wxT("logEnabled");
 const wxString  KEY_DRATS_ENABLED            = wxT("dratsEnabled");
 const wxString  KEY_DTMF_ENABLED             = wxT("dtmfEnabled");
+const wxString  KEY_GPSD_ENABLED             = wxT("gpsdEnabled");
+const wxString  KEY_GPSD_ADDRESS             = wxT("gpsdAddress");
+const wxString  KEY_GPSD_PORT                = wxT("gpsdPort");
 const wxString  KEY_WINDOW_X                 = wxT("windowX");
 const wxString  KEY_WINDOW_Y                 = wxT("windowY");
 
@@ -234,10 +236,10 @@ const unsigned int DEFAULT_REPEATER_PORT1        = 20011U;
 const unsigned int DEFAULT_REPEATER_PORT2        = 20012U;
 const unsigned int DEFAULT_REPEATER_PORT3        = 20013U;
 const unsigned int DEFAULT_REPEATER_PORT4        = 20014U;
-const bool         DEFAULT_IRCDDB_ENABLED        = true;
-const wxString     DEFAULT_IRCDDB_HOSTNAME       = wxT("group1-irc.ircddb.net");
-const wxString     DEFAULT_IRCDDB_USERNAME       = wxEmptyString;
-const wxString     DEFAULT_IRCDDB_PASSWORD       = wxEmptyString;
+const bool         DEFAULT_IRCDDB_ENABLED1       = true;
+const wxString     DEFAULT_IRCDDB_HOSTNAME1      = wxT("group1-irc.ircddb.net");
+const wxString     DEFAULT_IRCDDB_USERNAME1      = wxEmptyString;
+const wxString     DEFAULT_IRCDDB_PASSWORD1      = wxEmptyString;
 const bool         DEFAULT_IRCDDB_ENABLED2		 = true;
 const wxString     DEFAULT_IRCDDB_HOSTNAME2		 = wxT("rr.openquad.net");
 const wxString     DEFAULT_IRCDDB_USERNAME2		 = wxEmptyString;
@@ -250,9 +252,9 @@ const bool         DEFAULT_IRCDDB_ENABLED4		 = false;
 const wxString     DEFAULT_IRCDDB_HOSTNAME4		 = wxEmptyString;
 const wxString     DEFAULT_IRCDDB_USERNAME4		 = wxEmptyString;
 const wxString     DEFAULT_IRCDDB_PASSWORD4		 = wxEmptyString;
-const bool         DEFAULT_APRS_ENABLED          = true;
-const wxString     DEFAULT_APRS_HOSTNAME         = wxT("rotate.aprs2.net");
-const unsigned int DEFAULT_APRS_PORT             = 14580U;
+const bool         DEFAULT_APRS_ENABLED          = false;
+const wxString     DEFAULT_APRS_ADDRESS          = wxT("127.0.0.1");
+const unsigned int DEFAULT_APRS_PORT             = 8673U;
 const bool         DEFAULT_DEXTRA_ENABLED        = true;
 const unsigned int DEFAULT_DEXTRA_MAXDONGLES     = 5U;
 const bool         DEFAULT_DPLUS_ENABLED         = false;
@@ -261,9 +263,8 @@ const wxString     DEFAULT_DPLUS_LOGIN           = wxEmptyString;
 const bool         DEFAULT_DCS_ENABLED           = true;
 const bool         DEFAULT_CCS_ENABLED           = true;
 const wxString     DEFAULT_CCS_HOST              = wxT("CCS704  ");
-const bool	   DEFAULT_XLX_ENABLED		 = true;
-const bool	   DEFAULT_XLX_OVERRIDE_LOCAL    = true;
-const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = _T("http://xlxapi.rlx.lu/api.php?do=GetReflectorHostname");
+const bool	       DEFAULT_XLX_ENABLED           = true;
+const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = wxT("http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster");//we use the XLXDMRMaster list because it starts with XLX instead of DCS, XRF etc ....
 const wxString     DEFAULT_STARNET_BAND          = wxEmptyString;
 const wxString     DEFAULT_STARNET_CALLSIGN      = wxEmptyString;
 const wxString     DEFAULT_STARNET_LOGOFF        = wxEmptyString;
@@ -283,6 +284,9 @@ const bool         DEFAULT_INFO_ENABLED          = true;
 const bool         DEFAULT_ECHO_ENABLED          = true;
 const bool         DEFAULT_DRATS_ENABLED         = false;
 const bool         DEFAULT_DTMF_ENABLED          = true;
+const bool         DEFAULT_GPSD_ENABLED          = false;
+const wxString     DEFAULT_GPSD_ADDRESS          = wxT("127.0.0.1");
+const wxString     DEFAULT_GPSD_PORT             = wxT("2947");
 const int          DEFAULT_WINDOW_X              = -1;
 const int          DEFAULT_WINDOW_Y              = -1;
 
@@ -385,10 +389,10 @@ m_repeater4URL(DEFAULT_URL),
 m_repeater4Band1(DEFAULT_BAND1),
 m_repeater4Band2(DEFAULT_BAND2),
 m_repeater4Band3(DEFAULT_BAND3),
-m_ircddbEnabled(DEFAULT_IRCDDB_ENABLED),
-m_ircddbHostname(DEFAULT_IRCDDB_HOSTNAME),
-m_ircddbUsername(DEFAULT_IRCDDB_USERNAME),
-m_ircddbPassword(DEFAULT_IRCDDB_PASSWORD),
+m_ircddbEnabled1(DEFAULT_IRCDDB_ENABLED1),
+m_ircddbHostname1(DEFAULT_IRCDDB_HOSTNAME1),
+m_ircddbUsername1(DEFAULT_IRCDDB_USERNAME1),
+m_ircddbPassword1(DEFAULT_IRCDDB_PASSWORD1),
 m_ircddbEnabled2(DEFAULT_IRCDDB_ENABLED2),
 m_ircddbHostname2(DEFAULT_IRCDDB_HOSTNAME2),
 m_ircddbUsername2(DEFAULT_IRCDDB_USERNAME2),
@@ -402,7 +406,7 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
-m_aprsHostname(DEFAULT_APRS_HOSTNAME),
+m_aprsAddress(DEFAULT_APRS_ADDRESS),
 m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
@@ -413,7 +417,6 @@ m_dcsEnabled(DEFAULT_DCS_ENABLED),
 m_ccsEnabled(DEFAULT_CCS_ENABLED),
 m_ccsHost(DEFAULT_CCS_HOST),
 m_xlxEnabled(DEFAULT_XLX_ENABLED),
-m_xlxOverrideLocal(DEFAULT_XLX_OVERRIDE_LOCAL),
 m_xlxHostsFileUrl(DEFAULT_XLX_HOSTS_FILE_URL),
 m_starNet1Band(DEFAULT_STARNET_BAND),
 m_starNet1Callsign(DEFAULT_STARNET_CALLSIGN),
@@ -474,6 +477,9 @@ m_echoEnabled(DEFAULT_ECHO_ENABLED),
 m_logEnabled(DEFAULT_LOG_ENABLED),
 m_dratsEnabled(DEFAULT_DRATS_ENABLED),
 m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
+m_gpsdEnabled(DEFAULT_GPSD_ENABLED),
+m_gpsdAddress(DEFAULT_GPSD_ADDRESS),
+m_gpsdPort(DEFAULT_GPSD_PORT),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -701,29 +707,29 @@ m_y(DEFAULT_WINDOW_Y)
 	m_config->Read(m_name + KEY_BAND43, &temp, long(DEFAULT_BAND3));
 	m_repeater4Band3 = (unsigned char)temp;
 
-	m_config->Read(m_name + KEY_IRCDDB_ENABLED, &m_ircddbEnabled, DEFAULT_IRCDDB_ENABLED);
-	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME, &m_ircddbHostname, DEFAULT_IRCDDB_HOSTNAME);
-	m_config->Read(m_name + KEY_IRCDDB_USERNAME, &m_ircddbUsername, DEFAULT_IRCDDB_USERNAME);
-	m_config->Read(m_name + KEY_IRCDDB_PASSWORD, &m_ircddbPassword, DEFAULT_IRCDDB_PASSWORD);
+	m_config->Read(m_name + KEY_IRCDDB_ENABLED1,  &m_ircddbEnabled1,  DEFAULT_IRCDDB_ENABLED1);
+	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME1, &m_ircddbHostname1, DEFAULT_IRCDDB_HOSTNAME1);
+	m_config->Read(m_name + KEY_IRCDDB_USERNAME1, &m_ircddbUsername1, DEFAULT_IRCDDB_USERNAME1);
+	m_config->Read(m_name + KEY_IRCDDB_PASSWORD1, &m_ircddbPassword1, DEFAULT_IRCDDB_PASSWORD1);
 
-	m_config->Read(m_name + KEY_IRCDDB_ENABLED2, &m_ircddbEnabled, DEFAULT_IRCDDB_ENABLED2);
-	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME2, &m_ircddbHostname, DEFAULT_IRCDDB_HOSTNAME2);
-	m_config->Read(m_name + KEY_IRCDDB_USERNAME2, &m_ircddbUsername, DEFAULT_IRCDDB_USERNAME2);
-	m_config->Read(m_name + KEY_IRCDDB_PASSWORD2, &m_ircddbPassword, DEFAULT_IRCDDB_PASSWORD2);
+	m_config->Read(m_name + KEY_IRCDDB_ENABLED2,  &m_ircddbEnabled2,  DEFAULT_IRCDDB_ENABLED2);
+	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME2, &m_ircddbHostname2, DEFAULT_IRCDDB_HOSTNAME2);
+	m_config->Read(m_name + KEY_IRCDDB_USERNAME2, &m_ircddbUsername2, DEFAULT_IRCDDB_USERNAME2);
+	m_config->Read(m_name + KEY_IRCDDB_PASSWORD2, &m_ircddbPassword2, DEFAULT_IRCDDB_PASSWORD2);
 
-	m_config->Read(m_name + KEY_IRCDDB_ENABLED3, &m_ircddbEnabled, DEFAULT_IRCDDB_ENABLED3);
-	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME3, &m_ircddbHostname, DEFAULT_IRCDDB_HOSTNAME3);
-	m_config->Read(m_name + KEY_IRCDDB_USERNAME3, &m_ircddbUsername, DEFAULT_IRCDDB_USERNAME3);
-	m_config->Read(m_name + KEY_IRCDDB_PASSWORD3, &m_ircddbPassword, DEFAULT_IRCDDB_PASSWORD3);
+	m_config->Read(m_name + KEY_IRCDDB_ENABLED3,  &m_ircddbEnabled3,  DEFAULT_IRCDDB_ENABLED3);
+	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME3, &m_ircddbHostname3, DEFAULT_IRCDDB_HOSTNAME3);
+	m_config->Read(m_name + KEY_IRCDDB_USERNAME3, &m_ircddbUsername3, DEFAULT_IRCDDB_USERNAME3);
+	m_config->Read(m_name + KEY_IRCDDB_PASSWORD3, &m_ircddbPassword3, DEFAULT_IRCDDB_PASSWORD3);
 
-	m_config->Read(m_name + KEY_IRCDDB_ENABLED4, &m_ircddbEnabled, DEFAULT_IRCDDB_ENABLED4);
-	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME4, &m_ircddbHostname, DEFAULT_IRCDDB_HOSTNAME4);
-	m_config->Read(m_name + KEY_IRCDDB_USERNAME4, &m_ircddbUsername, DEFAULT_IRCDDB_USERNAME4);
-	m_config->Read(m_name + KEY_IRCDDB_PASSWORD4, &m_ircddbPassword, DEFAULT_IRCDDB_PASSWORD4);
+	m_config->Read(m_name + KEY_IRCDDB_ENABLED4,  &m_ircddbEnabled4,  DEFAULT_IRCDDB_ENABLED4);
+	m_config->Read(m_name + KEY_IRCDDB_HOSTNAME4, &m_ircddbHostname4, DEFAULT_IRCDDB_HOSTNAME4);
+	m_config->Read(m_name + KEY_IRCDDB_USERNAME4, &m_ircddbUsername4, DEFAULT_IRCDDB_USERNAME4);
+	m_config->Read(m_name + KEY_IRCDDB_PASSWORD4, &m_ircddbPassword4, DEFAULT_IRCDDB_PASSWORD4);
 
 	m_config->Read(m_name + KEY_APRS_ENABLED, &m_aprsEnabled, DEFAULT_APRS_ENABLED);
 
-	m_config->Read(m_name + KEY_APRS_HOSTNAME, &m_aprsHostname, DEFAULT_APRS_HOSTNAME);
+	m_config->Read(m_name + KEY_APRS_ADDRESS, &m_aprsAddress, DEFAULT_APRS_ADDRESS);
 
 	m_config->Read(m_name + KEY_APRS_PORT, &temp, long(DEFAULT_APRS_PORT));
 	m_aprsPort = (unsigned int)temp;
@@ -747,10 +753,10 @@ m_y(DEFAULT_WINDOW_Y)
 	m_config->Read(m_name + KEY_CCS_HOST, &m_ccsHost, DEFAULT_CCS_HOST);
 	
 	m_config->Read(m_name + KEY_XLX_ENABLED, &m_xlxEnabled, DEFAULT_XLX_ENABLED);
-	
-	m_config->Read(m_name + KEY_XLX_OVERRIDE_LOCAL, &m_xlxOverrideLocal, DEFAULT_XLX_OVERRIDE_LOCAL);
-	
+		
 	m_config->Read(m_name + KEY_XLX_HOSTS_FILE_URL, &m_xlxHostsFileUrl, DEFAULT_XLX_HOSTS_FILE_URL);
+	if(m_xlxEnabled && m_xlxHostsFileUrl.Trim().IsEmpty())//To avoid support nightmare, fill the url with the default one when xlx is enabled and the url is left empty
+		m_xlxHostsFileUrl = DEFAULT_XLX_HOSTS_FILE_URL;
 
 	m_config->Read(m_name + KEY_STARNET_BAND1, &m_starNet1Band, DEFAULT_STARNET_BAND);
 
@@ -887,6 +893,13 @@ m_y(DEFAULT_WINDOW_Y)
 
 	m_config->Read(m_name + KEY_DTMF_ENABLED, &m_dtmfEnabled, DEFAULT_DTMF_ENABLED);
 
+	m_config->Read(m_name + KEY_GPSD_ENABLED, &m_gpsdEnabled, DEFAULT_GPSD_ENABLED);
+
+	m_config->Read(m_name + KEY_GPSD_ADDRESS, &m_gpsdAddress, DEFAULT_GPSD_ADDRESS);
+
+	m_config->Read(m_name + KEY_GPSD_PORT, &temp, long(DEFAULT_GPSD_PORT));
+	m_gpsdPort = (unsigned int)temp;
+
 	m_config->Read(m_name + KEY_WINDOW_X, &temp, long(DEFAULT_WINDOW_X));
 	m_x = int(temp);
 
@@ -995,10 +1008,10 @@ m_repeater4URL(DEFAULT_URL),
 m_repeater4Band1(DEFAULT_BAND1),
 m_repeater4Band2(DEFAULT_BAND2),
 m_repeater4Band3(DEFAULT_BAND3),
-m_ircddbEnabled(DEFAULT_IRCDDB_ENABLED),
-m_ircddbHostname(DEFAULT_IRCDDB_HOSTNAME),
-m_ircddbUsername(DEFAULT_IRCDDB_USERNAME),
-m_ircddbPassword(DEFAULT_IRCDDB_PASSWORD),
+m_ircddbEnabled1(DEFAULT_IRCDDB_ENABLED1),
+m_ircddbHostname1(DEFAULT_IRCDDB_HOSTNAME1),
+m_ircddbUsername1(DEFAULT_IRCDDB_USERNAME1),
+m_ircddbPassword1(DEFAULT_IRCDDB_PASSWORD1),
 m_ircddbEnabled2(DEFAULT_IRCDDB_ENABLED2),
 m_ircddbHostname2(DEFAULT_IRCDDB_HOSTNAME2),
 m_ircddbUsername2(DEFAULT_IRCDDB_USERNAME2),
@@ -1012,7 +1025,7 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
-m_aprsHostname(DEFAULT_APRS_HOSTNAME),
+m_aprsAddress(DEFAULT_APRS_ADDRESS),
 m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
@@ -1023,7 +1036,6 @@ m_dcsEnabled(DEFAULT_DCS_ENABLED),
 m_ccsEnabled(DEFAULT_CCS_ENABLED),
 m_ccsHost(DEFAULT_CCS_HOST),
 m_xlxEnabled(DEFAULT_XLX_ENABLED),
-m_xlxOverrideLocal(DEFAULT_XLX_OVERRIDE_LOCAL),
 m_xlxHostsFileUrl(DEFAULT_XLX_HOSTS_FILE_URL),
 m_starNet1Band(DEFAULT_STARNET_BAND),
 m_starNet1Callsign(DEFAULT_STARNET_CALLSIGN),
@@ -1084,6 +1096,9 @@ m_echoEnabled(DEFAULT_ECHO_ENABLED),
 m_logEnabled(DEFAULT_LOG_ENABLED),
 m_dratsEnabled(DEFAULT_DRATS_ENABLED),
 m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
+m_gpsdEnabled(DEFAULT_GPSD_ENABLED),
+m_gpsdAddress(DEFAULT_GPSD_ADDRESS),
+m_gpsdPort(DEFAULT_GPSD_PORT),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -1342,15 +1357,15 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_BAND43)) {
 			val.ToULong(&temp2);
 			m_repeater4Band3 = (unsigned char)temp2;
-		} else if (key.IsSameAs(KEY_IRCDDB_ENABLED)) {
+		} else if (key.IsSameAs(KEY_IRCDDB_ENABLED1)) {
 			val.ToLong(&temp1);
-			m_ircddbEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_IRCDDB_HOSTNAME)) {
-			m_ircddbHostname = val;
-		} else if (key.IsSameAs(KEY_IRCDDB_USERNAME)) {
-			m_ircddbUsername = val;
-		} else if (key.IsSameAs(KEY_IRCDDB_PASSWORD)) {
-			m_ircddbPassword = val;
+			m_ircddbEnabled1 = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_IRCDDB_HOSTNAME1)) {
+			m_ircddbHostname1 = val;
+		} else if (key.IsSameAs(KEY_IRCDDB_USERNAME1)) {
+			m_ircddbUsername1 = val;
+		} else if (key.IsSameAs(KEY_IRCDDB_PASSWORD1)) {
+			m_ircddbPassword1 = val;
 		} else if (key.IsSameAs(KEY_IRCDDB_ENABLED2)) {
 			val.ToLong(&temp1);
 			m_ircddbEnabled2 = temp1 == 1L;
@@ -1381,8 +1396,8 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_APRS_ENABLED)) {
 			val.ToLong(&temp1);
 			m_aprsEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_APRS_HOSTNAME)) {
-			m_aprsHostname = val;
+		} else if (key.IsSameAs(KEY_APRS_ADDRESS)) {
+			m_aprsAddress = val;
 		} else if (key.IsSameAs(KEY_APRS_PORT)) {
 			val.ToULong(&temp2);
 			m_aprsPort = (unsigned int)temp2;
@@ -1411,10 +1426,7 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_XLX_ENABLED)) {
 			val.ToLong(&temp1);
 			m_xlxEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_XLX_OVERRIDE_LOCAL)) {
-			val.ToLong(&temp1);
-			m_xlxOverrideLocal = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_XLX_HOSTS_FILE_URL)) {
+		} else if (key.IsSameAs(KEY_XLX_HOSTS_FILE_URL) && !val.Trim().IsEmpty()) { //always load default url if the value in the config file is empty
 			m_xlxHostsFileUrl = val;
 		} else if (key.IsSameAs(KEY_STARNET_BAND1)) {
 			m_starNet1Band = val;
@@ -1562,6 +1574,13 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_DTMF_ENABLED)) {
 			val.ToLong(&temp1);
 			m_dtmfEnabled = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_GPSD_ENABLED)) {
+			val.ToLong(&temp1);
+			m_gpsdEnabled = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_GPSD_ADDRESS)) {
+			m_gpsdAddress = val;
+		} else if (key.IsSameAs(KEY_GPSD_PORT)) {
+			m_gpsdPort = val;
 		} else if (key.IsSameAs(KEY_WINDOW_X)) {
 			val.ToLong(&temp1);
 			m_x = int(temp1);
@@ -1805,20 +1824,20 @@ void CIRCDDBGatewayConfig::setRepeater4(const wxString& band, HW_TYPE type, cons
 	m_repeater4URL          = url;
 }
 
-void CIRCDDBGatewayConfig::getIrcDDB(bool& enabled, wxString& hostname, wxString& username, wxString& password) const
+void CIRCDDBGatewayConfig::getIrcDDB1(bool& enabled, wxString& hostname, wxString& username, wxString& password) const
 {
-	enabled  = m_ircddbEnabled;
-	hostname = m_ircddbHostname;
-	username = m_ircddbUsername;
-	password = m_ircddbPassword;
+	enabled  = m_ircddbEnabled1;
+	hostname = m_ircddbHostname1;
+	username = m_ircddbUsername1;
+	password = m_ircddbPassword1;
 }
 
-void CIRCDDBGatewayConfig::setIrcDDB(bool enabled, const wxString& hostname, const wxString& username, const wxString& password)
+void CIRCDDBGatewayConfig::setIrcDDB1(bool enabled, const wxString& hostname, const wxString& username, const wxString& password)
 {
-	m_ircddbEnabled  = enabled;
-	m_ircddbHostname = hostname;
-	m_ircddbUsername = username;
-	m_ircddbPassword = password;
+	m_ircddbEnabled1  = enabled;
+	m_ircddbHostname1 = hostname;
+	m_ircddbUsername1 = username;
+	m_ircddbPassword1 = password;
 }
 
 void CIRCDDBGatewayConfig::getIrcDDB2(bool& enabled, wxString& hostname, wxString& username, wxString& password) const
@@ -1826,14 +1845,6 @@ void CIRCDDBGatewayConfig::getIrcDDB2(bool& enabled, wxString& hostname, wxStrin
 	enabled = m_ircddbEnabled2;
 	hostname = m_ircddbHostname2;
 	username = m_ircddbUsername2;
-
-	/*if(username.IsEmpty()){
-		//no user specified for openquad? use the one from the default network !
-		username = m_ircddbUsername;
-		if(username[0] >= '0' &&  username[0] <= '9')
-			username = wxT("r") + username;
-	}*/
-
 	password = m_ircddbPassword2;
 }
 
@@ -1877,17 +1888,17 @@ void CIRCDDBGatewayConfig::setIrcDDB4(bool enabled, const wxString& hostname, co
 	m_ircddbPassword4 = password;
 }
 
-void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& hostname, unsigned int& port) const
+void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& address, unsigned int& port) const
 {
-	enabled  = m_aprsEnabled;
-	hostname = m_aprsHostname;
-	port     = m_aprsPort;
+	enabled = m_aprsEnabled;
+	address = m_aprsAddress;
+	port    = m_aprsPort;
 }
 
-void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& hostname, unsigned int port)
+void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& address, unsigned int port)
 {
 	m_aprsEnabled  = enabled;
-	m_aprsHostname = hostname;
+	m_aprsAddress = address;
 	m_aprsPort     = port;
 }
 
@@ -1931,17 +1942,15 @@ void CIRCDDBGatewayConfig::setDCS(bool dcsEnabled, bool ccsEnabled, const wxStri
 	m_ccsHost    = ccsHost;
 }
 
-void CIRCDDBGatewayConfig::getXLX(bool& xlxEnabled, bool& xlxOverrideLocal, wxString& xlxHostsFileUrl)
+void CIRCDDBGatewayConfig::getXLX(bool& xlxEnabled, wxString& xlxHostsFileUrl)
 {
 	xlxEnabled = m_xlxEnabled;
-	xlxOverrideLocal = m_xlxOverrideLocal;
 	xlxHostsFileUrl = m_xlxHostsFileUrl;
 }
 
-void CIRCDDBGatewayConfig::setXLX(bool xlxEnabled, bool xlxOverrideLocal, wxString xlxHostsFileUrl)
+void CIRCDDBGatewayConfig::setXLX(bool xlxEnabled, wxString xlxHostsFileUrl)
 {
 	m_xlxEnabled = xlxEnabled;
-	m_xlxOverrideLocal = xlxOverrideLocal;
 	m_xlxHostsFileUrl = xlxHostsFileUrl;
 }
 
@@ -2189,6 +2198,20 @@ void CIRCDDBGatewayConfig::setMiscellaneous(TEXT_LANG language, bool infoEnabled
 	m_dtmfEnabled  = dtmfEnabled;
 }
 
+void CIRCDDBGatewayConfig::getGPSD(bool& enabled, wxString& address, wxString& port) const
+{
+	enabled = m_gpsdEnabled;
+	address = m_gpsdAddress;
+	port    = m_gpsdPort;
+}
+
+void CIRCDDBGatewayConfig::setGPSD(bool enabled, const wxString& address, const wxString& port)
+{
+	m_gpsdEnabled = enabled;
+	m_gpsdAddress = address;
+	m_gpsdPort    = port;
+}
+
 void CIRCDDBGatewayConfig::getPosition(int& x, int& y) const
 {
 	x = m_x;
@@ -2339,10 +2362,10 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_BAND41, long(m_repeater4Band1));
 	m_config->Write(m_name + KEY_BAND42, long(m_repeater4Band2));
 	m_config->Write(m_name + KEY_BAND43, long(m_repeater4Band3));
-	m_config->Write(m_name + KEY_IRCDDB_ENABLED, m_ircddbEnabled);
-	m_config->Write(m_name + KEY_IRCDDB_HOSTNAME, m_ircddbHostname);
-	m_config->Write(m_name + KEY_IRCDDB_USERNAME, m_ircddbUsername);
-	m_config->Write(m_name + KEY_IRCDDB_PASSWORD, m_ircddbPassword);
+	m_config->Write(m_name + KEY_IRCDDB_ENABLED1, m_ircddbEnabled1);
+	m_config->Write(m_name + KEY_IRCDDB_HOSTNAME1, m_ircddbHostname1);
+	m_config->Write(m_name + KEY_IRCDDB_USERNAME1, m_ircddbUsername1);
+	m_config->Write(m_name + KEY_IRCDDB_PASSWORD1, m_ircddbPassword1);
 	m_config->Write(m_name + KEY_IRCDDB_ENABLED2, m_ircddbEnabled2);
 	m_config->Write(m_name + KEY_IRCDDB_HOSTNAME2, m_ircddbHostname2);
 	m_config->Write(m_name + KEY_IRCDDB_USERNAME2, m_ircddbUsername2);
@@ -2356,7 +2379,7 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_IRCDDB_USERNAME4, m_ircddbUsername4);
 	m_config->Write(m_name + KEY_IRCDDB_PASSWORD4, m_ircddbPassword4);
 	m_config->Write(m_name + KEY_APRS_ENABLED, m_aprsEnabled);
-	m_config->Write(m_name + KEY_APRS_HOSTNAME, m_aprsHostname);
+	m_config->Write(m_name + KEY_APRS_ADDRESS, m_aprsAddress);
 	m_config->Write(m_name + KEY_APRS_PORT, long(m_aprsPort));
 	m_config->Write(m_name + KEY_DEXTRA_ENABLED, m_dextraEnabled);
 	m_config->Write(m_name + KEY_DEXTRA_MAXDONGLES, long(m_dextraMaxDongles));
@@ -2367,7 +2390,6 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_CCS_ENABLED, m_ccsEnabled);
 	m_config->Write(m_name + KEY_CCS_HOST, m_ccsHost);
 	m_config->Write(m_name + KEY_XLX_ENABLED, m_xlxEnabled);
-	m_config->Write(m_name + KEY_XLX_OVERRIDE_LOCAL, m_xlxOverrideLocal);
 	m_config->Write(m_name + KEY_XLX_HOSTS_FILE_URL, m_xlxHostsFileUrl);
 	m_config->Write(m_name + KEY_STARNET_BAND1, m_starNet1Band);
 	m_config->Write(m_name + KEY_STARNET_CALLSIGN1, m_starNet1Callsign);
@@ -2428,6 +2450,9 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_LOG_ENABLED, m_logEnabled);
 	m_config->Write(m_name + KEY_DRATS_ENABLED, m_dratsEnabled);
 	m_config->Write(m_name + KEY_DTMF_ENABLED, m_dtmfEnabled);
+	m_config->Write(m_name + KEY_GPSD_ENABLED, m_gpsdEnabled);
+	m_config->Write(m_name + KEY_GPSD_ADDRESS, m_gpsdAddress);
+	m_config->Write(m_name + KEY_GPSD_PORT, m_gpsdPort);
 	m_config->Write(m_name + KEY_WINDOW_X, long(m_x));
 	m_config->Write(m_name + KEY_WINDOW_Y, long(m_y));
 	m_config->Flush();
@@ -2546,10 +2571,10 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%u"), KEY_BAND41.c_str(), m_repeater4Band1); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_BAND42.c_str(), m_repeater4Band2); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_BAND43.c_str(), m_repeater4Band3); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%d"), KEY_IRCDDB_ENABLED.c_str(), m_ircddbEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_IRCDDB_HOSTNAME.c_str(), m_ircddbHostname.c_str()); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_IRCDDB_USERNAME.c_str(), m_ircddbUsername.c_str()); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_IRCDDB_PASSWORD.c_str(), m_ircddbPassword.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%d"), KEY_IRCDDB_ENABLED1.c_str(), m_ircddbEnabled1 ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_IRCDDB_HOSTNAME1.c_str(), m_ircddbHostname1.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_IRCDDB_USERNAME1.c_str(), m_ircddbUsername1.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_IRCDDB_PASSWORD1.c_str(), m_ircddbPassword1.c_str()); file.AddLine(buffer);
 	buffer.Printf("%s=%d", KEY_IRCDDB_ENABLED2.c_str(), m_ircddbEnabled2 ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf("%s=%s", KEY_IRCDDB_HOSTNAME2.c_str(), m_ircddbHostname2.c_str()); file.AddLine(buffer);
 	buffer.Printf("%s=%s", KEY_IRCDDB_USERNAME2.c_str(), m_ircddbUsername2.c_str()); file.AddLine(buffer);
@@ -2563,7 +2588,7 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf("%s=%s", KEY_IRCDDB_USERNAME4.c_str(), m_ircddbUsername4.c_str()); file.AddLine(buffer);
 	buffer.Printf("%s=%s", KEY_IRCDDB_PASSWORD4.c_str(), m_ircddbPassword4.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_APRS_ENABLED.c_str(), m_aprsEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_APRS_HOSTNAME.c_str(), m_aprsHostname.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_APRS_ADDRESS.c_str(), m_aprsAddress.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_APRS_PORT.c_str(), m_aprsPort); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DEXTRA_ENABLED.c_str(), m_dextraEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_DEXTRA_MAXDONGLES.c_str(), m_dextraMaxDongles); file.AddLine(buffer);
@@ -2574,7 +2599,6 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%d"), KEY_CCS_ENABLED.c_str(), m_ccsEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_CCS_HOST.c_str(), m_ccsHost.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_XLX_ENABLED.c_str(), m_xlxEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%d"), KEY_XLX_OVERRIDE_LOCAL.c_str(), m_xlxOverrideLocal ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_XLX_HOSTS_FILE_URL.c_str(), m_xlxHostsFileUrl.c_str()); file.AddLine(buffer);	
 	buffer.Printf(wxT("%s=%s"), KEY_STARNET_BAND1.c_str(), m_starNet1Band.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_STARNET_CALLSIGN1.c_str(), m_starNet1Callsign.c_str()); file.AddLine(buffer);
@@ -2635,6 +2659,9 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%d"), KEY_LOG_ENABLED.c_str(), m_logEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DRATS_ENABLED.c_str(), m_dratsEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DTMF_ENABLED.c_str(), m_dtmfEnabled ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%d"), KEY_GPSD_ENABLED.c_str(), m_gpsdEnabled ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_GPSD_ADDRESS.c_str(), m_gpsdAddress.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_GPSD_PORT.c_str(), m_gpsdPort.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_X.c_str(), m_x); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_Y.c_str(), m_y); file.AddLine(buffer);
 
@@ -2649,3 +2676,4 @@ bool CIRCDDBGatewayConfig::write()
 
 	return true;
 }
+

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@ wxIMPLEMENT_APP(CIRCDDBGatewayApp);
 
 const wxChar*       NAME_PARAM = wxT("Gateway Name");
 const wxChar* NOLOGGING_SWITCH = wxT("nolog");
+const wxChar*     DEBUG_SWITCH = wxT("debug");
 const wxChar*       GUI_SWITCH = wxT("gui");
 const wxChar*    LOGDIR_OPTION = wxT("logdir");
 const wxChar*   CONFDIR_OPTION = wxT("confdir");
@@ -50,6 +51,7 @@ CIRCDDBGatewayApp::CIRCDDBGatewayApp() :
 wxApp(),
 m_name(),
 m_nolog(false),
+m_debug(false),
 m_gui(false),
 m_logDir(),
 m_confDir(),
@@ -89,6 +91,14 @@ bool CIRCDDBGatewayApp::OnInit()
 
 		wxLog* log = new CLogger(m_logDir, logBaseName);
 		wxLog::SetActiveTarget(log);
+
+		if (m_debug) {
+			wxLog::SetVerbose(true);
+			wxLog::SetLogLevel(wxLOG_Debug);
+		} else {
+			wxLog::SetVerbose(false);
+			wxLog::SetLogLevel(wxLOG_Message);
+		}
 	} else {
 		new wxLogNull;
 	}
@@ -161,8 +171,10 @@ int CIRCDDBGatewayApp::OnExit()
 
 	wxLogInfo(APPLICATION_NAME + wxT(" is exiting"));
 
-	//m_thread->kill();
-	wxGetApp().GetTopWindow()->Close();
+	m_thread->kill();
+	wxWindow * topWin = wxGetApp().GetTopWindow();
+	if (topWin != NULL)
+		topWin->Close();
 
 	delete m_config;
 
@@ -174,6 +186,7 @@ int CIRCDDBGatewayApp::OnExit()
 void CIRCDDBGatewayApp::OnInitCmdLine(wxCmdLineParser& parser)
 {
 	parser.AddSwitch(NOLOGGING_SWITCH, wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
+	parser.AddSwitch(DEBUG_SWITCH,     wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddSwitch(GUI_SWITCH,       wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(LOGDIR_OPTION,    wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(CONFDIR_OPTION,   wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
@@ -188,6 +201,7 @@ bool CIRCDDBGatewayApp::OnCmdLineParsed(wxCmdLineParser& parser)
 		return false;
 
 	m_nolog  = parser.Found(NOLOGGING_SWITCH);
+	m_debug  = parser.Found(DEBUG_SWITCH);
 	m_gui    = parser.Found(GUI_SWITCH);
 
 	wxString logDir;
@@ -254,15 +268,15 @@ void CIRCDDBGatewayApp::createThread()
 
 	thread->setGateway(gatewayType, gatewayCallsign, gatewayAddress);
 
-	wxString aprsHostname;
+	wxString aprsAddress;
 	unsigned int aprsPort;
 	bool aprsEnabled;
-	m_config->getDPRS(aprsEnabled, aprsHostname, aprsPort);
-	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsHostname.c_str(), aprsPort);
+	m_config->getDPRS(aprsEnabled, aprsAddress, aprsPort);
+	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsAddress.c_str(), aprsPort);
 
 	CAPRSWriter* aprs = NULL;
-	if (aprsEnabled && !gatewayCallsign.IsEmpty() && !aprsHostname.IsEmpty() && aprsPort != 0U) {
-		aprs = new CAPRSWriter(aprsHostname, aprsPort, gatewayCallsign, gatewayAddress);
+	if (aprsEnabled && !aprsAddress.IsEmpty() && aprsPort != 0U) {
+		aprs = new CAPRSWriter(aprsAddress, aprsPort, gatewayCallsign);
 
 		bool res = aprs->open();
 		if (!res)
@@ -275,6 +289,11 @@ void CIRCDDBGatewayApp::createThread()
 	bool infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled;
 	m_config->getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
 	wxLogInfo(wxT("Language: %d, info enabled: %d, echo enabled: %d, log enabled : %d, D-RATS enabled: %d, DTMF control enabled: %d"), int(language), int(infoEnabled), int(echoEnabled), int(logEnabled), int(dratsEnabled), int(dtmfEnabled));
+
+	bool gpsdEnabled;
+	wxString gpsdAddress, gpsdPort;
+	m_config->getGPSD(gpsdEnabled, gpsdAddress, gpsdPort);
+	wxLogInfo(wxT("GPSD: %d, address: %s, port: %s"), int(gpsdEnabled), gpsdAddress.c_str(), gpsdPort.c_str());
 
 	CIcomRepeaterProtocolHandler* icomRepeaterHandler = NULL;
 	CHBRepeaterProtocolHandler* hbRepeaterHandler = NULL;
@@ -351,15 +370,23 @@ void CIRCDDBGatewayApp::createThread()
 			wxLogInfo(wxT("Repeater 1 bands: %u %u %u"), band11, band12, band13);
 			thread->addRepeater(callsign1, repeaterBand1, repeaterAddress1, repeaterPort1, repeaterType1, reflector1, atStartup1, reconnect1, dratsEnabled, frequency1, offset1, range1, latitude1, longitude1, agl1, description11, description12, url1, icomRepeaterHandler, band11, band12, band13);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign1, repeaterBand1, frequency1, offset1, range1, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			}
 
 			icomCount++;
 		} else if (repeaterType1 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			thread->addRepeater(callsign1, repeaterBand1, repeaterAddress1, repeaterPort1, repeaterType1, reflector1, atStartup1, reconnect1, dratsEnabled, frequency1, offset1, range1, latitude1, longitude1, agl1, description11, description12, url1, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign1, repeaterBand1, frequency1, offset1, range1, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign1, repeaterBand1, frequency1, offset1, range1, latitude1, longitude1, agl1);
+			}
 		} else if (repeaterType1 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			thread->addRepeater(callsign1, repeaterBand1, repeaterAddress1, repeaterPort1, repeaterType1, reflector1, atStartup1, reconnect1, dratsEnabled, frequency1, offset1, range1, latitude1, longitude1, agl1, description11, description12, url1, dummyRepeaterHandler);
 		}
@@ -439,15 +466,23 @@ void CIRCDDBGatewayApp::createThread()
 			wxLogInfo(wxT("Repeater 2 bands: %u %u %u"), band21, band22, band23);
 			thread->addRepeater(callsign2, repeaterBand2, repeaterAddress2, repeaterPort2, repeaterType2, reflector2, atStartup2, reconnect2, dratsEnabled, frequency2, offset2, range2, latitude2, longitude2, agl2, description21, description22, url2, icomRepeaterHandler, band21, band22, band23);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign2, repeaterBand2, frequency2, offset2, range2, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
+			}
 
 			icomCount++;
 		} else if (repeaterType2 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			thread->addRepeater(callsign2, repeaterBand2, repeaterAddress2, repeaterPort2, repeaterType2, reflector2, atStartup2, reconnect2, dratsEnabled, frequency2, offset2, range2, latitude2, longitude2, agl2, description21, description22, url2, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign2, repeaterBand2, frequency2, offset2, range2, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign2, repeaterBand2, frequency2, offset2, range2, latitude2, longitude2, agl2);
+			}
 		} else if (repeaterType2 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			thread->addRepeater(callsign2, repeaterBand2, repeaterAddress2, repeaterPort2, repeaterType2, reflector2, atStartup2, reconnect2, dratsEnabled, frequency2, offset2, range2, latitude2, longitude2, agl2, description21, description22, url2, dummyRepeaterHandler);
 		}
@@ -531,15 +566,23 @@ void CIRCDDBGatewayApp::createThread()
 			wxLogInfo(wxT("Repeater 3 bands: %u %u %u"), band31, band32, band33);
 			thread->addRepeater(callsign3, repeaterBand3, repeaterAddress3, repeaterPort3, repeaterType3, reflector3, atStartup3, reconnect3, dratsEnabled, frequency3, offset3, range3, latitude3, longitude3, agl3, description31, description32, url3, icomRepeaterHandler, band31, band32, band33);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign3, repeaterBand3, frequency3, offset3, range3, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			}
 
 			icomCount++;
 		} else if (repeaterType3 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			thread->addRepeater(callsign3, repeaterBand3, repeaterAddress3, repeaterPort3, repeaterType3, reflector3, atStartup3, reconnect3, dratsEnabled, frequency3, offset3, range3, latitude3, longitude3, agl3, description31, description32, url3, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign3, repeaterBand3, frequency3, offset3, range3, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign3, repeaterBand3, frequency3, offset3, range3, latitude3, longitude3, agl3);
+			}
 		} else if (repeaterType3 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			thread->addRepeater(callsign3, repeaterBand3, repeaterAddress3, repeaterPort3, repeaterType3, reflector3, atStartup3, reconnect3, dratsEnabled, frequency3, offset3, range3, latitude3, longitude3, agl3, description31, description32, url3, dummyRepeaterHandler);
 		}
@@ -627,15 +670,23 @@ void CIRCDDBGatewayApp::createThread()
 			wxLogInfo(wxT("Repeater 4 bands: %u %u %u"), band41, band42, band43);
 			thread->addRepeater(callsign4, repeaterBand4, repeaterAddress4, repeaterPort4, repeaterType4, reflector4, atStartup4, reconnect4, dratsEnabled, frequency4, offset4, range4, latitude4, longitude4, agl4, description41, description42, url4, icomRepeaterHandler, band41, band42, band43);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign4, repeaterBand4, frequency4, offset4, range4, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			}
 
 			icomCount++;
 		} else if (repeaterType4 == HW_HOMEBREW && hbRepeaterHandler != NULL) {
 			thread->addRepeater(callsign4, repeaterBand4, repeaterAddress4, repeaterPort4, repeaterType4, reflector4, atStartup4, reconnect4, dratsEnabled, frequency4, offset4, range4, latitude4, longitude4, agl4, description41, description42, url4, hbRepeaterHandler);
 
-			if (aprs != NULL)
-				aprs->setPort(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			if (aprs != NULL) {
+				if (gpsdEnabled)
+					aprs->setPortGPSD(callsign4, repeaterBand4, frequency4, offset4, range4, gpsdAddress, gpsdPort);
+				else
+					aprs->setPortFixed(callsign4, repeaterBand4, frequency4, offset4, range4, latitude4, longitude4, agl4);
+			}
 		} else if (repeaterType4 == HW_DUMMY && dummyRepeaterHandler != NULL) {
 			thread->addRepeater(callsign4, repeaterBand4, repeaterAddress4, repeaterPort4, repeaterType4, reflector4, atStartup4, reconnect4, dratsEnabled, frequency4, offset4, range4, latitude4, longitude4, agl4, description41, description42, url4, dummyRepeaterHandler);
 		}
@@ -650,7 +701,7 @@ void CIRCDDBGatewayApp::createThread()
 	wxString ircDDBHostname3, ircDDBUsername3, ircDDBPassword3;
 	wxString ircDDBHostname4, ircDDBUsername4, ircDDBPassword4;
 
-	m_config->getIrcDDB(ircDDBEnabled1, ircDDBHostname1, ircDDBUsername1, ircDDBPassword1);
+	m_config->getIrcDDB1(ircDDBEnabled1, ircDDBHostname1, ircDDBUsername1, ircDDBPassword1);
 	wxLogInfo(wxT("ircDDB 1 enabled: %d, host: %s, username: %s"), int(ircDDBEnabled1), ircDDBHostname1.c_str(), ircDDBUsername1.c_str());
 
 	m_config->getIrcDDB2(ircDDBEnabled2, ircDDBHostname2, ircDDBUsername2, ircDDBPassword2);
@@ -837,10 +888,9 @@ void CIRCDDBGatewayApp::createThread()
 	wxLogInfo(wxT("DCS enabled: %d, CCS enabled: %d, server: %s"), int(dcsEnabled), int(ccsEnabled), ccsHost.c_str());
 	
 	bool xlxEnabled;
-	bool xlxOverrideLocal;
 	wxString xlxHostsFileUrl;
-	m_config->getXLX(xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
-	wxLogInfo(wxT("XLX enabled: %d, Override Local %d, Hosts file url: %s"), int(xlxEnabled), int(xlxOverrideLocal), xlxHostsFileUrl.c_str());
+	m_config->getXLX(xlxEnabled, xlxHostsFileUrl);
+	wxLogInfo(wxT("XLX enabled: %d, Hosts file url: %s"), int(xlxEnabled), xlxHostsFileUrl.c_str());
 
 	if (repeaterBand1.Len() > 1U || repeaterBand2.Len() > 1U ||
 		repeaterBand3.Len() > 1U || repeaterBand4.Len() > 1U) {
@@ -910,7 +960,7 @@ void CIRCDDBGatewayApp::createThread()
 	thread->setDExtra(dextraEnabled, dextraMaxDongles);
 	thread->setDCS(dcsEnabled);
 	thread->setCCS(ccsEnabled, ccsHost);
-	thread->setXLX(xlxEnabled, xlxOverrideLocal, xlxEnabled ? CXLXHostsFileDownloader::Download(xlxHostsFileUrl) : wxString(wxEmptyString));
+	thread->setXLX(xlxEnabled, xlxEnabled ? CXLXHostsFileDownloader::Download(xlxHostsFileUrl) : wxString(wxEmptyString));
 	thread->setInfoEnabled(infoEnabled);
 	thread->setEchoEnabled(echoEnabled);
 	thread->setDTMFEnabled(dtmfEnabled);

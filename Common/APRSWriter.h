@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,12 +19,17 @@
 #ifndef	APRSWriter_H
 #define	APRSWriter_H
 
-#include "APRSWriterThread.h"
+#include "UDPReaderWriter.h"
 #include "APRSCollector.h"
 #include "DStarDefines.h"
+#include "HeaderData.h"
 #include "AMBEData.h"
 #include "Timer.h"
 #include "Defs.h"
+
+#if defined(USE_GPSD)
+#include <gps.h>
+#endif
 
 #include <wx/wx.h>
 
@@ -66,33 +71,40 @@ WX_DECLARE_STRING_HASH_MAP(CAPRSEntry*, CEntry_t);
 
 class CAPRSWriter {
 public:
-	CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& address);
+	CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway);
 	~CAPRSWriter();
 
 	bool open();
 
-	void setPort(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
+	void setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
+
+	void setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port);
+
+	void writeHeader(const wxString& callsign, const CHeaderData& header);
 
 	void writeData(const wxString& callsign, const CAMBEData& data);
-
-	void reset(const wxString& callsign);
-
-	void setEnabled(bool enable);
-
-	bool isConnected() const;
 
 	void clock(unsigned int ms);
 
 	void close();
 
 private:
-	CAPRSWriterThread* m_thread;
-	bool               m_enabled;
 	CTimer             m_idTimer;
 	wxString           m_gateway;
 	CEntry_t           m_array;
+	in_addr            m_aprsAddress;
+	unsigned int       m_aprsPort;
+	CUDPReaderWriter   m_aprsSocket;
+#if defined(USE_GPSD)
+	bool               m_gpsdEnabled;
+	wxString           m_gpsdAddress;
+	wxString           m_gpsdPort;
+	struct gps_data_t  m_gpsdData;
+#endif
 
-	void sendIdFrames();
+	void sendIdFramesFixed();
+	void sendIdFramesMobile();
 };
 
 #endif
+

@@ -52,6 +52,10 @@ public:
 	CHeaderData* readHeader();
 	CAMBEData*   readAMBE();
 
+#if defined(ENABLE_NAT_TRAVERSAL)
+	void traverseNat(const wxString& addr);
+#endif
+
 	void close();
 
 private:

@@ -23,9 +23,6 @@
     <ClCompile Include="APRSWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="APRSWriterThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AudioUnit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConnectData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsoleLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DCSHandler.cpp">
@@ -209,6 +209,9 @@
     <ClCompile Include="XLXHostsFileDownloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NatTraversalHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AMBEData.h">
@@ -221,9 +224,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="APRSWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="APRSWriterThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AudioUnit.h">
@@ -254,6 +254,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConnectData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DCSHandler.h">
@@ -431,6 +434,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XLXHostsFileDownloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NatTraversalHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

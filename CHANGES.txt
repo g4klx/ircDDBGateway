@@ -1,4 +1,4 @@
-ircDDB Gateway - 20180509
+ircDDB Gateway - 20180627
 =========================
 
 20101010
@@ -1476,3 +1476,15 @@ Added APRSTransmit program from F4FXL.
 Move to wxWidgets-3.0.x.
 UPdate to VS2017 on Windows for 32 and 64 bit compilation.
 Simplify the Linux build.
+
+20180627
+--------
+
+Support the GPS data from the Kenwood TH-D74.
+
+2018xxxx
+--------
+
+Add support for external GPS input for mobile systems.
+Add audio bypass processing for fast data mode.
+

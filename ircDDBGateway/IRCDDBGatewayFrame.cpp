@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -199,7 +199,7 @@ void CIRCDDBGatewayFrame::onAbout(wxCommandEvent&)
 	wxAboutDialogInfo info;
 	info.AddDeveloper(wxT("Jonathan Naylor, G4KLX"));
 	info.AddDeveloper(wxT("Michael Dirska, DL1BFF"));
-	info.SetCopyright(wxT("(C) 2010-2018 using GPL v2 or later"));
+	info.SetCopyright(wxT("(C) 2010-2020 using GPL v2 or later"));
 	info.SetName(APPLICATION_NAME);
 	info.SetVersion(VERSION);
 	info.SetDescription(_("This program allows a computer running homebrew repeaters\nto access the ircDDB network for G2 callsign and repeater routing,\nas well as D-Plus and DExtra reflectors. It includes a StarNet\nDigital server."));
@@ -271,14 +271,10 @@ void CIRCDDBGatewayFrame::onTimer(wxTimerEvent&)
 	}
 
 	bool dprsStatus = status->getDPRSStatus();
-	if (dprsStatus) {
-		if (ircDDBStatus == IS_CONNECTED || ircDDBStatus == IS_DISABLED)
-			m_dprsStatus->SetLabel(_("Active"));
-		else
-			m_dprsStatus->SetLabel(_("Waiting"));
-	} else {
+	if (dprsStatus)
+		m_dprsStatus->SetLabel(_("Active"));
+	else
 		m_dprsStatus->SetLabel(_("Inactive"));
-	}
 
 	for (unsigned int i = 0U; i < 4U; i++) {
 		wxString callsign = status->getCallsign(i);

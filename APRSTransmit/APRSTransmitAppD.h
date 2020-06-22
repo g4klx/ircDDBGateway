@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2014,2018,2020 by Jonathan Naylor G4KLX
  *   APRSTransmit Copyright (C) 2015 Geoffrey Merck F4FXL / KC3FRA
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -20,8 +20,8 @@
 #ifndef	APRSTransmitAppD_H
 #define	APRSTransmitAppD_H
 
+#include "UDPReaderWriter.h"
 #include "RingBuffer.h"
-#include "APRSWriterThread.h"
 
 #include <wx/wx.h>
 #include <wx/config.h>
@@ -31,7 +31,7 @@
 class CAPRSTransmitAppD {
 
 public:
-	CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsHost, unsigned int aprsPort, const wxString& aprsFilter, bool daemon);
+	CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsHost, unsigned int aprsPort, bool daemon);
 	~CAPRSTransmitAppD();
 
 	CRingBuffer<wxString*>  * m_aprsFramesQueue;
@@ -41,9 +41,9 @@ public:
 	void kill();
 
 private:
-	wxString m_repeater, m_aprsHost, m_aprsFilter;
+	wxString m_repeater, m_aprsHost;
 	unsigned int m_aprsPort;
-	CAPRSWriterThread *      m_aprsThread;
+	CUDPReaderWriter * m_aprsSocket;
 	bool m_run;
 	wxSingleInstanceChecker * m_checker;
 	bool m_daemon;

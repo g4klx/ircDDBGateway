@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,8 +27,7 @@ enum APRS_STATE {
 	AS_NONE,
 	AS_GGA,
 	AS_RMC,
-	AS_CRC,
-	AS_TXT
+	AS_CRC
 };
 
 class CAPRSCollector {
@@ -36,11 +35,13 @@ public:
 	CAPRSCollector();
 	~CAPRSCollector();
 
+	void writeHeader(const wxString& callsign);
+
 	bool writeData(const unsigned char* data);
 
-	void sync();
-
 	void reset();
+
+	void sync();
 
 	unsigned int getData(unsigned char* data, unsigned int length);
 
@@ -55,17 +56,16 @@ private:
 	unsigned char* m_crcData;
 	unsigned int   m_crcLength;
 	bool           m_crcValid;
-	unsigned char* m_txtData;
-	unsigned int   m_txtLength;
-	bool           m_txtValid;
 	unsigned char* m_buffer;
 	SLOWDATA_STATE m_slowData;
+	wxString       m_collector;
+	wxString       m_callsign;
 
-	bool addData(const unsigned char* data);
-	void addGGAData(const unsigned char* data);
-	void addRMCData(const unsigned char* data);
-	bool addCRCData(const unsigned char* data);
-	bool addTXTData(const unsigned char* data);
+	bool addGPSData(const unsigned char* data);
+
+	void addGGAData();
+	bool addRMCData();
+	bool addCRCData();
 
 	bool checkXOR(const unsigned char* data, unsigned int length) const;
 	unsigned char calcXOR(const unsigned char* buffer, unsigned int length) const;
@@ -76,7 +76,7 @@ private:
 	unsigned int convertNMEA1(unsigned char* data, unsigned int length);
 	unsigned int convertNMEA2(unsigned char* data, unsigned int length);
 
-	void getSymbol(const unsigned char* data, char& symbol, char& overlay);
+	void dstarCallsignToAPRS(const wxString& dstarCallsign, char* aprsCallsign) const;
 
 	char* mystrsep(char** sp, const char* sep) const;
 };

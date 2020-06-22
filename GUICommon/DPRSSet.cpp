@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,11 +25,11 @@ const unsigned int CONTROL_WIDTH2 = 80U;
 const unsigned int PORT_LENGTH     = 5U;
 const unsigned int PASSWORD_LENGTH = 5U;
 
-CDPRSSet::CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& hostname, unsigned int port) :
+CDPRSSet::CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& address, unsigned int port) :
 wxPanel(parent, id),
 m_title(title),
 m_enabled(NULL),
-m_hostname(NULL),
+m_address(NULL),
 m_port(NULL)
 {
 	wxFlexGridSizer* sizer = new wxFlexGridSizer(2);
@@ -43,11 +43,11 @@ m_port(NULL)
 	sizer->Add(m_enabled, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 	m_enabled->SetSelection(enabled ? 1 : 0);
 
-	wxStaticText* hostnameLabel = new wxStaticText(this, -1, _("Hostname"));
-	sizer->Add(hostnameLabel, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
+	wxStaticText* addressLabel = new wxStaticText(this, -1, _("Address"));
+	sizer->Add(addressLabel, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 
-	m_hostname = new wxTextCtrl(this, -1, hostname, wxDefaultPosition, wxSize(CONTROL_WIDTH1, -1));
-	sizer->Add(m_hostname, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
+	m_address = new wxTextCtrl(this, -1, address, wxDefaultPosition, wxSize(CONTROL_WIDTH1, -1));
+	sizer->Add(m_address, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 
 	wxStaticText* portLabel = new wxStaticText(this, -1, _("Port"));
 	sizer->Add(portLabel, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
@@ -75,8 +75,8 @@ bool CDPRSSet::Validate()
 	if (n == wxNOT_FOUND)
 		return false;
 
-	wxString hostname = m_hostname->GetValue();
-	if (hostname.IsEmpty())
+	wxString address = m_address->GetValue();
+	if (address.IsEmpty())
 		return true;
 
 	unsigned int port = getPort();
@@ -99,9 +99,9 @@ bool CDPRSSet::getEnabled() const
 	return c == 1;
 }
 
-wxString CDPRSSet::getHostname() const
+wxString CDPRSSet::getAddress() const
 {
-	return m_hostname->GetValue();
+	return m_address->GetValue();
 }
 
 unsigned int CDPRSSet::getPort() const

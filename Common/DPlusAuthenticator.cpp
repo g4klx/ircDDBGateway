@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,11 +22,8 @@
 #include "Utils.h"
 #include "Defs.h"
 
-const wxString OPENDSTAR_HOSTNAME = wxT("opendstar.org");
+const wxString OPENDSTAR_HOSTNAME = wxT("auth.dstargateway.org");
 const unsigned int OPENDSTAR_PORT = 20001U;
-
-const wxString DUTCHSTAR_HOSTNAME = wxT("dpns.dutch-star.eu");
-const unsigned int DUTCHSTAR_PORT = 20001U;
 
 const unsigned int TCP_TIMEOUT = 10U;
 
@@ -37,7 +34,6 @@ m_gatewayCallsign(gatewayCallsign),
 m_address(address),
 m_cache(cache),
 m_timer(1U, 6U * 3600U),		// 6 hours
-m_pollTimer(1U, 60U),			// 1 minute
 m_killed(false)
 {
 	wxASSERT(!loginCallsign.IsEmpty());
@@ -68,28 +64,19 @@ void* CDPlusAuthenticator::Entry()
 	wxLogMessage(wxT("Starting the D-Plus Authenticator thread"));
 
 	authenticate(m_loginCallsign, OPENDSTAR_HOSTNAME, OPENDSTAR_PORT, '2', true);
-	authenticate(m_gatewayCallsign, DUTCHSTAR_HOSTNAME, DUTCHSTAR_PORT, 'K', false);
 
 	m_timer.start();
-	m_pollTimer.start();
 
 	try {
 		while (!m_killed) {
-			if (m_pollTimer.hasExpired()) {
-				poll(m_gatewayCallsign, DUTCHSTAR_HOSTNAME, DUTCHSTAR_PORT, 'K');
-				m_pollTimer.start();
-			}
-
 			if (m_timer.hasExpired()) {
 				authenticate(m_loginCallsign, OPENDSTAR_HOSTNAME, OPENDSTAR_PORT, '2', true);
-				authenticate(m_gatewayCallsign, DUTCHSTAR_HOSTNAME, DUTCHSTAR_PORT, 'K', false);
 				m_timer.start();
 			}
 
 			Sleep(1000UL);
 
 			m_timer.clock();
-			m_pollTimer.clock();
 		}
 	}
 	catch (std::exception& e) {

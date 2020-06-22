@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2014,2020 by Jonathan Naylor G4KLX
  *   APRSTransmit Copyright (C) 2015 Geoffrey Merck F4FXL / KC3FRA
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 
 
 CAPRSTransmit::CAPRSTransmit(const wxString& callsign, const wxString& text) :
-m_socket(wxEmptyString, 0U),
+m_socket(),
 m_repeaterCallsign(callsign),
 m_APRSCallsign(callsign),
 m_text(text)

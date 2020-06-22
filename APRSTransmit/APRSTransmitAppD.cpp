@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2014,2018,2020 by Jonathan Naylor G4KLX
  *   APRSTransmit Copyright (C) 2015 Geoffrey Merck F4FXL / KC3FRA
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 #include "DStarDefines.h"
 #include "APRSTransmit.h"
 #include "APRSTransmitAppD.h"
-#include "APRSWriterThread.h"
 
 #include <wx/textfile.h>
 #include <wx/cmdline.h>
@@ -35,7 +34,6 @@
 const wxChar* REPEATER_PARAM   = wxT("Repeater");
 const wxChar* APRS_HOST        = wxT("host");
 const wxChar* APRS_PORT        = wxT("port");
-const wxChar* APRS_FILTER      = wxT("filter");
 const wxChar* DAEMON_SWITCH    = wxT("daemon");
 
 static CAPRSTransmitAppD* m_aprsTransmit = NULL;
@@ -43,12 +41,6 @@ static CAPRSTransmitAppD* m_aprsTransmit = NULL;
 static void handler(int signum)
 {
 	m_aprsTransmit->kill();
-}
-
-static void aprsFrameCallback(const wxString& aprsFrame)
-{
-	//wxLogMessage(wxT("Received APRS Frame : ") + aprsFrame);
-	m_aprsTransmit->m_aprsFramesQueue->addData(new wxString(aprsFrame.Clone()));
 }
 
 int main(int argc, char** argv)
@@ -63,7 +55,6 @@ int main(int argc, char** argv)
 	parser.AddParam(REPEATER_PARAM, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(APRS_HOST, wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddOption(APRS_PORT, wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL);
-	parser.AddOption(APRS_FILTER, wxEmptyString, wxEmptyString, wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 	parser.AddSwitch(DAEMON_SWITCH, wxEmptyString, wxEmptyString, wxCMD_LINE_PARAM_OPTIONAL);
 
 	int cmd = parser.Parse();
@@ -73,7 +64,7 @@ int main(int argc, char** argv)
 	}
 
 	if (parser.GetParamCount() < 1U) {
-		::fprintf(stderr, "aprstransmitd: invalid command line usage: aprstransmitd <repeater> [-host <aprs_server>] [-port <aprs_port>] [-filter <aprsis_filter1>[;<aprsis_filter2]] [-daemon] exiting\n");
+		::fprintf(stderr, "aprstransmitd: invalid command line usage: aprstransmitd <repeater> [-host <aprs_server>] [-port <aprs_port>] [-daemon] exiting\n");
 		::wxUninitialize();
 		return 1;
 	}
@@ -89,28 +80,19 @@ int main(int argc, char** argv)
 	}
 	repeater.Replace(wxT("_"), wxT(" "));
 	repeater.MakeUpper();
-	
+
 	long aprsPort;
-	if(!parser.Found(APRS_PORT, &aprsPort))
-		aprsPort = 14580;
+	if (!parser.Found(APRS_PORT, &aprsPort))
+		aprsPort = 14580L;
 
 	wxString aprsHost;
-	if(!parser.Found(APRS_HOST, &aprsHost)){
+	if (!parser.Found(APRS_HOST, &aprsHost))
 		aprsHost = wxT("rotate.aprs2.net");
-	}
-
-	wxString aprsFilter;
-	if(!parser.Found(APRS_FILTER, &aprsFilter)) {
-		/* no filter specified on command line,
-		build one which will tell the APRS server to pass
-		us all stations 50km around our repeater */
-		aprsFilter = wxT("m/50");
-	}
 
 	bool daemon = parser.Found(DAEMON_SWITCH);
 
 #if defined(__WINDOWS__)
-	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsHost, aprsPort, aprsFilter, daemon);
+	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsHost, aprsPort, daemon);
 	if (!m_aprsTransmit->init()) {
 		::wxUninitialize();
 		return 1;
@@ -143,7 +125,7 @@ int main(int argc, char** argv)
 		::fclose(fp);
 	}
 
-	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsHost, aprsPort, aprsFilter, daemon);
+	m_aprsTransmit = new CAPRSTransmitAppD(repeater, aprsHost, aprsPort, daemon);
 	if (!m_aprsTransmit->init()) {
 		::wxUninitialize();
 		return 1;
@@ -162,13 +144,12 @@ int main(int argc, char** argv)
 
 
 
-CAPRSTransmitAppD::CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsHost, unsigned int aprsPort, const wxString& aprsFilter, bool daemon) :
+CAPRSTransmitAppD::CAPRSTransmitAppD(const wxString& repeater, const wxString& aprsHost, unsigned int aprsPort, bool daemon) :
 m_aprsFramesQueue(NULL),
 m_repeater(repeater),
 m_aprsHost(aprsHost),
-m_aprsFilter(aprsFilter),
 m_aprsPort(aprsPort),
-m_aprsThread(NULL),
+m_aprsSocket(NULL),
 m_run(false),
 m_checker(NULL),
 m_daemon(daemon)
@@ -220,9 +201,8 @@ void CAPRSTransmitAppD::run()
 	if(m_run) return;
 
 	m_aprsFramesQueue = new CRingBuffer<wxString*>(30U);
-	m_aprsThread = new CAPRSWriterThread(m_repeater, wxT("0.0.0.0"), m_aprsHost, m_aprsPort, m_aprsFilter, wxT("APRSTransmit 1.1"));
-	m_aprsThread->setReadAPRSCallback(aprsFrameCallback);
-	m_aprsThread->start();
+	m_aprsSocket = new CUDPReaderWriter;
+	m_aprsSocket->open();
 	
 	wxString * aprsFrame;
 
@@ -230,14 +210,12 @@ void CAPRSTransmitAppD::run()
 	while(m_run){
 		wxMilliSleep(10U);
 		aprsFrame = m_aprsFramesQueue->getData();
-		if(aprsFrame){
+		if (aprsFrame != NULL) {
 			CAPRSTransmit aprsTransmit(m_repeater, wxString(*aprsFrame));
 			aprsTransmit.run();
 			delete aprsFrame;
 		}
 	}
-
-	m_aprsThread->stop();
 
 	cleanup();
 }
@@ -245,23 +223,23 @@ void CAPRSTransmitAppD::run()
 
 void CAPRSTransmitAppD::cleanup()
 {
-	m_aprsThread->setReadAPRSCallback(NULL);
-
-	if(m_aprsFramesQueue)
+	if (m_aprsFramesQueue != NULL)
 	{
-		while(m_aprsFramesQueue->peek()) delete m_aprsFramesQueue->getData();
+		while (m_aprsFramesQueue->peek()) delete m_aprsFramesQueue->getData();
 		delete m_aprsFramesQueue;
 		m_aprsFramesQueue = NULL;
 	}	
-	if(m_checker) {
+
+	if (m_checker != NULL) {
 		delete m_checker;
 		m_checker = NULL;
 	}
 
-	if(m_aprsThread)
+	if (m_aprsSocket != NULL)
 	{
-		delete m_aprsThread;
-		m_aprsThread = NULL;
+		m_aprsSocket->close();
+		delete m_aprsSocket;
+		m_aprsSocket = NULL;
 	}
 }
 

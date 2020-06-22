@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -65,6 +65,7 @@ m_starNet3(NULL),
 m_starNet4(NULL),
 m_starNet5(NULL),
 m_remote(NULL),
+m_gpsd(NULL),
 m_miscellaneous(NULL)
 {
 	SetMenuBar(createMenuBar());
@@ -103,9 +104,8 @@ m_miscellaneous(NULL)
 	m_config->getDCS(dcsEnabled, ccsEnabled, ccsHost);
 	
 	bool xlxEnabled;
-	bool xlxOverrideLocal;
 	wxString xlxHostsFileUrl;
-	m_config->getXLX(xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_config->getXLX(xlxEnabled, xlxHostsFileUrl);
 
 	GATEWAY_TYPE gatewayType;
 	wxString gatewayCallsign, gatewayAddress, icomAddress, hbAddress, description1, description2, url;
@@ -178,7 +178,7 @@ m_miscellaneous(NULL)
 
 	bool ircDDBEnabled;
 	wxString ircDDBHostname, ircDDBUsername, ircDDBPassword;
-	m_config->getIrcDDB(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
+	m_config->getIrcDDB1(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	m_ircDDB = new CIRCDDBGatewayConfigIrcDDBSet(noteBook, -1, APPLICATION_NAME, ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	noteBook->AddPage(m_ircDDB, wxT("ircDDB 1st Network"), false);
 
@@ -194,12 +194,12 @@ m_miscellaneous(NULL)
 	m_ircDDB4 = new CIRCDDBGatewayConfigIrcDDBSet(noteBook, -1, APPLICATION_NAME, ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	noteBook->AddPage(m_ircDDB4, wxT("ircDDB 4th Network"), false);
 
-	wxString aprsHostname;
+	wxString aprsAddress;
 	unsigned int aprsPort;
 	bool aprsEnabled;
-	m_config->getDPRS(aprsEnabled, aprsHostname, aprsPort);
+	m_config->getDPRS(aprsEnabled, aprsAddress, aprsPort);
 
-	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled, aprsHostname, aprsPort);
+	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled, aprsAddress, aprsPort);
 	noteBook->AddPage(m_dprs, wxT("D-PRS"), false);
 
 	m_dextra = new CDExtraSet(noteBook, -1, APPLICATION_NAME, dextraEnabled, maxDExtraDongles, MAX_DEXTRA_LINKS);
@@ -211,7 +211,7 @@ m_miscellaneous(NULL)
 	m_dcs = new CDCSSet(noteBook, -1, APPLICATION_NAME, dcsEnabled, ccsEnabled, ccsHost);
 	noteBook->AddPage(m_dcs, _("DCS and CCS"), false);
 	
-	m_xlx = new CXLXSet(noteBook, -1, APPLICATION_NAME, xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_xlx = new CXLXSet(noteBook, -1, APPLICATION_NAME, xlxEnabled, xlxHostsFileUrl);
 	noteBook->AddPage(m_xlx, _("XLX Hosts File"), false);
 
 #if defined(DEXTRA_LINK) || defined(DCS_LINK)
@@ -314,6 +314,13 @@ m_miscellaneous(NULL)
 	m_remote = new CRemoteSet(noteBook, -1, APPLICATION_NAME, remoteEnabled, remotePassword, remotePort);
 	noteBook->AddPage(m_remote, wxT("Remote"), false);
 
+	bool gpsdEnabled;
+	wxString gpsdAddress, gpsdPort;
+	m_config->getGPSD(gpsdEnabled, gpsdAddress, gpsdPort);
+
+	m_gpsd = new CGPSDSet(noteBook, -1, APPLICATION_NAME, gpsdEnabled, gpsdAddress, gpsdPort);
+	noteBook->AddPage(m_gpsd, wxT("GPSD"), false);
+
 	TEXT_LANG language;
 	bool infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled;
 	m_config->getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
@@ -321,15 +328,15 @@ m_miscellaneous(NULL)
 	m_miscellaneous = new CIRCDDBGatewayConfigMiscellaneousSet(noteBook, -1, APPLICATION_NAME, language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
 	noteBook->AddPage(m_miscellaneous, wxT("Misc"), false);
 
-        sizer->Add(noteBook, 0, wxEXPAND | wxALL, BORDER_SIZE);
+	sizer->Add(noteBook, 0, wxEXPAND | wxALL, BORDER_SIZE);
 
-        panel->SetSizer(sizer);
+	panel->SetSizer(sizer);
 
-        mainSizer->Add(panel, 0, wxEXPAND | wxALL, BORDER_SIZE);
+	mainSizer->Add(panel, 0, wxEXPAND | wxALL, BORDER_SIZE);
 
-        mainSizer->SetSizeHints(this);
+	mainSizer->SetSizeHints(this);
 
-        SetSizer(mainSizer);
+	SetSizer(mainSizer);
 }
 
 CIRCDDBGatewayConfigFrame::~CIRCDDBGatewayConfigFrame()
@@ -371,7 +378,7 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 		!m_repeaterInfo4->Validate() ||
 		!m_ircDDB->Validate() || !m_ircDDB2->Validate() || !m_ircDDB3->Validate() || !m_ircDDB4->Validate() || !m_dprs->Validate() || !m_dplus->Validate() || !m_dcs->Validate() || !m_xlx->Validate() ||
 		!m_starNet1->Validate() || !m_starNet2->Validate() || !m_starNet3->Validate() || !m_starNet4->Validate() ||
-		!m_starNet5->Validate() || !m_remote->Validate() || !m_miscellaneous->Validate())
+		!m_starNet5->Validate() || !m_remote->Validate() || !m_gpsd->Validate() || !m_miscellaneous->Validate())
 		return;
 
 	GATEWAY_TYPE gatewayType = m_gateway->getType();
@@ -476,7 +483,7 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	wxString ircDDBHostname	   = m_ircDDB->getHostname();
 	wxString ircDDBUsername    = m_ircDDB->getUsername();
 	wxString ircDDBPassword    = m_ircDDB->getPassword();
-	m_config->setIrcDDB(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
+	m_config->setIrcDDB1(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 
 	ircDDBEnabled			   = m_ircDDB2->getEnabled();
 	ircDDBHostname			   = m_ircDDB2->getHostname();
@@ -497,9 +504,9 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setIrcDDB4(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 
 	bool aprsEnabled      = m_dprs->getEnabled();
-	wxString aprsHostname = m_dprs->getHostname();
+	wxString aprsAddress  = m_dprs->getAddress();
 	unsigned int aprsPort = m_dprs->getPort();
-	m_config->setDPRS(aprsEnabled, aprsHostname, aprsPort);
+	m_config->setDPRS(aprsEnabled, aprsAddress, aprsPort);
 
 	bool dextraEnabled            = m_dextra->getEnabled();
 	unsigned int maxDExtraDongles = m_dextra->getMaxDongles();
@@ -516,9 +523,8 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setDCS(dcsEnabled, ccsEnabled, ccsHost);
 	
 	bool xlxEnabled  = m_xlx->getXLXEnabled();
-	bool xlxOverrideLocal = m_xlx->getXLXOverrideLocal();
 	wxString xlxHostsFileUrl = m_xlx->getXLXHostsFileUrl();
-	m_config->setXLX(xlxEnabled, xlxOverrideLocal, xlxHostsFileUrl);
+	m_config->setXLX(xlxEnabled, xlxHostsFileUrl);
 
 	wxString starNetBand1             = m_starNet1->getBand();
 	wxString starNetCallsign1         = m_starNet1->getCallsign();
@@ -605,6 +611,11 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	unsigned int remotePort = m_remote->getPort();
 	m_config->setRemote(remoteEnabled, remotePassword, remotePort);
 
+	bool gpsdEnabled     = m_gpsd->getEnabled();
+	wxString gpsdAddress = m_gpsd->getAddress();
+	wxString gpsdPort    = m_gpsd->getPort();
+	m_config->setGPSD(gpsdEnabled, gpsdAddress, gpsdPort);
+
 	TEXT_LANG language = m_miscellaneous->getLanguage();
 	bool infoEnabled   = m_miscellaneous->getInfoEnabled();
 	bool echoEnabled   = m_miscellaneous->getEchoEnabled();
@@ -627,7 +638,7 @@ void CIRCDDBGatewayConfigFrame::onAbout(wxCommandEvent&)
 {
 	wxAboutDialogInfo info;
 	info.AddDeveloper(wxT("Jonathan Naylor, G4KLX"));
-	info.SetCopyright(wxT("(C) 2010-2018 using GPL v2 or later"));
+	info.SetCopyright(wxT("(C) 2010-2020 using GPL v2 or later"));
 	info.SetName(APPLICATION_NAME);
 	info.SetVersion(VERSION);
 	info.SetDescription(_("This program configures the ircDDB Gateway."));

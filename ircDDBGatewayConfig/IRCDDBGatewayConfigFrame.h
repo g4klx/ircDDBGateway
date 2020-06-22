@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "DExtraSet.h"
 #include "DPlusSet.h"
 #include "DPRSSet.h"
+#include "GPSDSet.h"
 #include "DCSSet.h"
 #include "XLXSet.h"
 #include "Defs.h"
@@ -65,13 +66,14 @@ private:
 	CDExtraSet*                           m_dextra;
 	CDPlusSet*                            m_dplus;
 	CDCSSet*                              m_dcs;
-	CXLXSet*			      m_xlx;
+	CXLXSet*                              m_xlx;
 	CStarNetSet*                          m_starNet1;
 	CStarNetSet*                          m_starNet2;
 	CStarNetSet*                          m_starNet3;
 	CStarNetSet*                          m_starNet4;
 	CStarNetSet*                          m_starNet5;
 	CRemoteSet*                           m_remote;
+	CGPSDSet*                             m_gpsd;
 	CIRCDDBGatewayConfigMiscellaneousSet* m_miscellaneous;
 
 	DECLARE_EVENT_TABLE()

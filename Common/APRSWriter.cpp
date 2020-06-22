@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -118,22 +118,29 @@ bool CAPRSEntry::isOK()
 	}
 }
 
-CAPRSWriter::CAPRSWriter(const wxString& hostname, unsigned int port, const wxString& gateway, const wxString& address) :
-m_thread(NULL),
-m_enabled(false),
-m_idTimer(1000U, 20U * 60U),		// 20 minutes
+CAPRSWriter::CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway) :
+m_idTimer(1000U),
 m_gateway(),
-m_array()
+m_array(),
+m_aprsAddress(),
+m_aprsPort(port),
+m_aprsSocket()
+#if defined(USE_GPSD)
+,m_gpsdEnabled(false),
+m_gpsdAddress(),
+m_gpsdPort(),
+m_gpsdData()
+#endif
 {
-	wxASSERT(!hostname.IsEmpty());
+	wxASSERT(!address.IsEmpty());
 	wxASSERT(port > 0U);
 	wxASSERT(!gateway.IsEmpty());
-
-	m_thread = new CAPRSWriterThread(gateway, address, hostname, port);
 
 	m_gateway = gateway;
 	m_gateway.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 	m_gateway.Trim();
+
+	m_aprsAddress = CUDPReaderWriter::lookup(address);
 }
 
 CAPRSWriter::~CAPRSWriter()
@@ -144,7 +151,7 @@ CAPRSWriter::~CAPRSWriter()
 	m_array.clear();
 }
 
-void CAPRSWriter::setPort(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl)
+void CAPRSWriter::setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl)
 {
 	wxString temp = callsign;
 	temp.resize(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
@@ -153,9 +160,64 @@ void CAPRSWriter::setPort(const wxString& callsign, const wxString& band, double
 	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, latitude, longitude, agl);
 }
 
+void CAPRSWriter::setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port)
+{
+#if defined(USE_GPSD)
+	wxASSERT(!address.IsEmpty());
+	wxASSERT(!port.IsEmpty());
+
+	wxString temp = callsign;
+	temp.resize(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
+	temp.Append(band);
+
+	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, 0.0, 0.0, 0.0);
+
+	m_gpsdEnabled = true;
+	m_gpsdAddress = address;
+	m_gpsdPort    = port;
+#endif
+}
+
 bool CAPRSWriter::open()
 {
-	return m_thread->start();
+#if defined(USE_GPSD)
+	if (m_gpsdEnabled) {
+		int ret = ::gps_open(m_gpsdAddress.mb_str(), m_gpsdPort.mb_str(), &m_gpsdData);
+		if (ret != 0) {
+			wxLogError(wxT("Error when opening access to gpsd - %d - %s"), errno, ::gps_errstr(errno));
+			return false;
+		}
+
+		::gps_stream(&m_gpsdData, WATCH_ENABLE | WATCH_JSON, NULL);
+
+		wxLogMessage(wxT("Connected to GPSD"));
+	}
+#endif
+	bool ret = m_aprsSocket.open();
+	if (!ret)
+		return false;
+
+	wxLogMessage(wxT("Opened connection to the APRS Gateway"));
+
+	m_idTimer.setTimeout(60U);
+	m_idTimer.start();
+
+	return true;
+}
+
+void CAPRSWriter::writeHeader(const wxString& callsign, const CHeaderData& header)
+{
+	CAPRSEntry* entry = m_array[callsign];
+	if (entry == NULL) {
+		wxLogError(wxT("Cannot find the callsign \"%s\" in the APRS array"), callsign.c_str());
+		return;
+	}
+
+	entry->reset();
+
+	CAPRSCollector* collector = entry->getCollector();
+
+	collector->writeHeader(header.getMyCall1());
 }
 
 void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
@@ -182,16 +244,6 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 	bool complete = collector->writeData(buffer + VOICE_FRAME_LENGTH_BYTES);
 	if (!complete)
 		return;
-
-	if (!m_enabled) {
-		collector->reset();
-		return;
-	}
-
-	if (!m_thread->isConnected()) {
-		collector->reset();
-		return;
-	}
 
 	// Check the transmission timer
 	bool ok = entry->isOK();
@@ -223,67 +275,59 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 		body = body.Left(n);
 
 	wxString output;
-	output.Printf(wxT("%s,qAR,%s-%s:%s"), header.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(), body.c_str());
+	output.Printf(wxT("%s,qAR,%s-%s:%s\r\n"), header.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(), body.c_str());
 
 	char ascii[500U];
 	::memset(ascii, 0x00, 500U);
 	for (unsigned int i = 0U; i < output.Len(); i++)
 		ascii[i] = output.GetChar(i);
 
-	m_thread->write(ascii);
+	wxLogDebug(wxT("APRS ==> %s"), output.c_str());
+
+	m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 	collector->reset();
-}
-
-void CAPRSWriter::reset(const wxString& callsign)
-{
-	CAPRSEntry* entry = m_array[callsign];
-	if (entry == NULL) {
-		wxLogError(wxT("Cannot find the callsign \"%s\" in the APRS array"), callsign.c_str());
-		return;
-	}
-
-	entry->reset();
-}
-
-void CAPRSWriter::setEnabled(bool enabled)
-{
-	m_enabled = enabled;
-
-	if (m_enabled) {
-		sendIdFrames();
-		m_idTimer.start();
-	}
 }
 
 void CAPRSWriter::clock(unsigned int ms)
 {
 	m_idTimer.clock(ms);
 
-	if (m_idTimer.hasExpired()) {
-		sendIdFrames();
-		m_idTimer.start();
-	}
+#if defined(USE_GPSD)
+	if (m_gpsdEnabled) {
+		if (m_idTimer.hasExpired()) {
+			sendIdFramesMobile();
+			m_idTimer.start();
+		}
 
+	} else {
+#endif
+		if (m_idTimer.hasExpired()) {
+			sendIdFramesFixed();
+			m_idTimer.setTimeout(20U * 60U);
+			m_idTimer.start();
+		}
+#if defined(USE_GPSD)
+	}
+#endif
 	for (CEntry_t::iterator it = m_array.begin(); it != m_array.end(); ++it)
 		it->second->clock(ms);
 }
 
-bool CAPRSWriter::isConnected() const
-{
-	return m_thread->isConnected();
-}
-
 void CAPRSWriter::close()
 {
-	m_thread->stop();
+	m_aprsSocket.close();
+
+#if defined(USE_GPSD)
+	if (m_gpsdEnabled) {
+		::gps_stream(&m_gpsdData, WATCH_DISABLE, NULL);
+		::gps_close(&m_gpsdData);
+	}
+#endif
 }
 
-void CAPRSWriter::sendIdFrames()
+void CAPRSWriter::sendIdFramesFixed()
 {
-	if (!m_thread->isConnected())
-		return;
-
 	time_t now;
 	::time(&now);
 	struct tm* tm = ::gmtime(&now);
@@ -361,34 +405,196 @@ void CAPRSWriter::sendIdFrames()
 		lon.Replace(wxT(","), wxT("."));
 
 		wxString output;
-		output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cD%s%caRNG%04.0lf %s %s"),
+		output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cD%s%caRNG%04.0lf/A=%06.0lf %s %s\r\n"),
 			m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 			tm->tm_mday, tm->tm_hour, tm->tm_min,
 			lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
 			lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
-			entry->getRange() * 0.6214, band.c_str(), desc.c_str());
+			entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str());
 
 		char ascii[300U];
 		::memset(ascii, 0x00, 300U);
 		for (unsigned int i = 0U; i < output.Len(); i++)
 			ascii[i] = output.GetChar(i);
 
-		m_thread->write(ascii);
+		wxLogDebug(wxT("APRS ==> %s"), output.c_str());
+
+		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
-			output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&RNG%04.0lf %s %s"),
+			output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&RNG%04.0lf/A=%06.0lf %s %s\r\n"),
 				entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 				lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
 				lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
-				entry->getRange() * 0.6214, band.c_str(), desc.c_str());
+				entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str());
 
 			::memset(ascii, 0x00, 300U);
 			for (unsigned int i = 0U; i < output.Len(); i++)
 				ascii[i] = output.GetChar(i);
 
-			m_thread->write(ascii);
+			wxLogDebug(wxT("APRS ==> %s"), output.c_str());
+
+			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 		}
 	}
-
-	m_idTimer.start();
 }
+
+#if defined(USE_GPSD)
+void CAPRSWriter::sendIdFramesMobile()
+{
+	if (!m_gpsdEnabled)
+		return;
+
+	if (!::gps_waiting(&m_gpsdData, 0))
+		return;
+
+	if (::gps_read(&m_gpsdData, NULL, 0) <= 0)
+		return;
+
+	if (m_gpsdData.status != STATUS_FIX)
+		return;
+
+	bool latlonSet   = (m_gpsdData.set & LATLON_SET) == LATLON_SET;
+	bool altitudeSet = (m_gpsdData.set & ALTITUDE_SET) == ALTITUDE_SET;
+	bool velocitySet = (m_gpsdData.set & SPEED_SET) == SPEED_SET;
+	bool bearingSet  = (m_gpsdData.set & TRACK_SET) == TRACK_SET;
+
+	if (!latlonSet)
+		return;
+
+	float rawLatitude  = float(m_gpsdData.fix.latitude);
+	float rawLongitude = float(m_gpsdData.fix.longitude);
+	float rawAltitude  = float(m_gpsdData.fix.altMSL);
+	float rawVelocity  = float(m_gpsdData.fix.speed);
+	float rawBearing   = float(m_gpsdData.fix.track);
+
+	time_t now;
+	::time(&now);
+	struct tm* tm = ::gmtime(&now);
+
+	for (CEntry_t::iterator it = m_array.begin(); it != m_array.end(); ++it) {
+		CAPRSEntry* entry = it->second;
+		if (entry == NULL)
+			continue;
+
+		wxString desc;
+		if (entry->getBand().Len() > 1U) {
+			if (entry->getFrequency() != 0.0)
+				desc.Printf(wxT("Data %.5lfMHz"), entry->getFrequency());
+			else
+				desc = wxT("Data");
+		} else {
+			if (entry->getFrequency() != 0.0)
+				desc.Printf(wxT("Voice %.5lfMHz %c%.4lfMHz"),
+						entry->getFrequency(),
+						entry->getOffset() < 0.0 ? wxT('-') : wxT('+'),
+						::fabs(entry->getOffset()));
+			else
+				desc = wxT("Voice");
+		}
+
+		wxString band;
+		if (entry->getFrequency() >= 1200.0)
+			band = wxT("1.2");
+		else if (entry->getFrequency() >= 420.0)
+			band = wxT("440");
+		else if (entry->getFrequency() >= 144.0)
+			band = wxT("2m");
+		else if (entry->getFrequency() >= 50.0)
+			band = wxT("6m");
+		else if (entry->getFrequency() >= 28.0)
+			band = wxT("10m");
+
+		double tempLat  = ::fabs(rawLatitude);
+		double tempLong = ::fabs(rawLongitude);
+
+		double latitude  = ::floor(tempLat);
+		double longitude = ::floor(tempLong);
+
+		latitude  = (tempLat  - latitude)  * 60.0 + latitude  * 100.0;
+		longitude = (tempLong - longitude) * 60.0 + longitude * 100.0;
+
+		wxString lat;
+		if (latitude >= 1000.0F)
+			lat.Printf(wxT("%.2lf"), latitude);
+		else if (latitude >= 100.0F)
+			lat.Printf(wxT("0%.2lf"), latitude);
+		else if (latitude >= 10.0F)
+			lat.Printf(wxT("00%.2lf"), latitude);
+		else
+			lat.Printf(wxT("000%.2lf"), latitude);
+
+		wxString lon;
+		if (longitude >= 10000.0F)
+			lon.Printf(wxT("%.2lf"), longitude);
+		else if (longitude >= 1000.0F)
+			lon.Printf(wxT("0%.2lf"), longitude);
+		else if (longitude >= 100.0F)
+			lon.Printf(wxT("00%.2lf"), longitude);
+		else if (longitude >= 10.0F)
+			lon.Printf(wxT("000%.2lf"), longitude);
+		else
+			lon.Printf(wxT("0000%.2lf"), longitude);
+
+		// Convert commas to periods in the latitude and longitude
+		lat.Replace(wxT(","), wxT("."));
+		lon.Replace(wxT(","), wxT("."));
+
+		wxString output1;
+		output1.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cD%s%ca/A=%06.0lf"),
+			m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+			tm->tm_mday, tm->tm_hour, tm->tm_min,
+			lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+			lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
+			rawAltitude * 3.28);
+
+		wxString output2;
+		if (bearingSet && velocitySet)
+			output2.Printf(wxT("%03.0lf/%03.0lf"), rawBearing, rawVelocity * 0.539957F);
+
+		wxString output3;
+		output3.Printf(wxT("RNG%04.0lf %s %s\r\n"), entry->getRange() * 0.6214, band.c_str(), desc.c_str());
+
+		char ascii[300U];
+		::memset(ascii, 0x00, 300U);
+		unsigned int n = 0U;
+		for (unsigned int i = 0U; i < output1.Len(); i++, n++)
+			ascii[n] = output1.GetChar(i);
+		for (unsigned int i = 0U; i < output2.Len(); i++, n++)
+			ascii[n] = output2.GetChar(i);
+		for (unsigned int i = 0U; i < output3.Len(); i++, n++)
+			ascii[n] = output3.GetChar(i);
+
+		wxLogDebug(wxT("APRS ==> %s%s%s"), output1.c_str(), output2.c_str(), output3.c_str());
+
+		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+
+		if (entry->getBand().Len() == 1U) {
+			if (altitudeSet)
+				output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&/A=%06.0lf"),
+					entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+					lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+					lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
+					rawAltitude * 3.28);
+			else
+				output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&"),
+					entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+					lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+					lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'));
+
+			::memset(ascii, 0x00, 300U);
+			unsigned int n = 0U;
+			for (unsigned int i = 0U; i < output1.Len(); i++, n++)
+				ascii[n] = output1.GetChar(i);
+			for (unsigned int i = 0U; i < output2.Len(); i++, n++)
+				ascii[n] = output2.GetChar(i);
+			for (unsigned int i = 0U; i < output3.Len(); i++, n++)
+				ascii[n] = output3.GetChar(i);
+
+			wxLogDebug(wxT("APRS ==> %s%s%s"), output1.c_str(), output2.c_str(), output3.c_str());
+
+			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+		}
+	}
+}
+#endif

@@ -167,6 +167,8 @@ wxString CDTMF::translate()
 		return processReflector(wxT("XRF"), command.Mid(1U));
 	else if (command.GetChar(0U) == wxT('D'))
 		return processReflector(wxT("DCS"), command.Mid(1U));
+	else if (command.GetChar(0U) == wxT('A'))
+		return processReflector(wxT("XLX"), command.Mid(1U));
 	else
 		return processCCS(command);
 }

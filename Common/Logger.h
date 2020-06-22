@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2002,2003,2009,2011,2012,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2002,2003,2009,2011,2012,2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #include <wx/wx.h>
 #include <wx/ffile.h>
 #include <wx/filename.h>
-#include <wx/log.h>
 
 class CLogger : public wxLog {
 public:
@@ -35,11 +34,10 @@ private:
 	wxString   m_name;
 	wxFFile*   m_file;
 	wxFileName m_fileName;
-#if(defined(__WINDOWS__))
 	int        m_day;
-#endif
 
-	void logString(const wxString& msg, time_t timestamp);
+	void writeLog(const wxChar* msg, time_t timestamp);
 };
 
 #endif
+

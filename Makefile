@@ -1,76 +1,111 @@
-export DATADIR := "/usr/share/ircddbgateway"
-export LOGDIR  := "/var/log"
-export CONFDIR := "/etc"
-export BINDIR  := "/usr/bin"
+export BUILD   ?= debug
+ifeq ($(TARGET), opendv)
+export DATADIR ?= /usr/share/opendv
+export LOGDIR  ?= /var/log/opendv
+export CONFDIR ?= /etc
+export BINDIR  ?= /usr/sbin
+else
+export DATADIR ?= /usr/share/ircddbgateway
+export LOGDIR  ?= /var/log
+export CONFDIR ?= /etc
+export BINDIR  ?= /usr/bin
+endif
 
+# Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
+# Add -DDEXTRA_LINK to the end of the CFLAGS line below to add DExtra linking to StarNet
+
+# Add -DUSE_GPS to the end of the CFLAGS line to enable the use of gpsd, and add -lgps to
+# end of the LIBS line.
+
+DEBUGFLAGS     := -g -D_DEBUG
+RELEASEFLAGS   := -DNDEBUG -DwxDEBUG_LEVEL=0
 export CXX     := $(shell wx-config --cxx)
-export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='$(LOGDIR)' -DCONF_DIR='$(CONFDIR)' -DDATA_DIR='$(DATADIR)'
-export GUILIBS := $(shell wx-config --libs adv,core,base)
-export LIBS    := $(shell wx-config --libs base)
+export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='"$(LOGDIR)"' -DCONF_DIR='"$(CONFDIR)"' -DDATA_DIR='"$(DATADIR)"'
+ifeq ($(BUILD), debug)
+	export CFLAGS  := $(CFLAGS) $(DEBUGFLAGS)
+else ifeq ($(BUILD), release)
+	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
+endif
+export LIBS    := $(shell wx-config --libs base,net)
 export LDFLAGS := 
 
-all:	ircDDBGateway/ircddbgatewayd ircDDBGatewayConfig/ircddbgatewayconfig APRSTransmit/aprstransmitd RemoteControl/remotecontrold \
+.PHONY: all
+all:	ircDDBGateway/ircddbgatewayd APRSTransmit/aprstransmitd RemoteControl/remotecontrold \
 	StarNetServer/starnetserverd TextTransmit/texttransmitd TimerControl/timercontrold TimeServer/timeserverd VoiceTransmit/voicetransmitd
 
-ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a
-	make -C ircDDBGateway
+ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a force
+	$(MAKE) -C ircDDBGateway
 
-ircDDBGatewayConfig/ircddbgatewayconfig:	GUICommon/GUICommon.a Common/Common.a
-	make -C ircDDBGatewayConfig
+APRSTransmit/aprstransmitd:	Common/Common.a force
+	$(MAKE) -C APRSTransmit
 
-APRSTransmit/aprstransmitd:	Common/Common.a
-	make -C APRSTransmit
+RemoteControl/remotecontrold:	Common/Common.a force
+	$(MAKE) -C RemoteControl
 
-RemoteControl/remotecontrold:	Common/Common.a
-	make -C RemoteControl
+StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a force
+	$(MAKE) -C StarNetServer
 
-StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a
-	make -C StarNetServer
+TextTransmit/texttransmitd:	Common/Common.a force
+	$(MAKE) -C TextTransmit
 
-TextTransmit/texttransmitd:	Common/Common.a
-	make -C TextTransmit
+TimerControl/timercontrold:	Common/Common.a force
+	$(MAKE) -C TimerControl
 
-TimerControl/timercontrold:	Common/Common.a GUICommon/GUICommon.a
-	make -C TimerControl
+TimeServer/timeserverd:	Common/Common.a force
+	$(MAKE) -C TimeServer
 
-TimeServer/timeserverd:	Common/Common.a GUICommon/GUICommon.a
-	make -C TimeServer
+VoiceTransmit/voicetransmitd:	Common/Common.a force
+	$(MAKE) -C VoiceTransmit
 
-VoiceTransmit/voicetransmitd:	Common/Common.a
-	make -C VoiceTransmit
+Common/Common.a: force
+	$(MAKE) -C Common
 
-GUICommon/GUICommon.a:
-	make -C GUICommon
+ircDDB/IRCDDB.a: force
+	$(MAKE) -C ircDDB
 
-Common/Common.a:
-	make -C Common
+.PHONY: installdirs
+installdirs: force
+	/bin/mkdir -p $(DESTDIR)$(DATADIR) $(DESTDIR)$(LOGDIR) $(DESTDIR)$(CONFDIR) $(DESTDIR)$(BINDIR)
 
-ircDDB/IRCDDB.a:
-	make -C ircDDB
+.PHONY: install
+install: all installdirs
+ifeq ($(TARGET), opendv)
+	useradd --user-group -M --system opendv --shell /bin/false || true
 
-install:	all
-	make -C Data install
-	make -C APRSTransmit install
-	make -C ircDDBGateway install
-	make -C RemoteControl install
-	make -C StarNetServer install
-	make -C TextTransmit install
-	make -C TimerControl install
-	make -C TimeServer install
-	make -C VoiceTransmit install
-	make -C ircDDBGatewayConfig install
+	#  Add the opendv user to the audio group so that it can open audio
+	#  devices when using the audio based drivers such as the Sound Card
+	#  one. Maybe this should be moved to DStarRepeater instead ...
+	usermod --groups audio --append opendv || true
+	usermod --groups dialout --append opendv || true
+	usermod --groups gpio --append opendv || true
+	mkdir /var/log/opendv || true
+	chown opendv:opendv /var/log/opendv
+endif
+	$(MAKE) -C Data install
+	$(MAKE) -C APRSTransmit install
+	$(MAKE) -C ircDDBGateway install
+	$(MAKE) -C RemoteControl install
+	$(MAKE) -C StarNetServer install
+	$(MAKE) -C TextTransmit install
+	$(MAKE) -C TimerControl install
+	$(MAKE) -C TimeServer install
+	$(MAKE) -C VoiceTransmit install
 
+.PHONY: clean
 clean:
-	make -C Common clean
-	make -C ircDDB clean
-	make -C GUICommon clean
-	make -C APRSTransmit clean
-	make -C ircDDBGateway clean
-	make -C RemoteControl clean
-	make -C StarNetServer clean
-	make -C TextTransmit clean
-	make -C TimerControl clean
-	make -C TimeServer clean
-	make -C VoiceTransmit clean
-	make -C ircDDBGatewayConfig clean
+	$(MAKE) -C Common clean
+	$(MAKE) -C ircDDB clean
+	$(MAKE) -C APRSTransmit clean
+	$(MAKE) -C ircDDBGateway clean
+	$(MAKE) -C RemoteControl clean
+	$(MAKE) -C StarNetServer clean
+	$(MAKE) -C TextTransmit clean
+	$(MAKE) -C TimerControl clean
+	$(MAKE) -C TimeServer clean
+	$(MAKE) -C VoiceTransmit clean
+	$(MAKE) -C ircDDBGatewayConfig clean
+
+.PHONY: force
+force :
+	@true
 

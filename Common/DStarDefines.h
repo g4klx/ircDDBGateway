@@ -1,5 +1,5 @@
 /*
- *	Copyright (C) 2009-2015 by Jonathan Naylor, G4KLX
+ *	Copyright (C) 2009-2015,2018,2019 by Jonathan Naylor, G4KLX
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -31,8 +31,7 @@ const bool DATA_SYNC_BITS[]   = {true,  false, true,  false, true,  false, true,
 							     true,  false, true,  true,  false, true,  false, false,
 							     false, true,  true,  false, true,  false, false, false};
 
-const unsigned char END_PATTERN_BYTES[] = {0x55, 0x55, 0x55, 0x55, 0xC8, 0x7A,
-										   0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+const unsigned char END_PATTERN_BYTES[] = {0x55, 0x55, 0x55, 0x55, 0xC8, 0x7A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 const bool END_PATTERN_BITS[] = {true,  false, true,  false, true,  false, true,  false,
 							     true,  false, true,  false, true,  false, true,  false,
 							     true,  false, true,  false, true,  false, true,  false,
@@ -83,10 +82,14 @@ const unsigned int DATA_BLOCK_SIZE_BYTES = 21U * DV_FRAME_LENGTH_BYTES;
 const unsigned int LONG_CALLSIGN_LENGTH  = 8U;
 const unsigned int SHORT_CALLSIGN_LENGTH = 4U;
 
-const unsigned char SLOW_DATA_TYPE_MASK   = 0xF0U;
-const unsigned char SLOW_DATA_TYPE_GPS    = 0x30U;
-const unsigned char SLOW_DATA_TYPE_TEXT   = 0x40U;
-const unsigned char SLOW_DATA_TYPE_HEADER = 0x50U;
+const unsigned char SLOW_DATA_TYPE_MASK       = 0xF0U;
+const unsigned char SLOW_DATA_TYPE_GPS        = 0x30U;
+const unsigned char SLOW_DATA_TYPE_TEXT       = 0x40U;
+const unsigned char SLOW_DATA_TYPE_HEADER     = 0x50U;
+const unsigned char SLOW_DATA_TYPE_FAST_DATA1 = 0x80U;
+const unsigned char SLOW_DATA_TYPE_FAST_DATA2 = 0x90U;
+const unsigned char SLOW_DATA_TYPE_SQUELCH    = 0xC0U;
+const unsigned char SLOW_DATA_LENGTH_MASK     = 0x0FU;
 
 const unsigned char DATA_MASK           = 0x80U;
 const unsigned char REPEATER_MASK       = 0x40U;

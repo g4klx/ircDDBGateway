@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,18 +49,18 @@ public:
 	void getRepeater4(wxString& callsign, wxString& band, HW_TYPE& type, wxString& address, unsigned int& port, unsigned char& band1, unsigned char& band2, unsigned char& band3, wxString& reflector, bool& atStartup, RECONNECT& reconnect, double& frequency, double& offset, double& range, double& latitude, double& longitude, double& agl, wxString& description1, wxString& description2, wxString& url) const;
 	void setRepeater4(const wxString& band, HW_TYPE type, const wxString& address, unsigned int port, unsigned char band1, unsigned char band2, unsigned char band3, const wxString& reflector, bool atStartup, RECONNECT reconnect, double frequency, double offset, double range, double latitude, double longitude, double agl, const wxString& description1, const wxString& description2, const wxString& url);
 
-	void getIrcDDB(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
+	void getIrcDDB1(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 	void getIrcDDB2(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 	void getIrcDDB3(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 	void getIrcDDB4(bool& enabled, wxString& hostname, wxString& username, wxString& password) const;
 
-	void setIrcDDB(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
+	void setIrcDDB1(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB2(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB3(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB4(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 
-	void getDPRS(bool& enabled, wxString& hostname, unsigned int& port) const;
-	void setDPRS(bool enabled, const wxString& hostname, unsigned int port);
+	void getDPRS(bool& enabled, wxString& address, unsigned int& port) const;
+	void setDPRS(bool enabled, const wxString& address, unsigned int port);
 
 	void getDExtra(bool& enabled, unsigned int& maxDongles) const;
 	void setDExtra(bool enabled, unsigned int maxDongles);
@@ -71,8 +71,8 @@ public:
 	void getDCS(bool& dcsEnabled, bool& ccsEnabled, wxString& ccsHost) const;
 	void setDCS(bool dcsEnabled, bool ccsEnabled, const wxString& ccsHost);
 	
-	void getXLX(bool& xlxEnabled, bool& xlxOverrideLocal, wxString& xlxHostsFileUrl);
-	void setXLX(bool xlxEnabled, bool xlxOverrideLocal, wxString xlxHostsFileUrl);
+	void getXLX(bool& xlxEnabled, wxString& xlxHostsFileUrl);
+	void setXLX(bool xlxEnabled, wxString xlxHostsFileUrl);
 
 #if defined(DEXTRA_LINK) || defined(DCS_LINK)
 	void getStarNet1(wxString& band, wxString& callsign, wxString& logoff, wxString& info, wxString& permanent, unsigned int& userTimeout, unsigned int& groupTimeout, STARNET_CALLSIGN_SWITCH& callsignSwitch, bool& txMsgSwitch, wxString& reflector) const;
@@ -111,6 +111,9 @@ public:
 
 	void getMiscellaneous(TEXT_LANG& language, bool& infoEnabled, bool& echoEnabled, bool& logEnabled, bool& dratsEnabled, bool& dtmfEnabled) const;
 	void setMiscellaneous(TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled);
+
+	void getGPSD(bool& enabled, wxString& address, wxString& port) const;
+	void setGPSD(bool enabled, const wxString& address, const wxString& port);
 
 	void getPosition(int& x, int& y) const;
 	void setPosition(int x, int y);
@@ -215,10 +218,10 @@ private:
 	unsigned char m_repeater4Band1;
 	unsigned char m_repeater4Band2;
 	unsigned char m_repeater4Band3;
-	bool          m_ircddbEnabled;
-	wxString      m_ircddbHostname;
-	wxString      m_ircddbUsername;
-	wxString      m_ircddbPassword;
+	bool          m_ircddbEnabled1;
+	wxString      m_ircddbHostname1;
+	wxString      m_ircddbUsername1;
+	wxString      m_ircddbPassword1;
 	bool          m_ircddbEnabled2;
 	wxString      m_ircddbHostname2;
 	wxString      m_ircddbUsername2;
@@ -232,7 +235,7 @@ private:
 	wxString      m_ircddbUsername4;
 	wxString      m_ircddbPassword4;
 	bool          m_aprsEnabled;
-	wxString      m_aprsHostname;
+	wxString      m_aprsAddress;
 	unsigned int  m_aprsPort;
 	bool          m_dextraEnabled;
 	unsigned int  m_dextraMaxDongles;
@@ -304,6 +307,9 @@ private:
 	bool          m_logEnabled;
 	bool          m_dratsEnabled;
 	bool          m_dtmfEnabled;
+	bool          m_gpsdEnabled;
+	wxString      m_gpsdAddress;
+	wxString      m_gpsdPort;
 	int           m_x;
 	int           m_y;
 };
