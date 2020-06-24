@@ -448,8 +448,13 @@ void CAPRSWriter::sendIdFramesMobile()
 	if (!::gps_waiting(&m_gpsdData, 0))
 		return;
 
+#if GPSD_API_MAJOR_VERSION >= 7
 	if (::gps_read(&m_gpsdData, NULL, 0) <= 0)
 		return;
+#else
+	if (::gps_read(&m_gpsdData) <= 0)
+		return;
+#endif
 
 	if (m_gpsdData.status != STATUS_FIX)
 		return;
