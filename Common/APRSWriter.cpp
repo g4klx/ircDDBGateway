@@ -469,7 +469,11 @@ void CAPRSWriter::sendIdFramesMobile()
 
 	float rawLatitude  = float(m_gpsdData.fix.latitude);
 	float rawLongitude = float(m_gpsdData.fix.longitude);
+#if GPSD_API_MAJOR_VERSION >= 9
 	float rawAltitude  = float(m_gpsdData.fix.altMSL);
+#else
+	float rawAltitude  = float(m_gpsdData.fix.altitude);
+#endif
 	float rawVelocity  = float(m_gpsdData.fix.speed);
 	float rawBearing   = float(m_gpsdData.fix.track);
 
