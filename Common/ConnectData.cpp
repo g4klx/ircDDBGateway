@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -252,10 +252,10 @@ bool CConnectData::setDPlusData(const unsigned char* data, unsigned int length, 
 				wxString reply((const char*)(data + 4U), wxConvLocal, 4U);
 				wxLogMessage(wxT("D-Plus reply is %.4s"), reply.c_str());
 
-				if (::memcmp(data + 4U, "OKRW", 4U) == 0)
-					m_type = CT_ACK;
+				if (::memcmp(data + 4U, "OKRW", 4U) != 0)
+					return false;
 				else
-					m_type = CT_NAK;
+					m_type = CT_ACK;
 			}
 			break;
 
