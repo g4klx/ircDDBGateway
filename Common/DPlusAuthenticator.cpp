@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018,2019 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2019,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -244,13 +244,14 @@ bool CDPlusAuthenticator::poll(const wxString& callsign, const wxString& hostnam
 	buffer[45U] = '5';
 	buffer[46U] = '7';
 
-	in_addr address = socket.lookup(hostname);
-	if (address.s_addr == INADDR_NONE) {
+	sockaddr_storage addr;
+	unsigned int addrLen;
+	if (CUDPReaderWriter::lookup(hostname, port, addr, addrLen) != 0) {
 		socket.close();
 		return false;
 	}
 
-	ret = socket.write(buffer, 56U, address, port);
+	ret = socket.write(buffer, 56U, addr, addrLen);
 
 	socket.close();
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012,2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -65,15 +65,12 @@ void CHeaderLogger::write(const wxChar* type, const CHeaderData& header)
 	time_t timeNow = ::time(NULL);
 	struct tm* tm = ::gmtime(&timeNow);
 
-	char* t = ::inet_ntoa(header.getYourAddress());
-	wxString address(t, wxConvLocal);
-
 	wxString text;
-	text.Printf(wxT("%04d-%02d-%02d %02d:%02d:%02d: %s header - My: %s/%s  Your: %s  Rpt1: %s  Rpt2: %s  Flags: %02X %02X %02X (%s:%u)\n"),
+	text.Printf(wxT("%04d-%02d-%02d %02d:%02d:%02d: %s header - My: %s/%s  Your: %s  Rpt1: %s  Rpt2: %s  Flags: %02X %02X %02X\n"),
 		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, type,
 		header.getMyCall1().c_str(), header.getMyCall2().c_str(), header.getYourCall().c_str(),
 		header.getRptCall1().c_str(), header.getRptCall2().c_str(), header.getFlag1(), header.getFlag2(),
-		header.getFlag3(), address.c_str(), header.getYourPort());
+		header.getFlag3());
 
 	m_file.Write(text);
 	m_file.Flush();

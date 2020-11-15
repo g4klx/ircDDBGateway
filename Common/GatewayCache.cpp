@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  */
 
 #include "GatewayCache.h"
+
+#include "UDPReaderWriter.h"
 
 const unsigned int CACHE_SIZE = 500U;
 
@@ -40,15 +42,31 @@ void CGatewayCache::update(const wxString& gateway, const wxString& address, DST
 {
 	CGatewayRecord* rec = m_cache[gateway];
 
-	in_addr addr_in;
-	addr_in.s_addr = ::inet_addr(address.mb_str());
+	sockaddr_storage addr;
+	unsigned int addrLen;
+	
+	switch (protocol) {
+		case DP_LOOPBACK:
+		case DP_DCS:
+			CUDPReaderWriter::lookup(address, DCS_PORT, addr, addrLen);
+			break;
+		case DP_DPLUS:
+			CUDPReaderWriter::lookup(address, DPLUS_PORT, addr, addrLen);
+			break;
+		case DP_DEXTRA:
+			CUDPReaderWriter::lookup(address, DEXTRA_PORT, addr, addrLen);
+			break;
+		default:
+			CUDPReaderWriter::lookup(address, G2_DV_PORT, addr, addrLen);
+			break;
+	}
 
 	if (rec == NULL)
 		// A brand new record is needed
-		m_cache[gateway] = new CGatewayRecord(gateway, addr_in, protocol, addrLock, protoLock);
+		m_cache[gateway] = new CGatewayRecord(gateway, addr, addrLen, protocol, addrLock, protoLock);
 	else
 		// Update an existing record
-		rec->setData(addr_in, protocol, addrLock, protoLock);
+		rec->setData(addr, addrLen, protocol, addrLock, protoLock);
 }
 
 unsigned int CGatewayCache::getCount() const

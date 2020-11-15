@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ m_reflector(),
 m_repeater(),
 m_user(),
 m_ext(),
-m_address(),
-m_port(0U)
+m_addr(),
+m_addrLen(0U)
 {
 }
 
@@ -33,8 +33,8 @@ m_reflector(data.m_reflector),
 m_repeater(data.m_repeater),
 m_user(data.m_user),
 m_ext(data.m_ext),
-m_address(data.m_address),
-m_port(data.m_port)
+m_addr(data.m_addr),
+m_addrLen(data.m_addrLen)
 {
 }
 
@@ -43,8 +43,8 @@ m_reflector(reflector),
 m_repeater(repeater),
 m_user(),
 m_ext(),
-m_address(),
-m_port()
+m_addr(),
+m_addrLen(0U)
 {
 	m_user = data.getMyCall1();
 	m_ext  = data.getMyCall2();
@@ -54,7 +54,7 @@ CHeardData::~CHeardData()
 {
 }
 
-bool CHeardData::setIcomRepeaterData(const unsigned char *data, unsigned int length, const in_addr& address, unsigned int port)
+bool CHeardData::setIcomRepeaterData(const unsigned char *data, unsigned int length, const sockaddr_storage& addr, unsigned int addrLen)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 26U);
@@ -62,8 +62,8 @@ bool CHeardData::setIcomRepeaterData(const unsigned char *data, unsigned int len
 	m_user     = wxString((char*)(data + 10U), wxConvLocal, LONG_CALLSIGN_LENGTH);
 	m_repeater = wxString((char*)(data + 18U), wxConvLocal, LONG_CALLSIGN_LENGTH);
 
-	m_address = address;
-	m_port    = port;
+	m_addr    = addr;
+	m_addrLen = addrLen;
 
 	return true;
 }
@@ -117,18 +117,18 @@ wxString CHeardData::getUser() const
 	return m_user;
 }
 
-void CHeardData::setDestination(const in_addr& address, unsigned int port)
+void CHeardData::setDestination(const sockaddr_storage& addr, unsigned int addrLen)
 {
-	m_address = address;
-	m_port    = port;
+	m_addr    = addr;
+	m_addrLen = addrLen;
 }
 
-in_addr CHeardData::getAddress() const
+sockaddr_storage CHeardData::getAddr() const
 {
-	return m_address;
+	return m_addr;
 }
 
-unsigned int CHeardData::getPort() const
+unsigned int CHeardData::getAddrLen() const
 {
-	return m_port;
+	return m_addrLen;
 }

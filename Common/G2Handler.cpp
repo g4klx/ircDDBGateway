@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,9 +29,10 @@ CG2ProtocolHandler* CG2Handler::m_handler = NULL;
 
 CHeaderLogger*      CG2Handler::m_headerLogger = NULL;
 
-CG2Handler::CG2Handler(CRepeaterHandler* repeater, const in_addr& address, unsigned int id) :
+CG2Handler::CG2Handler(CRepeaterHandler* repeater, const sockaddr_storage& addr, unsigned int addrLen, unsigned int id) :
 m_repeater(repeater),
-m_address(address),
+m_addr(addr),
+m_addrLen(addrLen),
 m_id(id),
 m_inactivityTimer(1000U, NETWORK_TIMEOUT)
 {
@@ -91,8 +92,9 @@ void CG2Handler::process(CHeaderData& header)
 	if (m_maxRoutes == 0U)
 		return;
 
-	in_addr address = header.getYourAddress();
-	unsigned int id = header.getId();
+	sockaddr_storage addr = header.getYourAddr();
+	unsigned int  addrLen = header.getYourAddrLen();
+	unsigned int       id = header.getId();
 
 	for (unsigned int i = 0U; i < m_maxRoutes; i++) {
 		CG2Handler* route = m_routes[i];
@@ -110,7 +112,7 @@ void CG2Handler::process(CHeaderData& header)
 		return;		// Not found, ignore
 	}
 
-	CG2Handler* route = new CG2Handler(repeater, address, id);
+	CG2Handler* route = new CG2Handler(repeater, addr, addrLen, id);
 
 	for (unsigned int i = 0U; i < m_maxRoutes; i++) {
 		if (m_routes[i] == NULL) {

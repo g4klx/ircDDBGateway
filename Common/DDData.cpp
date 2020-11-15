@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -46,12 +46,12 @@ CDDData::~CDDData()
 	delete[] m_frame;
 }
 
-bool CDDData::setIcomRepeaterData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort)
+bool CDDData::setIcomRepeaterData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 29U);
 
-	bool ret = m_header.setIcomRepeaterData(data, length, true, yourAddress, yourPort);
+	bool ret = m_header.setIcomRepeaterData(data, length, true, yourAddr, yourAddrLen);
 	if (!ret)
 		return false;
 
@@ -65,7 +65,7 @@ bool CDDData::setIcomRepeaterData(const unsigned char *data, unsigned int length
 	return true;
 }
 
-bool CDDData::setHBRepeaterData(const unsigned char *data, unsigned int length, const in_addr&, unsigned int)
+bool CDDData::setHBRepeaterData(const unsigned char *data, unsigned int length, const sockaddr_storage&, unsigned int)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 60U);
@@ -262,19 +262,19 @@ void CDDData::setRepeaters(const wxString& rpt1, const wxString& rpt2)
 	m_header.setRepeaters(rpt1, rpt2);
 }
 
-void CDDData::setDestination(const in_addr& address, unsigned int port)
+void CDDData::setDestination(const sockaddr_storage& addr, unsigned int addrLen)
 {
-	m_header.setDestination(address, port);
+	m_header.setDestination(addr, addrLen);
 }
 
-in_addr CDDData::getYourAddress() const
+sockaddr_storage CDDData::getYourAddr() const
 {
-	return m_header.getYourAddress();
+	return m_header.getYourAddr();
 }
 
-unsigned int CDDData::getYourPort() const
+unsigned int CDDData::getYourAddrLen() const
 {
-	return m_header.getYourPort();
+	return m_header.getYourAddrLen();
 }
 
 void CDDData::setEthernetFrame(const unsigned char *frame, unsigned int length)

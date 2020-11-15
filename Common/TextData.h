@@ -36,8 +36,8 @@ public:
 
 	unsigned int getHBRepeaterData(unsigned char* data, unsigned int length) const;
 
-	// sockaddr_storage getAddr() const;
-	// unsigned int     getAddrLen() const;
+	sockaddr_storage getAddr() const;
+	unsigned int     getAddrLen() const;
 
 private:
 	LINK_STATUS      m_status;

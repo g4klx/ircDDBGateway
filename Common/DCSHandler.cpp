@@ -66,7 +66,7 @@ m_rptCall2()
 {
 	wxASSERT(protoHandler != NULL);
 	wxASSERT(handler != NULL);
-	wxASSERT(port > 0U);
+	wxASSERT(addrLen > 0U);
 
 	m_myPort = protoHandler->getPort();
 
@@ -182,15 +182,13 @@ void CDCSHandler::getInfo(IReflectorCallback* handler, CRemoteRepeaterData& data
 void CDCSHandler::process(CAMBEData& data)
 {
 	sockaddr_storage yourAddr = data.getYourAddr();
-	unsigned int  yourAddrLen = data.getYourAddrLen();
 	unsigned int     myPort   = data.getMyPort();
 
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		CDCSHandler* reflector = m_reflectors[i];
 		if (reflector != NULL) {
-			if (reflector->m_yourAddress.s_addr == yourAddress.s_addr &&
-				reflector->m_yourPort           == yourPort &&
-				reflector->m_myPort             == myPort) {
+			if (CUDPReaderWriter::match(reflector->m_yourAddr, yourAddr) &&
+				reflector->m_myPort == myPort) {
 				reflector->processInt(data);
 				return;
 			}
@@ -203,7 +201,6 @@ void CDCSHandler::process(CPollData& poll)
 	wxString       reflector  = poll.getData1();
 	wxString       repeater   = poll.getData2();
 	sockaddr_storage yourAddr = poll.getYourAddr();
-	unsigned int  yourAddrLen = poll.getYourAddrLen();
 	unsigned int       myPort = poll.getMyPort();
 	unsigned int       length = poll.getLength();
 
@@ -214,8 +211,7 @@ void CDCSHandler::process(CPollData& poll)
 		if (handler != NULL) {
 			if (handler->m_reflector.IsSameAs(reflector) &&
 				handler->m_repeater.IsSameAs(repeater) &&
-				handler->m_yourAddress.s_addr == yourAddress.s_addr &&
-				handler->m_yourPort  == yourPort &&
+				CUDPReaderWriter::match(handler->m_yourAddr, yourAddr) &&
 				handler->m_myPort    == myPort &&
 				handler->m_direction == DIR_OUTGOING &&
 				handler->m_linkState == DCS_LINKED &&
@@ -225,8 +221,7 @@ void CDCSHandler::process(CPollData& poll)
 				handler->m_handler->writePoll(reply);
 				return;
 			} else if (handler->m_reflector.Left(LONG_CALLSIGN_LENGTH - 1U).IsSameAs(reflector.Left(LONG_CALLSIGN_LENGTH - 1U)) &&
-					   handler->m_yourAddress.s_addr == yourAddress.s_addr &&
-					   handler->m_yourPort  == yourPort &&
+					   CUDPReaderWriter::match(handler->m_yourAddr, yourAddr) &&
 					   handler->m_myPort    == myPort &&
 					   handler->m_direction == DIR_INCOMING &&
 					   handler->m_linkState == DCS_LINKED &&
@@ -259,9 +254,9 @@ void CDCSHandler::process(CConnectData& connect)
 	}
 
 	// else if type == CT_LINK1 or type == CT_LINK2
-	in_addr         yourAddr = connect.getYourAddr();
-	unsigned int yourAddrLen = connect.getYourAddrLen();
-	unsigned int      myPort = connect.getMyPort();
+	sockaddr_storage yourAddr = connect.getYourAddr();
+	unsigned int  yourAddrLen = connect.getYourAddrLen();
+	unsigned int       myPort = connect.getMyPort();
 
 	wxString repeaterCallsign = connect.getRepeater();
 	wxString reflectorCallsign = connect.getReflector();
@@ -269,9 +264,9 @@ void CDCSHandler::process(CConnectData& connect)
 	// Check that it isn't a duplicate
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		if (m_reflectors[i] != NULL) {
-			if (m_reflectors[i]->m_direction          == DIR_INCOMING &&
-			    CUDPReaderWriter::match(m_yourAddr, yourAddr) &&
-			    m_reflectors[i]->m_myPort             == myPort &&
+			if (m_reflectors[i]->m_direction == DIR_INCOMING &&
+			    CUDPReaderWriter::match(m_reflectors[i]->m_yourAddr, yourAddr) &&
+			    m_reflectors[i]->m_myPort    == myPort &&
 			    m_reflectors[i]->m_repeater.IsSameAs(reflectorCallsign) &&
 			    m_reflectors[i]->m_reflector.IsSameAs(repeaterCallsign))
 				return;
@@ -282,7 +277,7 @@ void CDCSHandler::process(CConnectData& connect)
 	IReflectorCallback* handler = CRepeaterHandler::findDVRepeater(reflectorCallsign);
 	if (handler == NULL) {
 		wxLogMessage(wxT("DCS connect to unknown reflector %s from %s"), reflectorCallsign.c_str(), repeaterCallsign.c_str());
-		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, connect.getYourAddress(), connect.getYourPort());
+		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, connect.getYourAddr(), connect.getYourAddrLen());
 		m_incoming->writeConnect(reply);
 		return;
 	}
@@ -313,7 +308,7 @@ void CDCSHandler::process(CConnectData& connect)
 	}
 }
 
-void CDCSHandler::link(IReflectorCallback* handler, const wxString& repeater, const wxString &gateway, const in_addr& address)
+void CDCSHandler::link(IReflectorCallback* handler, const wxString& repeater, const wxString &gateway, const sockaddr_storage& addr, unsigned int addrLen)
 {
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		if (m_reflectors[i] != NULL) {
@@ -326,7 +321,7 @@ void CDCSHandler::link(IReflectorCallback* handler, const wxString& repeater, co
 	if (protoHandler == NULL)
 		return;
 
-	CDCSHandler* dcs = new CDCSHandler(handler, gateway, repeater, protoHandler, address, DCS_PORT, DIR_OUTGOING);
+	CDCSHandler* dcs = new CDCSHandler(handler, gateway, repeater, protoHandler, addr, addrLen, DIR_OUTGOING);
 
 	bool found = false;
 
@@ -339,7 +334,7 @@ void CDCSHandler::link(IReflectorCallback* handler, const wxString& repeater, co
 	}
 
 	if (found) {
-		CConnectData reply(m_gatewayType, repeater, gateway, CT_LINK1, address, DCS_PORT);
+		CConnectData reply(m_gatewayType, repeater, gateway, CT_LINK1, addr, addrLen);
 		protoHandler->writeConnect(reply);
 	} else {
 		wxLogError(wxT("No space to add new DCS link, ignoring"));
@@ -457,7 +452,7 @@ void CDCSHandler::gatewayUpdate(const wxString& reflector, const wxString& addre
 				if (!address.IsEmpty()) {
 					// A new address, change the value
 					wxLogMessage(wxT("Changing IP address of DCS gateway or reflector %s to %s"), reflector->m_reflector.c_str(), address.c_str());
-					reflector->m_yourAddress.s_addr = ::inet_addr(address.mb_str());
+					CUDPReaderWriter::lookup(address, DCS_PORT, reflector->m_yourAddr, reflector->m_yourAddrLen);
 				} else {
 					wxLogMessage(wxT("IP address for DCS gateway or reflector %s has been removed"), reflector->m_reflector.c_str());
 
@@ -627,11 +622,10 @@ void CDCSHandler::processInt(CAMBEData& data)
 bool CDCSHandler::processInt(CConnectData& connect, CD_TYPE type)
 {
 	sockaddr_storage yourAddr = connect.getYourAddr();
-	unsigned int  yourAddrLen = connect.getYourAddrLen();
 	unsigned int       myPort = connect.getMyPort();
 	wxString         repeater = connect.getRepeater();
 
-	if (m_yourAddress.s_addr != yourAddress.s_addr || m_yourPort != yourPort || m_myPort != myPort)
+	if (!CUDPReaderWriter::match(m_yourAddr, yourAddr) || m_myPort != myPort)
 		return false;
 
 	switch (type) {

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,12 +37,12 @@ CCallsignList*              CDExtraHandler::m_whiteList = NULL;
 CCallsignList*              CDExtraHandler::m_blackList = NULL;
 
 
-CDExtraHandler::CDExtraHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDExtraProtocolHandler* protoHandler, const in_addr& address, unsigned int port, DIRECTION direction) :
+CDExtraHandler::CDExtraHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDExtraProtocolHandler* protoHandler, const sockaddr_storage& addr, unsigned int addrLen, DIRECTION direction) :
 m_reflector(reflector.Clone()),
 m_repeater(repeater.Clone()),
 m_handler(protoHandler),
-m_yourAddress(address),
-m_yourPort(port),
+m_yourAddr(addr),
+m_yourAddrLen(addrLen),
 m_direction(direction),
 m_linkState(DEXTRA_LINKING),
 m_destination(handler),
@@ -58,7 +58,7 @@ m_header(NULL)
 {
 	wxASSERT(protoHandler != NULL);
 	wxASSERT(handler != NULL);
-	wxASSERT(port > 0U);
+	wxASSERT(addrLen > 0U);
 
 	m_pollInactivityTimer.start();
 
@@ -74,12 +74,12 @@ m_header(NULL)
 	}
 }
 
-CDExtraHandler::CDExtraHandler(CDExtraProtocolHandler* protoHandler, const wxString& reflector, const in_addr& address, unsigned int port, DIRECTION direction) :
+CDExtraHandler::CDExtraHandler(CDExtraProtocolHandler* protoHandler, const wxString& reflector, const sockaddr_storage& addr, unsigned int addrLen, DIRECTION direction) :
 m_reflector(reflector.Clone()),
 m_repeater(),
 m_handler(protoHandler),
-m_yourAddress(address),
-m_yourPort(port),
+m_yourAddr(addr),
+m_yourAddrLen(addrLen),
 m_direction(direction),
 m_linkState(DEXTRA_LINKING),
 m_destination(NULL),
@@ -94,7 +94,7 @@ m_inactivityTimer(1000U, NETWORK_TIMEOUT),
 m_header(NULL)
 {
 	wxASSERT(protoHandler != NULL);
-	wxASSERT(port > 0U);
+	wxASSERT(addrLen > 0U);
 
 	m_pollInactivityTimer.start();
 
@@ -227,14 +227,12 @@ wxString CDExtraHandler::getDongles()
 
 void CDExtraHandler::process(CHeaderData& header)
 {
-	in_addr   yourAddress = header.getYourAddress();
-	unsigned int yourPort = header.getYourPort();
+	sockaddr_storage yourAddr = header.getYourAddr();
 
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		CDExtraHandler* reflector = m_reflectors[i];
 		if (reflector != NULL) {
-			if (reflector->m_yourAddress.s_addr == yourAddress.s_addr &&
-				reflector->m_yourPort           == yourPort)
+			if (CUDPReaderWriter::match(reflector->m_yourAddr, yourAddr))
 				reflector->processInt(header);
 		}
 	}	
@@ -242,14 +240,12 @@ void CDExtraHandler::process(CHeaderData& header)
 
 void CDExtraHandler::process(CAMBEData& data)
 {
-	in_addr   yourAddress = data.getYourAddress();
-	unsigned int yourPort = data.getYourPort();
+	sockaddr_storage yourAddr = data.getYourAddr();
 
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		CDExtraHandler* reflector = m_reflectors[i];
 		if (reflector != NULL) {
-			if (reflector->m_yourAddress.s_addr == yourAddress.s_addr &&
-				reflector->m_yourPort           == yourPort)
+			if (CUDPReaderWriter::match(reflector->m_yourAddr, yourAddr))
 				reflector->processInt(data);
 		}
 	}	
@@ -259,17 +255,16 @@ void CDExtraHandler::process(const CPollData& poll)
 {
 	bool found = false;
 
-	wxString    reflector = poll.getData1();
-	in_addr   yourAddress = poll.getYourAddress();
-	unsigned int yourPort = poll.getYourPort();
+	wxString        reflector = poll.getData1();
+	sockaddr_storage yourAddr = poll.getYourAddr();
+	unsigned int  yourAddrLen = poll.getYourAddrLen();
 
 	// Check to see if we already have a link
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		if (m_reflectors[i] != NULL) {
 			if (m_reflectors[i]->m_reflector.Left(LONG_CALLSIGN_LENGTH - 1U).IsSameAs(reflector.Left(LONG_CALLSIGN_LENGTH - 1U)) &&
-				m_reflectors[i]->m_yourAddress.s_addr == yourAddress.s_addr &&
-				m_reflectors[i]->m_yourPort           == yourPort &&
-				m_reflectors[i]->m_linkState          == DEXTRA_LINKED) {
+				CUDPReaderWriter::match(m_reflectors[i]->m_yourAddr, yourAddr) &&
+				m_reflectors[i]->m_linkState == DEXTRA_LINKED) {
 				m_reflectors[i]->m_pollInactivityTimer.start();
 				found = true;
 			}
@@ -298,7 +293,7 @@ void CDExtraHandler::process(const CPollData& poll)
 	// An unmatched poll indicates the need for a new entry
 	wxLogMessage(wxT("New incoming DExtra Dongle from %s"), reflector.c_str());
 
-	CDExtraHandler* handler = new CDExtraHandler(m_incoming, reflector, yourAddress, yourPort, DIR_INCOMING);
+	CDExtraHandler* handler = new CDExtraHandler(m_incoming, reflector, yourAddr, yourAddrLen, DIR_INCOMING);
 
 	found = false;
 
@@ -312,7 +307,7 @@ void CDExtraHandler::process(const CPollData& poll)
 
 	if (found) {
 		// Return the poll
-		CPollData poll(m_callsign, yourAddress, yourPort);
+		CPollData poll(m_callsign, yourAddr, yourAddrLen);
 		m_incoming->writePoll(poll);
 	} else {
 		wxLogError(wxT("No space to add new DExtra Dongle, ignoring"));
@@ -339,8 +334,8 @@ void CDExtraHandler::process(CConnectData& connect)
 	}
 
 	// else if type == CT_LINK1 or type == CT_LINK2
-	in_addr   yourAddress = connect.getYourAddress();
-	unsigned int yourPort = connect.getYourPort();
+	sockaddr_storage yourAddr = connect.getYourAddr();
+	unsigned int  yourAddrLen = connect.getYourAddrLen();
 
 	wxString repeaterCallsign = connect.getRepeater();
 
@@ -352,9 +347,8 @@ void CDExtraHandler::process(CConnectData& connect)
 	// Check that it isn't a duplicate
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		if (m_reflectors[i] != NULL) {
-			if (m_reflectors[i]->m_direction          == DIR_INCOMING &&
-			    m_reflectors[i]->m_yourAddress.s_addr == yourAddress.s_addr &&
-			    m_reflectors[i]->m_yourPort           == yourPort &&
+			if (m_reflectors[i]->m_direction == DIR_INCOMING &&
+			    CUDPReaderWriter::match(m_reflectors[i]->m_yourAddr, yourAddr) &&
 			    m_reflectors[i]->m_repeater.IsSameAs(reflectorCallsign) &&
 			    m_reflectors[i]->m_reflector.IsSameAs(repeaterCallsign))
 				return;
@@ -365,7 +359,7 @@ void CDExtraHandler::process(CConnectData& connect)
 	IReflectorCallback* handler = CRepeaterHandler::findDVRepeater(reflectorCallsign);
 	if (handler == NULL) {
 		wxLogMessage(wxT("DExtra connect to unknown reflector %s from %s"), reflectorCallsign.c_str(), repeaterCallsign.c_str());
-		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, yourAddress, yourPort);
+		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, yourAddr, yourAddrLen);
 		m_incoming->writeConnect(reply);
 		return;
 	}
@@ -373,7 +367,7 @@ void CDExtraHandler::process(CConnectData& connect)
 	// A new connect packet indicates the need for a new entry
 	wxLogMessage(wxT("New incoming DExtra link to %s from %s"), reflectorCallsign.c_str(), repeaterCallsign.c_str());
 
-	CDExtraHandler* dextra = new CDExtraHandler(handler, repeaterCallsign, reflectorCallsign, m_incoming, yourAddress, yourPort, DIR_INCOMING);
+	CDExtraHandler* dextra = new CDExtraHandler(handler, repeaterCallsign, reflectorCallsign, m_incoming, yourAddr, yourAddrLen, DIR_INCOMING);
 
 	bool found = false;
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
@@ -385,15 +379,15 @@ void CDExtraHandler::process(CConnectData& connect)
 	}
 
 	if (found) {
-		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_ACK, yourAddress, yourPort);
+		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_ACK, yourAddr, yourAddrLen);
 		m_incoming->writeConnect(reply);
 
 		wxString callsign = repeaterCallsign;
 		callsign.SetChar(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
-		CPollData poll(callsign, yourAddress, yourPort);
+		CPollData poll(callsign, yourAddr, yourAddrLen);
 		m_incoming->writePoll(poll);
 	} else {
-		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, yourAddress, yourPort);
+		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, yourAddr, yourAddrLen);
 		m_incoming->writeConnect(reply);
 
 		wxLogError(wxT("No space to add new DExtra repeater, ignoring"));
@@ -401,13 +395,13 @@ void CDExtraHandler::process(CConnectData& connect)
 	}
 }
 
-void CDExtraHandler::link(IReflectorCallback* handler, const wxString& repeater, const wxString &gateway, const in_addr& address)
+void CDExtraHandler::link(IReflectorCallback* handler, const wxString& repeater, const wxString &gateway, const sockaddr_storage& addr, unsigned int addrLen)
 {
 	CDExtraProtocolHandler* protoHandler = m_pool->getHandler();
 	if (protoHandler == NULL)
 		return;
 
-	CDExtraHandler* dextra = new CDExtraHandler(handler, gateway, repeater, protoHandler, address, DEXTRA_PORT, DIR_OUTGOING);
+	CDExtraHandler* dextra = new CDExtraHandler(handler, gateway, repeater, protoHandler, addr, addrLen, DIR_OUTGOING);
 
 	bool found = false;
 
@@ -420,7 +414,7 @@ void CDExtraHandler::link(IReflectorCallback* handler, const wxString& repeater,
 	}
 
 	if (found) {
-		CConnectData reply(repeater, gateway, CT_LINK1, address, DEXTRA_PORT);
+		CConnectData reply(repeater, gateway, CT_LINK1, addr, addrLen);
 		protoHandler->writeConnect(reply);
 	} else {
 		wxLogError(wxT("No space to add new DExtra link, ignoring"));
@@ -441,7 +435,7 @@ void CDExtraHandler::unlink(IReflectorCallback* handler, const wxString& callsig
 					wxLogMessage(wxT("Removing outgoing DExtra link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
 
 					if (reflector->m_linkState == DEXTRA_LINKING || reflector->m_linkState == DEXTRA_LINKED) {
-						CConnectData connect(reflector->m_repeater, reflector->m_yourAddress, reflector->m_yourPort);
+						CConnectData connect(reflector->m_repeater, reflector->m_yourAddr, reflector->m_yourAddrLen);
 						reflector->m_handler->writeConnect(connect);
 
 						reflector->m_linkState = DEXTRA_UNLINKING;
@@ -456,7 +450,7 @@ void CDExtraHandler::unlink(IReflectorCallback* handler, const wxString& callsig
 					wxLogMessage(wxT("Removing DExtra link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
 
 					if (reflector->m_linkState == DEXTRA_LINKING || reflector->m_linkState == DEXTRA_LINKED) {
-						CConnectData connect(reflector->m_repeater, reflector->m_yourAddress, reflector->m_yourPort);
+						CConnectData connect(reflector->m_repeater, reflector->m_yourAddr, reflector->m_yourAddrLen);
 						reflector->m_handler->writeConnect(connect);
 
 						reflector->m_linkState = DEXTRA_UNLINKING;
@@ -502,7 +496,7 @@ void CDExtraHandler::unlink()
 			if (!reflector->m_repeater.IsEmpty()) {
 				wxLogMessage(wxT("Unlinking from DExtra reflector %s"), reflector->m_reflector.c_str());
 
-				CConnectData connect(reflector->m_repeater, reflector->m_yourAddress, reflector->m_yourPort);
+				CConnectData connect(reflector->m_repeater, reflector->m_yourAddr, reflector->m_yourAddrLen);
 				reflector->m_handler->writeConnect(connect);
 
 				reflector->m_linkState = DEXTRA_UNLINKING;
@@ -539,7 +533,7 @@ void CDExtraHandler::gatewayUpdate(const wxString& reflector, const wxString& ad
 				if (!address.IsEmpty()) {
 					// A new address, change the value
 					wxLogMessage(wxT("Changing IP address of DExtra gateway or reflector %s to %s"), reflector->m_reflector.c_str(), address.c_str());
-					reflector->m_yourAddress.s_addr = ::inet_addr(address.mb_str());
+					CUDPReaderWriter::lookup(address, DEXTRA_PORT, reflector->m_yourAddr, reflector->m_yourAddrLen);
 				} else {
 					wxLogMessage(wxT("IP address for DExtra gateway or reflector %s has been removed"), reflector->m_reflector.c_str());
 
@@ -728,11 +722,10 @@ void CDExtraHandler::processInt(CAMBEData& data)
 
 bool CDExtraHandler::processInt(CConnectData& connect, CD_TYPE type)
 {
-	in_addr yourAddress   = connect.getYourAddress();
-	unsigned int yourPort = connect.getYourPort();
-	wxString     repeater = connect.getRepeater();
+	sockaddr_storage yourAddr = connect.getYourAddr();
+	wxString         repeater = connect.getRepeater();
 
-	if (m_yourAddress.s_addr != yourAddress.s_addr || m_yourPort != yourPort)
+	if (!CUDPReaderWriter::match(m_yourAddr, yourAddr))
 		return false;
 
 	switch (type) {
@@ -823,7 +816,7 @@ bool CDExtraHandler::clockInt(unsigned int ms)
 		if (m_direction == DIR_OUTGOING) {
 			bool reconnect = m_destination->linkFailed(DP_DEXTRA, m_reflector, true);
 			if (reconnect) {
-				CConnectData reply(m_repeater, m_reflector, CT_LINK1, m_yourAddress, m_yourPort);
+				CConnectData reply(m_repeater, m_reflector, CT_LINK1, m_yourAddr, m_yourAddrLen);
 				m_handler->writeConnect(reply);
 				m_linkState = DEXTRA_LINKING;
 				m_tryTimer.start(1U);
@@ -840,10 +833,10 @@ bool CDExtraHandler::clockInt(unsigned int ms)
 			if (!m_repeater.IsEmpty()) {
 				wxString callsign = m_repeater;
 				callsign.SetChar(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
-				CPollData poll(callsign, m_yourAddress, m_yourPort);
+				CPollData poll(callsign, m_yourAddr, m_yourAddrLen);
 				m_handler->writePoll(poll);
 			} else {
-				CPollData poll(m_callsign, m_yourAddress, m_yourPort);
+				CPollData poll(m_callsign, m_yourAddr, m_yourAddrLen);
 				m_handler->writePoll(poll);
 			}
 		}
@@ -863,7 +856,7 @@ bool CDExtraHandler::clockInt(unsigned int ms)
 
 	if (m_linkState == DEXTRA_LINKING) {
 		if (m_tryTimer.isRunning() && m_tryTimer.hasExpired()) {
-			CConnectData reply(m_repeater, m_reflector, CT_LINK1, m_yourAddress, m_yourPort);
+			CConnectData reply(m_repeater, m_reflector, CT_LINK1, m_yourAddr, m_yourAddrLen);
 			m_handler->writeConnect(reply);
 
 			unsigned int timeout = calcBackoff();
@@ -890,14 +883,14 @@ void CDExtraHandler::writeHeaderInt(IReflectorCallback* handler, CHeaderData& he
 	switch (m_direction) {
 		case DIR_OUTGOING:
 			if (m_destination == handler) {
-				header.setDestination(m_yourAddress, m_yourPort);
+				header.setDestination(m_yourAddr, m_yourAddrLen);
 				m_handler->writeHeader(header);
 			}
 			break;
 
 		case DIR_INCOMING:
 			if (m_repeater.IsEmpty() || m_destination == handler) {
-				header.setDestination(m_yourAddress, m_yourPort);
+				header.setDestination(m_yourAddr, m_yourAddrLen);
 				m_handler->writeHeader(header);
 			}
 			break;
@@ -920,14 +913,14 @@ void CDExtraHandler::writeAMBEInt(IReflectorCallback* handler, CAMBEData& data, 
 	switch (m_direction) {
 		case DIR_OUTGOING:
 			if (m_destination == handler) {
-				data.setDestination(m_yourAddress, m_yourPort);
+				data.setDestination(m_yourAddr, m_yourAddrLen);
 				m_handler->writeAMBE(data);
 			}
 			break;
 
 		case DIR_INCOMING:
 			if (m_repeater.IsEmpty() || m_destination == handler) {
-				data.setDestination(m_yourAddress, m_yourPort);
+				data.setDestination(m_yourAddr, m_yourAddrLen);
 				m_handler->writeAMBE(data);
 			}
 			break;

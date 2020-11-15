@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@ m_socket(addr, port),
 m_type(GT_NONE),
 m_buffer(NULL),
 m_length(0U),
-m_address(),
-m_port(0U)
+m_addr(),
+m_addrLen(0U)
 {
 	m_buffer = new unsigned char[BUFFER_LENGTH];
 }
@@ -56,7 +56,7 @@ bool CG2ProtocolHandler::writeHeader(const CHeaderData& header)
 #endif
 
 	for (unsigned int i = 0U; i < 5U; i++) {
-		bool res = m_socket.write(buffer, length, header.getYourAddress(), header.getYourPort());
+		bool res = m_socket.write(buffer, length, header.getYourAddr(), header.getYourAddrLen());
 		if (!res)
 			return false;
 	}
@@ -73,7 +73,7 @@ bool CG2ProtocolHandler::writeAMBE(const CAMBEData& data)
 	CUtils::dump(wxT("Sending Data"), buffer, length);
 #endif
 
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 }
 
 G2_TYPE CG2ProtocolHandler::read()
@@ -92,7 +92,7 @@ bool CG2ProtocolHandler::readPackets()
 	m_type = GT_NONE;
 
 	// No more data?
-	int length = m_socket.read(m_buffer, BUFFER_LENGTH, m_address, m_port);
+	int length = m_socket.read(m_buffer, BUFFER_LENGTH, m_addr, m_addrLen);
 	if (length <= 0)
 		return false;
 
@@ -119,7 +119,7 @@ CHeaderData* CG2ProtocolHandler::readHeader()
 	CHeaderData* header = new CHeaderData;
 
 	// G2 checksums are unreliable
-	bool res = header->setG2Data(m_buffer, m_length, false, m_address, m_port);
+	bool res = header->setG2Data(m_buffer, m_length, false, m_addr, m_addrLen);
 	if (!res) {
 		delete header;
 		return NULL;
@@ -135,7 +135,7 @@ CAMBEData* CG2ProtocolHandler::readAMBE()
 
 	CAMBEData* data = new CAMBEData;
 
-	bool res = data->setG2Data(m_buffer, m_length, m_address, m_port);
+	bool res = data->setG2Data(m_buffer, m_length, m_addr, m_addrLen);
 	if (!res) {
 		delete data;
 		return NULL;
@@ -150,11 +150,13 @@ void CG2ProtocolHandler::traverseNat(const wxString& address)
 	unsigned char buffer[1];
 	::memset(buffer, 0, 1);
 	
-	in_addr addr = CUDPReaderWriter::lookup(address);
+	sockaddr_storage addr;
+	unsigned int addrLen;
+	CUDPReaderWriter::lookup(address, G2_DV_PORT, addr, addrLen);
 
 	//wxLogError(wxT("Punching hole to %s"), address.mb_str());
 
-	m_socket.write(buffer, 1, addr, G2_DV_PORT);
+	m_socket.write(buffer, 1, addr, addrLen);
 }
 #endif
 

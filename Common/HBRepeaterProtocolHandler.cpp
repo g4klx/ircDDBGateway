@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ m_socket(address, port),
 m_type(RT_NONE),
 m_buffer(NULL),
 m_length(0U),
-m_address(),
-m_port(0U)
+m_addr(),
+m_addrLen(0U)
 {
 	wxASSERT(!address.IsEmpty());
 	wxASSERT(port > 0U);
@@ -57,7 +57,7 @@ bool CHBRepeaterProtocolHandler::writeHeader(CHeaderData& header)
 	CUtils::dump(wxT("Sending Header"), buffer, length);
 	return true;
 #else
-	return m_socket.write(buffer, length, header.getYourAddress(), header.getYourPort());
+	return m_socket.write(buffer, length, header.getYourAddr(), header.getYourAddrLen());
 #endif
 }
 
@@ -70,7 +70,7 @@ bool CHBRepeaterProtocolHandler::writeAMBE(CAMBEData& data)
 	CUtils::dump(wxT("Sending Data"), buffer, length);
 	return true;
 #else
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 #endif
 }
 
@@ -83,7 +83,7 @@ bool CHBRepeaterProtocolHandler::writeDD(CDDData& data)
 	CUtils::dump(wxT("Sending DD Data"), buffer, length);
 	return true;
 #else
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 #endif
 }
 
@@ -96,7 +96,7 @@ bool CHBRepeaterProtocolHandler::writeText(CTextData& text)
 	CUtils::dump(wxT("Sending Text"), buffer, length);
 	return true;
 #else
-	return m_socket.write(buffer, length, text.getAddress(), text.getPort());
+	return m_socket.write(buffer, length, text.getAddr(), text.getAddrLen());
 #endif
 }
 
@@ -109,7 +109,7 @@ bool CHBRepeaterProtocolHandler::writeStatus(CStatusData& status)
 	CUtils::dump(wxT("Sending Status"), buffer, length);
 	return true;
 #else
-	return m_socket.write(buffer, length, status.getAddress(), status.getPort());
+	return m_socket.write(buffer, length, status.getAddr(), status.getAddrLen());
 #endif
 }
 
@@ -129,7 +129,7 @@ bool CHBRepeaterProtocolHandler::readPackets()
 	m_type = RT_NONE;
 
 	// No more data?
-	int length = m_socket.read(m_buffer, BUFFER_LENGTH, m_address, m_port);
+	int length = m_socket.read(m_buffer, BUFFER_LENGTH, m_addr, m_addrLen);
 	if (length <= 0)
 		return false;
 
@@ -186,7 +186,7 @@ CPollData* CHBRepeaterProtocolHandler::readPoll()
 
 	wxString text = wxString((char*)(m_buffer + 5U), wxConvLocal);
 
-	return new CPollData(text, m_address, m_port, m_socket.getPort());
+	return new CPollData(text, m_addr, m_addrLen, m_socket.getPort());
 }
 
 CHeaderData* CHBRepeaterProtocolHandler::readHeader()
@@ -196,7 +196,7 @@ CHeaderData* CHBRepeaterProtocolHandler::readHeader()
 
 	CHeaderData* header = new CHeaderData;
 
-	bool res = header->setHBRepeaterData(m_buffer, m_length, true, m_address, m_port);
+	bool res = header->setHBRepeaterData(m_buffer, m_length, true, m_addr, m_addrLen);
 	if (!res) {
 		wxLogError(wxT("Invalid checksum from the repeater"));
 		delete header;
@@ -213,7 +213,7 @@ CAMBEData* CHBRepeaterProtocolHandler::readAMBE()
 
 	CAMBEData* data = new CAMBEData;
 
-	bool res = data->setHBRepeaterData(m_buffer, m_length, m_address, m_port);
+	bool res = data->setHBRepeaterData(m_buffer, m_length, m_addr, m_addrLen);
 	if (!res) {
 		wxLogError(wxT("Invalid AMBE data from the repeater"));
 		delete data;
@@ -230,7 +230,7 @@ CHeaderData* CHBRepeaterProtocolHandler::readBusyHeader()
 
 	CHeaderData* header = new CHeaderData;
 
-	bool res = header->setHBRepeaterData(m_buffer, m_length, true, m_address, m_port);
+	bool res = header->setHBRepeaterData(m_buffer, m_length, true, m_addr, m_addrLen);
 	if (!res) {
 		wxLogError(wxT("Invalid checksum from the repeater"));
 		delete header;
@@ -247,7 +247,7 @@ CAMBEData* CHBRepeaterProtocolHandler::readBusyAMBE()
 
 	CAMBEData* data = new CAMBEData;
 
-	bool res = data->setHBRepeaterData(m_buffer, m_length, m_address, m_port);
+	bool res = data->setHBRepeaterData(m_buffer, m_length, m_addr, m_addrLen);
 	if (!res) {
 		wxLogError(wxT("Invalid AMBE data from the repeater"));
 		delete data;
@@ -269,7 +269,7 @@ CDDData* CHBRepeaterProtocolHandler::readDD()
 
 	CDDData* data = new CDDData;
 
-	bool res = data->setHBRepeaterData(m_buffer, m_length, m_address, m_port);
+	bool res = data->setHBRepeaterData(m_buffer, m_length, m_addr, m_addrLen);
 	if (!res) {
 		wxLogError(wxT("Invalid DD data from the repeater"));
 		delete data;
