@@ -71,7 +71,7 @@ private:
 	CCS_TYPE         m_type;
 	unsigned char*   m_buffer;
 	unsigned int     m_length;
-	sockadd_storage  m_yourAddr;
+	sockaddr_storage m_yourAddr;
 	unsigned int     m_yourAddrLen;
 	unsigned int     m_myPort;
 

@@ -64,7 +64,7 @@ public:
 
 	unsigned int getAddrLen() const
 	{
-		return m_addLen;
+		return m_addrLen;
 	}
 
 private:

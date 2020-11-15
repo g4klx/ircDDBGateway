@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,75 +24,75 @@
 
 const wxChar* HTML = wxT("<table border=\"0\" width=\"95%%\"><tr><td width=\"4%%\"><img border=\"0\" src=%s></td><td width=\"96%%\"><font size=\"2\"><b>%s</b> ircDDB Gateway %s</font></td></tr></table>");
 
-CConnectData::CConnectData(GATEWAY_TYPE gatewayType, const wxString& repeater, const wxString& reflector, CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CConnectData::CConnectData(GATEWAY_TYPE gatewayType, const wxString& repeater, const wxString& reflector, CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_gatewayType(gatewayType),
 m_repeater(repeater),
 m_reflector(reflector),
 m_type(type),
 m_locator(),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 	wxASSERT(!repeater.IsEmpty());
 	wxASSERT(!reflector.IsEmpty());
 }
 
-CConnectData::CConnectData(const wxString& repeater, const wxString& reflector, CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CConnectData::CConnectData(const wxString& repeater, const wxString& reflector, CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_gatewayType(GT_REPEATER),
 m_repeater(repeater),
 m_reflector(reflector),
 m_type(type),
 m_locator(),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 	wxASSERT(!repeater.IsEmpty());
 	wxASSERT(!reflector.IsEmpty());
 }
 
-CConnectData::CConnectData(const wxString& repeater, CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CConnectData::CConnectData(const wxString& repeater, CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_gatewayType(GT_REPEATER),
 m_repeater(repeater),
 m_reflector(),
 m_type(type),
 m_locator(),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 	wxASSERT(!repeater.IsEmpty());
 }
 
-CConnectData::CConnectData(const wxString& repeater, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CConnectData::CConnectData(const wxString& repeater, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_gatewayType(GT_REPEATER),
 m_repeater(repeater),
 m_reflector(),
 m_type(CT_UNLINK),
 m_locator(),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 	wxASSERT(!repeater.IsEmpty());
 }
 
-CConnectData::CConnectData(CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CConnectData::CConnectData(CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_gatewayType(GT_REPEATER),
 m_repeater(),
 m_reflector(),
 m_type(type),
 m_locator(),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 }
 
 CConnectData::CConnectData() :
@@ -101,8 +101,8 @@ m_repeater(wxT("        ")),
 m_reflector(),
 m_type(CT_LINK1),
 m_locator(),
-m_yourAddress(),
-m_yourPort(0U),
+m_yourAddr(),
+m_yourAddrLen(0U),
 m_myPort(0U)
 {
 }
@@ -111,11 +111,11 @@ CConnectData::~CConnectData()
 {
 }
 
-bool CConnectData::setDExtraData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CConnectData::setDExtraData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 11U);
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	m_repeater = wxString((const char*)data, wxConvLocal, LONG_CALLSIGN_LENGTH);
 	m_repeater.SetChar(LONG_CALLSIGN_LENGTH - 1U, data[LONG_CALLSIGN_LENGTH + 0U]);
@@ -149,18 +149,18 @@ bool CConnectData::setDExtraData(const unsigned char* data, unsigned int length,
 			return false;
 	}
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
 }
 
-bool CConnectData::setDCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CConnectData::setDCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 11U);
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	m_repeater = wxString((const char*)data, wxConvLocal, LONG_CALLSIGN_LENGTH);
 	m_repeater.SetChar(LONG_CALLSIGN_LENGTH - 1U, data[LONG_CALLSIGN_LENGTH + 0U]);
@@ -196,18 +196,18 @@ bool CConnectData::setDCSData(const unsigned char* data, unsigned int length, co
 			return false;
 	}
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
 }
 
-bool CConnectData::setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CConnectData::setCCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 14U);
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	m_repeater = wxString((const char*)data, wxConvLocal, LONG_CALLSIGN_LENGTH);
 	m_repeater.SetChar(LONG_CALLSIGN_LENGTH - 1U, data[LONG_CALLSIGN_LENGTH + 0U]);
@@ -223,18 +223,18 @@ bool CConnectData::setCCSData(const unsigned char* data, unsigned int length, co
 	else
 		return false;
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
 }
 
-bool CConnectData::setDPlusData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CConnectData::setDPlusData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 5U);
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	switch (length) {
 		case 5U:
@@ -268,8 +268,8 @@ bool CConnectData::setDPlusData(const unsigned char* data, unsigned int length, 
 			return false;
 	}
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
@@ -507,14 +507,14 @@ unsigned int CConnectData::getDPlusData(unsigned char *data, unsigned int length
 	}
 }
 
-in_addr CConnectData::getYourAddress() const
+sockaddr_storage CConnectData::getYourAddr() const
 {
-	return m_yourAddress;
+	return m_yourAddr;
 }
 
-unsigned int CConnectData::getYourPort() const
+unsigned int CConnectData::getYourAddrLen() const
 {
-	return m_yourPort;
+	return m_yourAddrLen;
 }
 
 unsigned int CConnectData::getMyPort() const

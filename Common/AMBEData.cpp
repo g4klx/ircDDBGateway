@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ m_band1(0x00U),
 m_band2(0x02U),
 m_band3(0x01U),
 m_data(NULL),
-m_yourAddress(),
-m_yourPort(0U),
+m_yourAddr(),
+m_yourAddrLen(0U),
 m_myPort(0U),
 m_errors(0U),
 m_text(),
@@ -47,8 +47,8 @@ m_band1(data.m_band1),
 m_band2(data.m_band2),
 m_band3(data.m_band3),
 m_data(NULL),
-m_yourAddress(data.m_yourAddress),
-m_yourPort(data.m_yourPort),
+m_yourAddr(data.m_yourAddr),
+m_yourAddrLen(data.m_yourAddrLen),
 m_myPort(data.m_myPort),
 m_errors(data.m_errors),
 m_text(data.m_text),
@@ -63,7 +63,7 @@ CAMBEData::~CAMBEData()
 	delete[] m_data;
 }
 
-bool CAMBEData::setIcomRepeaterData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort)
+bool CAMBEData::setIcomRepeaterData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 29U);
@@ -83,13 +83,13 @@ bool CAMBEData::setIcomRepeaterData(const unsigned char *data, unsigned int leng
 		::memcpy(m_data, data + 17U, DV_FRAME_LENGTH_BYTES);
 	}
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 
 	return true;
 }
 
-bool CAMBEData::setHBRepeaterData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort)
+bool CAMBEData::setHBRepeaterData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 21U);
@@ -106,13 +106,13 @@ bool CAMBEData::setHBRepeaterData(const unsigned char *data, unsigned int length
 		::memcpy(m_data, data + 9U, DV_FRAME_LENGTH_BYTES);
 	}
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 
 	return true;
 }
 
-bool CAMBEData::setG2Data(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort)
+bool CAMBEData::setG2Data(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 27U);
@@ -125,13 +125,13 @@ bool CAMBEData::setG2Data(const unsigned char *data, unsigned int length, const 
 
 	::memcpy(m_data, data + 15U, DV_FRAME_LENGTH_BYTES);
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 
 	return true;
 }
 
-bool CAMBEData::setDExtraData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CAMBEData::setDExtraData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 27U);
@@ -144,14 +144,14 @@ bool CAMBEData::setDExtraData(const unsigned char *data, unsigned int length, co
 
 	::memcpy(m_data, data + 15U, DV_FRAME_LENGTH_BYTES);
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
 }
 
-bool CAMBEData::setDPlusData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CAMBEData::setDPlusData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 29U);
@@ -174,19 +174,19 @@ bool CAMBEData::setDPlusData(const unsigned char *data, unsigned int length, con
 		::memcpy(m_data, data + 17U, DV_FRAME_LENGTH_BYTES);
 	}
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
 }
 
-bool CAMBEData::setDCSData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CAMBEData::setDCSData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 100U);
 
-	m_header.setDCSData(data, length, yourAddress, yourPort, myPort);
+	m_header.setDCSData(data, length, yourAddr, yourAddrLen, myPort);
 
 	m_id     = data[44] * 256U + data[43];
 
@@ -196,19 +196,19 @@ bool CAMBEData::setDCSData(const unsigned char *data, unsigned int length, const
 
 	m_rptSeq = data[60] * 65536U + data[59] * 256U + data[58];
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
 }
 
-bool CAMBEData::setCCSData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CAMBEData::setCCSData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 100U);
 
-	m_header.setCCSData(data, length, yourAddress, yourPort, myPort);
+	m_header.setCCSData(data, length, yourAddr, yourAddrLen, myPort);
 
 	m_id     = data[44] * 256U + data[43];
 
@@ -218,8 +218,8 @@ bool CAMBEData::setCCSData(const unsigned char *data, unsigned int length, const
 
 	m_rptSeq = data[60] * 65536U + data[59] * 256U + data[58];
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
@@ -552,10 +552,10 @@ bool CAMBEData::isSync() const
 	return (m_outSeq & 0x1FU) == 0x00U;
 }
 
-void CAMBEData::setDestination(const in_addr& address, unsigned int port)
+void CAMBEData::setDestination(const sockaddr_storage& addr, unsigned int addrLen)
 {
-	m_yourAddress = address;
-	m_yourPort    = port;
+	m_yourAddr    = addr;
+	m_yourAddrLen = addrLen;
 }
 
 void CAMBEData::setText(const wxString& text)
@@ -563,14 +563,14 @@ void CAMBEData::setText(const wxString& text)
 	m_text = text;
 }
 
-in_addr CAMBEData::getYourAddress() const
+sockaddr_storage CAMBEData::getYourAddr() const
 {
-	return m_yourAddress;
+	return m_yourAddr;
 }
 
-unsigned int CAMBEData::getYourPort() const
+unsigned int CAMBEData::getYourAddrLen() const
 {
-	return m_yourPort;
+	return m_yourAddrLen;
 }
 
 unsigned int CAMBEData::getMyPort() const
@@ -615,8 +615,8 @@ CAMBEData& CAMBEData::operator=(const CAMBEData& data)
 		m_band1       = data.m_band1;
 		m_band2       = data.m_band2;
 		m_band3       = data.m_band3;
-		m_yourAddress = data.m_yourAddress;
-		m_yourPort    = data.m_yourPort;
+		m_yourAddr    = data.m_yourAddr;
+		m_yourAddrLen = data.m_yourAddrLen;
 		m_myPort      = data.m_myPort;
 		m_errors      = data.m_errors;
 		m_text        = data.m_text;

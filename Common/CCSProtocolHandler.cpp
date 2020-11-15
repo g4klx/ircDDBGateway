@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@ m_socket(addr, port),
 m_type(CT_NONE),
 m_buffer(NULL),
 m_length(0U),
-m_yourAddress(),
-m_yourPort(0U),
+m_yourAddr(),
+m_yourAddrLen(0U),
 m_myPort(port)
 {
 	m_buffer = new unsigned char[BUFFER_LENGTH];
@@ -61,7 +61,7 @@ bool CCCSProtocolHandler::writeData(const CAMBEData& data)
 	CUtils::dump(wxT("Sending Data"), buffer, length);
 #endif
 
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 }
 
 bool CCCSProtocolHandler::writePoll(const CPollData& poll)
@@ -73,7 +73,7 @@ bool CCCSProtocolHandler::writePoll(const CPollData& poll)
 	CUtils::dump(wxT("Sending Poll"), buffer, length);
 #endif
 
-	return m_socket.write(buffer, length, poll.getYourAddress(), poll.getYourPort());
+	return m_socket.write(buffer, length, poll.getYourAddr(), poll.getYourAddrLen());
 }
 
 bool CCCSProtocolHandler::writeHeard(const CHeardData& heard)
@@ -85,7 +85,7 @@ bool CCCSProtocolHandler::writeHeard(const CHeardData& heard)
 	CUtils::dump(wxT("Sending Heard"), buffer, length);
 #endif
 
-	return m_socket.write(buffer, length, heard.getAddress(), heard.getPort());
+	return m_socket.write(buffer, length, heard.getAddr(), heard.getAddrLen());
 }
 
 bool CCCSProtocolHandler::writeConnect(const CConnectData& connect)
@@ -97,7 +97,7 @@ bool CCCSProtocolHandler::writeConnect(const CConnectData& connect)
 	CUtils::dump(wxT("Sending Connect"), buffer, length);
 #endif
 
-	return m_socket.write(buffer, length, connect.getYourAddress(), connect.getYourPort());
+	return m_socket.write(buffer, length, connect.getYourAddr(), connect.getYourAddrLen());
 }
 
 bool CCCSProtocolHandler::writeMisc(const CCCSData& data)
@@ -109,7 +109,7 @@ bool CCCSProtocolHandler::writeMisc(const CCCSData& data)
 	CUtils::dump(wxT("Sending Misc"), buffer, length);
 #endif
 
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 }
 
 CCS_TYPE CCCSProtocolHandler::read()
@@ -128,7 +128,7 @@ bool CCCSProtocolHandler::readPackets()
 	m_type = CT_NONE;
 
 	// No more data?
-	int length = m_socket.read(m_buffer, BUFFER_LENGTH, m_yourAddress, m_yourPort);
+	int length = m_socket.read(m_buffer, BUFFER_LENGTH, m_yourAddr, m_yourAddrLen);
 	if (length <= 0)
 		return false;
 
@@ -172,7 +172,7 @@ CAMBEData* CCCSProtocolHandler::readData()
 
 	CAMBEData* data = new CAMBEData;
 
-	bool res = data->setCCSData(m_buffer, m_length, m_yourAddress, m_yourPort, m_myPort);
+	bool res = data->setCCSData(m_buffer, m_length, m_yourAddr, m_yourAddrLen, m_myPort);
 	if (!res) {
 		delete data;
 		return NULL;
@@ -188,7 +188,7 @@ CConnectData* CCCSProtocolHandler::readConnect()
 
 	CConnectData* connect = new CConnectData;
 
-	bool res = connect->setCCSData(m_buffer, m_length, m_yourAddress, m_yourPort, m_myPort);
+	bool res = connect->setCCSData(m_buffer, m_length, m_yourAddr, m_yourAddrLen, m_myPort);
 	if (!res) {
 		delete connect;
 		return NULL;
@@ -204,7 +204,7 @@ CPollData* CCCSProtocolHandler::readPoll()
 
 	CPollData* poll = new CPollData;
 
-	bool res = poll->setCCSData(m_buffer, m_length, m_yourAddress, m_yourPort, m_myPort);
+	bool res = poll->setCCSData(m_buffer, m_length, m_yourAddr, m_yourAddrLen, m_myPort);
 	if (!res) {
 		delete poll;
 		return NULL;
@@ -220,7 +220,7 @@ CCCSData* CCCSProtocolHandler::readMisc()
 
 	CCCSData* data = new CCCSData;
 
-	bool res = data->setCCSData(m_buffer, m_length, m_yourAddress, m_yourPort, m_myPort);
+	bool res = data->setCCSData(m_buffer, m_length, m_yourAddr, m_yourAddrLen, m_myPort);
 	if (!res) {
 		delete data;
 		return NULL;

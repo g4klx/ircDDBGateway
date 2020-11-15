@@ -73,7 +73,7 @@ private:
 	wxString         m_reflector;
 	CD_TYPE          m_type;
 	wxString         m_locator;
-	sockaddr_storage m_yourAddress;
+	sockaddr_storage m_yourAddr;
 	unsigned int     m_yourAddrLen;
 	unsigned int     m_myPort;
 };

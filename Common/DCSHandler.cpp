@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012-2015,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,14 +37,14 @@ CCallsignList*           CDCSHandler::m_whiteList = NULL;
 CCallsignList*           CDCSHandler::m_blackList = NULL;
 
 
-CDCSHandler::CDCSHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDCSProtocolHandler* protoHandler, const in_addr& address, unsigned int port, DIRECTION direction) :
+CDCSHandler::CDCSHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDCSProtocolHandler* protoHandler, const sockaddr_storage& addr, unsigned int addrLen, DIRECTION direction) :
 m_reflector(reflector.Clone()),
 m_xlxReflector(),
 m_isXlx(false),
 m_repeater(repeater.Clone()),
 m_handler(protoHandler),
-m_yourAddress(address),
-m_yourPort(port),
+m_yourAddr(addr),
+m_yourAddrLen(addrLen),
 m_myPort(0U),
 m_direction(direction),
 m_linkState(DCS_LINKING),
@@ -181,9 +181,9 @@ void CDCSHandler::getInfo(IReflectorCallback* handler, CRemoteRepeaterData& data
 
 void CDCSHandler::process(CAMBEData& data)
 {
-	in_addr   yourAddress = data.getYourAddress();
-	unsigned int yourPort = data.getYourPort();
-	unsigned int myPort   = data.getMyPort();
+	sockaddr_storage yourAddr = data.getYourAddr();
+	unsigned int  yourAddrLen = data.getYourAddrLen();
+	unsigned int     myPort   = data.getMyPort();
 
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		CDCSHandler* reflector = m_reflectors[i];
@@ -200,12 +200,12 @@ void CDCSHandler::process(CAMBEData& data)
 
 void CDCSHandler::process(CPollData& poll)
 {
-	wxString   reflector  = poll.getData1();
-	wxString   repeater   = poll.getData2();
-	in_addr   yourAddress = poll.getYourAddress();
-	unsigned int yourPort = poll.getYourPort();
-	unsigned int   myPort = poll.getMyPort();
-	unsigned int   length = poll.getLength();
+	wxString       reflector  = poll.getData1();
+	wxString       repeater   = poll.getData2();
+	sockaddr_storage yourAddr = poll.getYourAddr();
+	unsigned int  yourAddrLen = poll.getYourAddrLen();
+	unsigned int       myPort = poll.getMyPort();
+	unsigned int       length = poll.getLength();
 
 	// Check to see if we already have a link
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
@@ -221,7 +221,7 @@ void CDCSHandler::process(CPollData& poll)
 				handler->m_linkState == DCS_LINKED &&
 				length == 22U) {
 				handler->m_pollInactivityTimer.start();
-				CPollData reply(handler->m_repeater, handler->m_reflector, handler->m_direction, handler->m_yourAddress, handler->m_yourPort);
+				CPollData reply(handler->m_repeater, handler->m_reflector, handler->m_direction, handler->m_yourAddr, handler->m_yourAddrLen);
 				handler->m_handler->writePoll(reply);
 				return;
 			} else if (handler->m_reflector.Left(LONG_CALLSIGN_LENGTH - 1U).IsSameAs(reflector.Left(LONG_CALLSIGN_LENGTH - 1U)) &&
@@ -259,9 +259,9 @@ void CDCSHandler::process(CConnectData& connect)
 	}
 
 	// else if type == CT_LINK1 or type == CT_LINK2
-	in_addr   yourAddress = connect.getYourAddress();
-	unsigned int yourPort = connect.getYourPort();
-	unsigned int   myPort = connect.getMyPort();
+	in_addr         yourAddr = connect.getYourAddr();
+	unsigned int yourAddrLen = connect.getYourAddrLen();
+	unsigned int      myPort = connect.getMyPort();
 
 	wxString repeaterCallsign = connect.getRepeater();
 	wxString reflectorCallsign = connect.getReflector();
@@ -270,8 +270,7 @@ void CDCSHandler::process(CConnectData& connect)
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		if (m_reflectors[i] != NULL) {
 			if (m_reflectors[i]->m_direction          == DIR_INCOMING &&
-			    m_reflectors[i]->m_yourAddress.s_addr == yourAddress.s_addr &&
-			    m_reflectors[i]->m_yourPort           == yourPort &&
+			    CUDPReaderWriter::match(m_yourAddr, yourAddr) &&
 			    m_reflectors[i]->m_myPort             == myPort &&
 			    m_reflectors[i]->m_repeater.IsSameAs(reflectorCallsign) &&
 			    m_reflectors[i]->m_reflector.IsSameAs(repeaterCallsign))
@@ -291,7 +290,7 @@ void CDCSHandler::process(CConnectData& connect)
 	// A new connect packet indicates the need for a new entry
 	wxLogMessage(wxT("New incoming DCS link to %s from %s"), reflectorCallsign.c_str(), repeaterCallsign.c_str());
 
-	CDCSHandler* dcs = new CDCSHandler(handler, repeaterCallsign, reflectorCallsign, m_incoming, yourAddress, yourPort, DIR_INCOMING);
+	CDCSHandler* dcs = new CDCSHandler(handler, repeaterCallsign, reflectorCallsign, m_incoming, yourAddr, yourAddrLen, DIR_INCOMING);
 
 	bool found = false;
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
@@ -303,10 +302,10 @@ void CDCSHandler::process(CConnectData& connect)
 	}
 
 	if (found) {
-		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_ACK, yourAddress, yourPort);
+		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_ACK, yourAddr, yourAddrLen);
 		m_incoming->writeConnect(reply);
 	} else {
-		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, yourAddress, yourPort);
+		CConnectData reply(repeaterCallsign, reflectorCallsign, CT_NAK, yourAddr, yourAddrLen);
 		m_incoming->writeConnect(reply);
 
 		wxLogError(wxT("No space to add new DCS link, ignoring"));
@@ -361,7 +360,7 @@ void CDCSHandler::unlink(IReflectorCallback* handler, const wxString& callsign, 
 					wxLogMessage(wxT("Removing outgoing DCS link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
 
 					if (reflector->m_linkState == DCS_LINKING || reflector->m_linkState == DCS_LINKED) {
-						CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddress, reflector->m_yourPort);
+						CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddr, reflector->m_yourAddrLen);
 						reflector->m_handler->writeConnect(connect);
 
 						reflector->m_linkState = DCS_UNLINKING;
@@ -376,7 +375,7 @@ void CDCSHandler::unlink(IReflectorCallback* handler, const wxString& callsign, 
 					wxLogMessage(wxT("Removing DCS link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
 
 					if (reflector->m_linkState == DCS_LINKING || reflector->m_linkState == DCS_LINKED) {
-						CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddress, reflector->m_yourPort);
+						CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddr, reflector->m_yourAddrLen);
 						reflector->m_handler->writeConnect(connect);
 
 						reflector->m_linkState = DCS_UNLINKING;
@@ -419,7 +418,7 @@ void CDCSHandler::unlink()
 			if (!reflector->m_repeater.IsEmpty()) {
 				wxLogMessage(wxT("Unlinking from DCS reflector %s"), reflector->m_reflector.c_str());
 
-				CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddress, reflector->m_yourPort);
+				CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddr, reflector->m_yourAddrLen);
 				reflector->m_handler->writeConnect(connect);
 
 				reflector->m_linkState = DCS_UNLINKING;
@@ -627,10 +626,10 @@ void CDCSHandler::processInt(CAMBEData& data)
 
 bool CDCSHandler::processInt(CConnectData& connect, CD_TYPE type)
 {
-	in_addr   yourAddress = connect.getYourAddress();
-	unsigned int yourPort = connect.getYourPort();
-	unsigned int   myPort = connect.getMyPort();
-	wxString     repeater = connect.getRepeater();
+	sockaddr_storage yourAddr = connect.getYourAddr();
+	unsigned int  yourAddrLen = connect.getYourAddrLen();
+	unsigned int       myPort = connect.getMyPort();
+	wxString         repeater = connect.getRepeater();
 
 	if (m_yourAddress.s_addr != yourAddress.s_addr || m_yourPort != yourPort || m_myPort != myPort)
 		return false;
@@ -728,7 +727,7 @@ bool CDCSHandler::clockInt(unsigned int ms)
 		if (m_direction == DIR_OUTGOING) {
 			bool reconnect = m_destination->linkFailed(DP_DCS, GET_DISP_REFLECTOR(this), true);
 			if (reconnect) {
-				CConnectData reply(m_gatewayType, m_repeater, m_reflector, CT_LINK1, m_yourAddress, m_yourPort);
+				CConnectData reply(m_gatewayType, m_repeater, m_reflector, CT_LINK1, m_yourAddr, m_yourAddrLen);
 				m_handler->writeConnect(reply);
 				m_linkState = DCS_LINKING;
 				m_tryTimer.start(1U);
@@ -749,13 +748,13 @@ bool CDCSHandler::clockInt(unsigned int ms)
 	if (m_pollTimer.isRunning() && m_pollTimer.hasExpired()) {
 		m_pollTimer.start();
 
-		CPollData poll(m_repeater, m_reflector, m_direction, m_yourAddress, m_yourPort);
+		CPollData poll(m_repeater, m_reflector, m_direction, m_yourAddr, m_yourAddrLen);
 		m_handler->writePoll(poll);
 	}
 
 	if (m_linkState == DCS_LINKING) {
 		if (m_tryTimer.isRunning() && m_tryTimer.hasExpired()) {
-			CConnectData reply(m_gatewayType, m_repeater, m_reflector, CT_LINK1, m_yourAddress, m_yourPort);
+			CConnectData reply(m_gatewayType, m_repeater, m_reflector, CT_LINK1, m_yourAddr, m_yourAddrLen);
 			m_handler->writeConnect(reply);
 
 			unsigned int timeout = calcBackoff();
@@ -765,7 +764,7 @@ bool CDCSHandler::clockInt(unsigned int ms)
 
 	if (m_linkState == DCS_UNLINKING) {
 		if (m_tryTimer.isRunning() && m_tryTimer.hasExpired()) {
-			CConnectData connect(m_repeater, m_reflector, CT_UNLINK, m_yourAddress, m_yourPort);
+			CConnectData connect(m_repeater, m_reflector, CT_UNLINK, m_yourAddr, m_yourAddrLen);
 			m_handler->writeConnect(connect);
 
 			unsigned int timeout = calcBackoff();
@@ -825,7 +824,7 @@ void CDCSHandler::writeAMBEInt(IReflectorCallback* handler, CAMBEData& data, DIR
 	header.setCQCQCQ();
 
 	data.setRptSeq(m_seqNo++);
-	data.setDestination(m_yourAddress, m_yourPort);
+	data.setDestination(m_yourAddr, m_yourAddrLen);
 	m_handler->writeData(data);
 }
 

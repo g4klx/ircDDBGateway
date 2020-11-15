@@ -46,8 +46,8 @@ public:
 
 	void setDestination(const sockaddr_storage& addr, unsigned int addrLen);
 
-	// sockaddr_storage getAddr() const;
-	// unsigned int     getAddrLen() const;
+	sockaddr_storage getAddr() const;
+	unsigned int     getAddrLen() const;
 
 private:
 	wxString         m_reflector;

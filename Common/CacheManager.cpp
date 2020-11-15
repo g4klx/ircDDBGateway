@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ CUserData* CCacheManager::findUser(const wxString& user)
 	if (gr == NULL)
 		return NULL;
 
-	return new CUserData(user, ur->getRepeater(), gr->getGateway(), gr->getAddress());
+	return new CUserData(user, ur->getRepeater(), gr->getGateway(), gr->getAddr(), gr->getAddrLen());
 }
 
 CGatewayData* CCacheManager::findGateway(const wxString& gateway)
@@ -65,7 +65,7 @@ CGatewayData* CCacheManager::findGateway(const wxString& gateway)
 	if (gr == NULL)
 		return NULL;
 
-	return new CGatewayData(gateway, gr->getAddress(), gr->getProtocol());
+	return new CGatewayData(gateway, gr->getAddr(), gr->getAddrLen(), gr->getProtocol());
 }
 
 CRepeaterData* CCacheManager::findRepeater(const wxString& repeater)
@@ -87,7 +87,7 @@ CRepeaterData* CCacheManager::findRepeater(const wxString& repeater)
 	if (gr == NULL)
 		return NULL;
 
-	return new CRepeaterData(repeater, gr->getGateway(), gr->getAddress(), gr->getProtocol());
+	return new CRepeaterData(repeater, gr->getGateway(), gr->getAddr(), gr->getAddrLen(), gr->getProtocol());
 }
 
 void CCacheManager::updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, const wxString& timestamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)

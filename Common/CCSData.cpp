@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@ m_description1(description1),
 m_description2(description2),
 m_url(url),
 m_type(type),
-m_yourAddress(),
-m_yourPort(0U),
+m_yourAddr(),
+m_yourAddrLen(0U),
 m_myPort(0U)
 {
 }
@@ -48,8 +48,8 @@ m_description1(),
 m_description2(),
 m_url(),
 m_type(type),
-m_yourAddress(),
-m_yourPort(0U),
+m_yourAddr(),
+m_yourAddrLen(0U),
 m_myPort(0U)
 {
 }
@@ -65,8 +65,8 @@ m_description1(),
 m_description2(),
 m_url(),
 m_type(),
-m_yourAddress(),
-m_yourPort(0U),
+m_yourAddr(),
+m_yourAddrLen(0U),
 m_myPort(0U)
 {
 }
@@ -75,7 +75,7 @@ CCCSData::~CCCSData()
 {
 }
 
-bool CCCSData::setCCSData(const unsigned char *data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CCCSData::setCCSData(const unsigned char *data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 
@@ -118,8 +118,8 @@ bool CCCSData::setCCSData(const unsigned char *data, unsigned int length, const 
 			return false;
 	}
 
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
@@ -170,20 +170,20 @@ CC_TYPE CCCSData::getType() const
 	return m_type;
 }
 
-void CCCSData::setDestination(const in_addr& address, unsigned int port)
+void CCCSData::setDestination(const sockaddr_storage& addr, unsigned int addrLen)
 {
-	m_yourAddress = address;
-	m_yourPort    = port;
+	m_yourAddr    = addr;
+	m_yourAddrLen = addrLen;
 }
 
-in_addr CCCSData::getYourAddress() const
+sockaddr_storage CCCSData::getYourAddr() const
 {
-	return m_yourAddress;
+	return m_yourAddr;
 }
 
-unsigned int CCCSData::getYourPort() const
+unsigned int CCCSData::getYourAddrLen() const
 {
-	return m_yourPort;
+	return m_yourAddrLen;
 }
 
 unsigned int CCCSData::getMyPort() const
