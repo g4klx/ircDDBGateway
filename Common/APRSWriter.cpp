@@ -122,8 +122,8 @@ CAPRSWriter::CAPRSWriter(const wxString& address, unsigned int port, const wxStr
 m_idTimer(1000U),
 m_gateway(),
 m_array(),
-m_aprsAddress(),
-m_aprsPort(port),
+m_aprsAddr(),
+m_aprsAddrLen(),
 m_aprsSocket()
 #if defined(USE_GPSD)
 ,m_gpsdEnabled(false),
@@ -140,7 +140,7 @@ m_gpsdData()
 	m_gateway.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 	m_gateway.Trim();
 
-	m_aprsAddress = CUDPReaderWriter::lookup(address);
+	CUDPReaderWriter::lookup(address, port, m_aprsAddr, m_aprsAddrLen);
 }
 
 CAPRSWriter::~CAPRSWriter()
@@ -284,7 +284,7 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 
 	wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
-	m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+	m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddr, m_aprsAddrLen);
 
 	collector->reset();
 }
@@ -419,7 +419,7 @@ void CAPRSWriter::sendIdFramesFixed()
 
 		wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
-		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddr, m_aprsAddrLen);
 
 		if (entry->getBand().Len() == 1U) {
 			output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&RNG%04.0lf/A=%06.0lf %s %s\r\n"),
@@ -434,7 +434,7 @@ void CAPRSWriter::sendIdFramesFixed()
 
 			wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
-			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddr, m_aprsAddrLen);
 		}
 	}
 }
@@ -576,7 +576,7 @@ void CAPRSWriter::sendIdFramesMobile()
 
 		wxLogDebug(wxT("APRS ==> %s%s%s"), output1.c_str(), output2.c_str(), output3.c_str());
 
-		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddr, m_aprsAddrLen);
 
 		if (entry->getBand().Len() == 1U) {
 			if (altitudeSet)
@@ -602,7 +602,7 @@ void CAPRSWriter::sendIdFramesMobile()
 
 			wxLogDebug(wxT("APRS ==> %s%s%s"), output1.c_str(), output2.c_str(), output3.c_str());
 
-			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddr, m_aprsAddrLen);
 		}
 	}
 }

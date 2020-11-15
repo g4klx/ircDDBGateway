@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -59,7 +59,6 @@ private:
 	bool    open();
 	int     accept();
 	void    close();
-	in_addr lookup(const wxString& hostname) const;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -39,18 +39,18 @@ enum CD_TYPE {
 
 class CConnectData {
 public:
-	CConnectData(GATEWAY_TYPE gatewayType, const wxString& repeater, const wxString& reflector, CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
-	CConnectData(const wxString& repeater, const wxString& reflector, CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
-	CConnectData(const wxString& repeater, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
-	CConnectData(const wxString& repeater, CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
-	CConnectData(CD_TYPE type, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
+	CConnectData(GATEWAY_TYPE gatewayType, const wxString& repeater, const wxString& reflector, CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
+	CConnectData(const wxString& repeater, const wxString& reflector, CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
+	CConnectData(const wxString& repeater, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
+	CConnectData(const wxString& repeater, CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
+	CConnectData(CD_TYPE type, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
 	CConnectData();
 	~CConnectData();
 
-	bool setDExtraData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setDPlusData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setDCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
+	bool setDExtraData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setDPlusData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setDCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setCCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
 
 	unsigned int getDExtraData(unsigned char* data, unsigned int length) const;
 	unsigned int getDPlusData(unsigned char* data, unsigned int length) const;
@@ -61,21 +61,21 @@ public:
 	wxString      getReflector() const;
 	CD_TYPE       getType() const;
 
-	in_addr       getYourAddress() const;
-	unsigned int  getYourPort() const;
-	unsigned int  getMyPort() const;
+	sockaddr_storage getYourAddr() const;
+	unsigned int     getYourAddrLen() const;
+	unsigned int     getMyPort() const;
 
 	void setLocator(const wxString& locator);
 
 private:
-	GATEWAY_TYPE  m_gatewayType;
-	wxString      m_repeater;
-	wxString      m_reflector;
-	CD_TYPE       m_type;
-	wxString      m_locator;
-	in_addr       m_yourAddress;
-	unsigned int  m_yourPort;
-	unsigned int  m_myPort;
+	GATEWAY_TYPE     m_gatewayType;
+	wxString         m_repeater;
+	wxString         m_reflector;
+	CD_TYPE          m_type;
+	wxString         m_locator;
+	sockaddr_storage m_yourAddress;
+	unsigned int     m_yourAddrLen;
+	unsigned int     m_myPort;
 };
 
 #endif

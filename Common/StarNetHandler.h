@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011-2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -98,7 +98,8 @@ public:
 	wxString           m_destination;
 	wxString           m_repeater;
 	wxString           m_gateway;
-	in_addr            m_address;
+	sockaddr_storage   m_addr;
+	unsigned int       m_addrLen;
 	IRepeaterCallback* m_local;
 };
 

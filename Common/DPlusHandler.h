@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2015,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ public:
 
 	static void startAuthenticator(const wxString& address, CCacheManager* cache);
 
-	static void link(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, const in_addr& address);
+	static void link(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, const sockaddr_storage& addr, unsigned int addrLen);
 	static void relink(IReflectorCallback* handler, const wxString& reflector);
 	static void unlink(IReflectorCallback* handler, const wxString& reflector = wxEmptyString, bool exclude = true);
 	static void unlink();
@@ -90,8 +90,8 @@ public:
 	static wxString getDongles();
 
 protected:
-	CDPlusHandler(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, CDPlusProtocolHandler* protoHandler, const in_addr& address, unsigned int port);
-	CDPlusHandler(CDPlusProtocolHandler* protoHandler, const in_addr& address, unsigned int port);
+	CDPlusHandler(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, CDPlusProtocolHandler* protoHandler, const sockaddr_storage& addr, unsigned int addrLen);
+	CDPlusHandler(CDPlusProtocolHandler* protoHandler, const sockaddr_storage& addr, unsigned int addrLen);
 	~CDPlusHandler();
 
 	void processInt(CHeaderData& header);
@@ -125,8 +125,8 @@ private:
 	wxString               m_callsign;
 	wxString               m_reflector;
 	CDPlusProtocolHandler* m_handler;
-	in_addr                m_yourAddress;
-	unsigned int           m_yourPort;
+	sockaddr_storage       m_yourAddr;
+	unsigned int           m_yourAddrLen;
 	unsigned int           m_myPort;
 	DIRECTION              m_direction;
 	DPLUS_STATE            m_linkState;

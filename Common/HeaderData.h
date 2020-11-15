@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,13 +36,13 @@ public:
 				unsigned char flag2 = 0x00, unsigned char flag3 = 0x00);
 	~CHeaderData();
 
-	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, bool check, const in_addr& yourAddress, unsigned int yourPort);
-	bool setHBRepeaterData(const unsigned char* data, unsigned int length, bool check, const in_addr& yourAddress, unsigned int yourPort);
-	bool setG2Data(const unsigned char* data, unsigned int length, bool check, const in_addr& yourAddress, unsigned int yourPort);
-	bool setDExtraData(const unsigned char* data, unsigned int length, bool check, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setDPlusData(const unsigned char* data, unsigned int length, bool check, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	void setDCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	void setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
+	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, bool check, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
+	bool setHBRepeaterData(const unsigned char* data, unsigned int length, bool check, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
+	bool setG2Data(const unsigned char* data, unsigned int length, bool check, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
+	bool setDExtraData(const unsigned char* data, unsigned int length, bool check, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setDPlusData(const unsigned char* data, unsigned int length, bool check, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	void setDCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	void setCCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
 
 	unsigned int getIcomRepeaterData(unsigned char* data, unsigned int length, bool check) const;
 	unsigned int getHBRepeaterData(unsigned char* data, unsigned int length, bool check) const;
@@ -90,14 +90,14 @@ public:
 	void setCQCQCQ();
 
 	void setRepeaters(const wxString& rpt1, const wxString& rpt2);
-	void setDestination(const in_addr& address, unsigned int port);
+	void setDestination(const sockaddr_storage& addr, unsigned int addrLen);
 
 	bool setData(const unsigned char* data, unsigned int length, bool check);
 	unsigned int getData(unsigned char* data, unsigned int length, bool check) const;
 
-	in_addr      getYourAddress() const;
-	unsigned int getYourPort() const;
-	unsigned int getMyPort() const;
+	sockaddr_storage getYourAddr() const;
+	unsigned int     getYourAddrLen() const;
+	unsigned int     getMyPort() const;
 
 	unsigned int getErrors() const;
 
@@ -108,23 +108,23 @@ public:
 	CHeaderData& operator=(const CHeaderData& header);
 
 private:
-	unsigned int   m_rptSeq;
-	unsigned int   m_id;
-	unsigned char  m_band1;
-	unsigned char  m_band2;
-	unsigned char  m_band3;
-	unsigned char  m_flag1;
-	unsigned char  m_flag2;
-	unsigned char  m_flag3;
-	unsigned char* m_myCall1;
-	unsigned char* m_myCall2;
-	unsigned char* m_yourCall;
-	unsigned char* m_rptCall1;
-	unsigned char* m_rptCall2;
-	in_addr        m_yourAddress;
-	unsigned int   m_yourPort;
-	unsigned int   m_myPort;
-	unsigned int   m_errors;
+	unsigned int     m_rptSeq;
+	unsigned int     m_id;
+	unsigned char    m_band1;
+	unsigned char    m_band2;
+	unsigned char    m_band3;
+	unsigned char    m_flag1;
+	unsigned char    m_flag2;
+	unsigned char    m_flag3;
+	unsigned char*   m_myCall1;
+	unsigned char*   m_myCall2;
+	unsigned char*   m_yourCall;
+	unsigned char*   m_rptCall1;
+	unsigned char*   m_rptCall2;
+	sockaddr_storage m_yourAddr;
+	unsigned int     m_yourAddrLen;
+	unsigned int     m_myPort;
+	unsigned int     m_errors;
 };
 
 #endif

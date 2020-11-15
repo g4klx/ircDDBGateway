@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -150,8 +150,8 @@ public:
 
 private:
 	CUDPReaderWriter         m_socket;
-	in_addr                  m_icomAddress;
-	unsigned int             m_icomPort;
+	sockaddr_storage         m_icomAddr;
+	unsigned int             m_icomAddrLen;
 	bool                     m_over1;
 	wxUint16                 m_seqNo;
 	unsigned int             m_tries;

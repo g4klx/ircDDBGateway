@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,16 +31,16 @@
 
 class CPollData {
 public:
-	CPollData(const wxString& data1, const wxString& data2, DIRECTION direction, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
-	CPollData(const wxString& data, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
-	CPollData(const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort = 0U);
+	CPollData(const wxString& data1, const wxString& data2, DIRECTION direction, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
+	CPollData(const wxString& data, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
+	CPollData(const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort = 0U);
 	CPollData();
 	~CPollData();
 
-	bool setDExtraData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setDPlusData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setDCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
+	bool setDExtraData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setDPlusData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setDCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setCCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
 
 	unsigned int getDExtraData(unsigned char* data, unsigned int length) const;
 	unsigned int getDPlusData(unsigned char* data, unsigned int length) const;
@@ -55,22 +55,22 @@ public:
 
 	bool         isDongle() const;
 
-	in_addr      getYourAddress() const;
-	unsigned int getYourPort() const;
-	unsigned int getMyPort() const;
+	sockaddr_storage getYourAddr() const;
+	unsigned int     getYourAddrLen() const;
+	unsigned int     getMyPort() const;
 
 	DIRECTION    getDirection() const;
 	unsigned int getLength() const;
 
 private:
-	wxString     m_data1;
-	wxString     m_data2;
-	DIRECTION    m_direction;
-	bool         m_dongle;
-	unsigned int m_length;
-	in_addr      m_yourAddress;
-	unsigned int m_yourPort;
-	unsigned int m_myPort;
+	wxString         m_data1;
+	wxString         m_data2;
+	DIRECTION        m_direction;
+	bool             m_dongle;
+	unsigned int     m_length;
+	sockaddr_storage m_yourAddr;
+	unsigned int     m_yourAddrLen;
+	unsigned int     m_myPort;
 };
 
 #endif

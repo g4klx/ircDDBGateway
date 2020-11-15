@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,9 +35,10 @@
 
 class CGatewayRecord {
 public:
-	CGatewayRecord(const wxString& gateway, in_addr address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock) :
+	CGatewayRecord(const wxString& gateway, const sockaddr_storage& addr, unsigned int addrLen, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock) :
 	m_gateway(gateway),
-	m_address(address),
+	m_addr(addr),
+	m_addrLen(addrLen),
 	m_protocol(DP_UNKNOWN),
 	m_addrLock(addrLock),
 	m_protoLock(false)
@@ -53,9 +54,14 @@ public:
 		return m_gateway;
 	}
 
-	in_addr getAddress() const
+	sockaddr_storage getAddr() const
 	{
-		return m_address;
+		return m_addr;
+	}
+
+	unsigned int getAddrLen() const
+	{
+		return m_addrLen;
 	}
 
 	DSTAR_PROTOCOL getProtocol() const
@@ -63,10 +69,11 @@ public:
 		return m_protocol;
 	}
 
-	void setData(in_addr address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+	void setData(const sockaddr_storage& addr, unsigned int addrLen, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
 	{
 		if (!m_addrLock) {
-			m_address  = address;
+			m_addr     = addr;
+			m_addrLen  = addrLen;
 			m_addrLock = addrLock;
 		}
 
@@ -79,11 +86,12 @@ public:
 	}
 
 private:
-	wxString       m_gateway;
-	in_addr        m_address;
-	DSTAR_PROTOCOL m_protocol;
-	bool           m_addrLock;
-	bool           m_protoLock;
+	wxString         m_gateway;
+	sockaddr_storage m_addr;
+	unsigned int     m_addrLen;
+	DSTAR_PROTOCOL   m_protocol;
+	bool             m_addrLock;
+	bool             m_protoLock;
 };
 
 WX_DECLARE_STRING_HASH_MAP(CGatewayRecord*, CGatewayCache_t);

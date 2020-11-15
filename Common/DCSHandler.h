@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013,2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2015,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public:
 	static void setHeaderLogger(CHeaderLogger* logger);
 	static void setGatewayType(GATEWAY_TYPE type);
 
-	static void link(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, const in_addr& address);
+	static void link(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, const sockaddr_storage& addr, unsigned int addrLen);
 	static void unlink(IReflectorCallback* handler, const wxString& reflector = wxEmptyString, bool exclude = true);
 	static void unlink();
 
@@ -83,7 +83,7 @@ public:
 	static wxString getIncoming(const wxString& callsign);
 
 protected:
-	CDCSHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDCSProtocolHandler* protoHandler, const in_addr& address, unsigned int port, DIRECTION direction);
+	CDCSHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDCSProtocolHandler* protoHandler, const sockaddr_storage& addr, unsigned int addrLen, DIRECTION direction);
 	~CDCSHandler();
 
 	void processInt(CAMBEData& data);
@@ -115,8 +115,8 @@ private:
 	bool                 m_isXlx;	
 	wxString             m_repeater;
 	CDCSProtocolHandler* m_handler;
-	in_addr              m_yourAddress;
-	unsigned int         m_yourPort;
+	sockaddr_storage     m_yourAddr;
+	unsigned int         m_yourAddrLen;
 	unsigned int         m_myPort;
 	DIRECTION            m_direction;
 	DCS_STATE            m_linkState;

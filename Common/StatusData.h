@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2012,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,16 +34,16 @@ public:
 
 	unsigned int getHBRepeaterData(unsigned char* data, unsigned int length) const;
 
-	void setDestination(const in_addr& address, unsigned int port);
+	void setDestination(const sockaddr_storage& addr, unsigned int addrLen);
 
-	in_addr      getAddress() const;
-	unsigned int getPort() const;
+	sockaddr_storage getAddr() const;
+	unsigned int     getAddrLen() const;
 
 private:
-	unsigned char* m_data;
-	unsigned int   m_n;
-	in_addr        m_address;
-	unsigned int   m_port;
+	unsigned char*   m_data;
+	unsigned int     m_n;
+	sockaddr_storage m_addr;
+	unsigned int     m_addrLen;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ public:
 	static void finalise();
 
 protected:
-	CG2Handler(CRepeaterHandler* repeater, const in_addr& address, unsigned int id);
+	CG2Handler(CRepeaterHandler* repeater, const sockaddr_storage& addr, unsigned int addrLen, unsigned int id);
 	~CG2Handler();
 
 	bool clockInt(unsigned int ms);
@@ -64,7 +64,8 @@ private:
 	static CHeaderLogger*      m_headerLogger;
 
 	CRepeaterHandler* m_repeater;
-	in_addr           m_address;
+	sockaddr_storage  m_addr;
+	unsigned int      m_addrLen;
 	unsigned int      m_id;
 	CTimer            m_inactivityTimer;
 };

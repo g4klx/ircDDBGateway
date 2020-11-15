@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -175,8 +175,8 @@ private:
 	wxString                  m_rptCallsign;
 	wxString                  m_gwyCallsign;
 	unsigned char             m_band;
-	in_addr                   m_address;
-	unsigned int              m_port;
+	sockaddr_storage          m_addr;
+	unsigned int              m_addrLen;
 	HW_TYPE                   m_hwType;
 	IRepeaterProtocolHandler* m_repeaterHandler;
 	double                    m_frequency;
@@ -231,7 +231,8 @@ private:
 	wxString                  m_g2Repeater;
 	wxString                  m_g2Gateway;
 	CHeaderData*              m_g2Header;
-	in_addr                   m_g2Address;
+	sockaddr_storage          m_g2Addr;
+	unsigned int              m_g2AddrLen;
 
 	// Link info
 	LINK_STATUS               m_linkStatus;

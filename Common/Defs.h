@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -135,9 +135,5 @@ enum GATEWAY_TYPE {
 };
 
 const unsigned int TIME_PER_TIC_MS = 5U; 
-
-#if defined(__WINDOWS__)
-typedef unsigned long in_addr_t;
-#endif
 
 #endif

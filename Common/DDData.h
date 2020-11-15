@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ public:
 	CDDData(const CDDData& data);
 	~CDDData();
 
-	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort);
-	bool setHBRepeaterData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort);
+	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
+	bool setHBRepeaterData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
 
 	unsigned int getIcomRepeaterData(unsigned char* data, unsigned int length);
 	unsigned int getHBRepeaterData(unsigned char* data, unsigned int length);
@@ -75,10 +75,10 @@ public:
 	unsigned char* getDestinationAddress() const;
 
 	void setRepeaters(const wxString& rpt1, const wxString& rpt2);
-	void setDestination(const in_addr& address, unsigned int port);
+	void setDestination(const sockaddr_storage& addr, unsigned int addrLen);
 
-	in_addr      getYourAddress() const;
-	unsigned int getYourPort() const;
+	sockaddr_storage getYourAddr() const;
+	unsigned int     getYourAddrLen() const;
 
 private:
 	CHeaderData    m_header;

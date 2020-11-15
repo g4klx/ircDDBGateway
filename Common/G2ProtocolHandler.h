@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -63,8 +63,8 @@ private:
 	G2_TYPE          m_type;
 	unsigned char*   m_buffer;
 	unsigned int     m_length;
-	in_addr          m_address;
-	unsigned int     m_port;
+	sockaddr_storage m_addr;
+	unsigned int     m_addrLen;
 
 	bool readPackets();
 };

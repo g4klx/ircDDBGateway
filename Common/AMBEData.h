@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,13 +35,13 @@ public:
 	CAMBEData(const CAMBEData& data);
 	~CAMBEData();
 
-	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort);
-	bool setHBRepeaterData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort);
-	bool setG2Data(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort);
-	bool setDExtraData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setDPlusData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setDCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
-	bool setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
+	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
+	bool setHBRepeaterData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
+	bool setG2Data(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen);
+	bool setDExtraData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setDPlusData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setDCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
+	bool setCCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
 
 	unsigned int getIcomRepeaterData(unsigned char* data, unsigned int length) const;
 	unsigned int getHBRepeaterData(unsigned char* data, unsigned int length) const;
@@ -75,13 +75,13 @@ public:
 	void setData(const unsigned char* data, unsigned int length);
 	unsigned int getData(unsigned char* data, unsigned int length) const;
 
-	void setDestination(const in_addr& address, unsigned int port);
+	void setDestination(const sockaddr_storage& addr, unsigned int addrLen);
 
 	void setText(const wxString& text);
 
-	in_addr      getYourAddress() const;
-	unsigned int getYourPort() const;
-	unsigned int getMyPort() const;
+	sockaddr_storage getYourAddr() const;
+	unsigned int     getYourAddrLen() const;
+	unsigned int     getMyPort() const;
 
 	unsigned int getErrors() const;
 
@@ -90,19 +90,19 @@ public:
 	CAMBEData& operator=(const CAMBEData& data);
 
 private:
-	unsigned int   m_rptSeq;
-	unsigned char  m_outSeq;
-	unsigned int   m_id;
-	unsigned char  m_band1;
-	unsigned char  m_band2;
-	unsigned char  m_band3;
-	unsigned char* m_data;
-	in_addr        m_yourAddress;
-	unsigned int   m_yourPort;
-	unsigned int   m_myPort;
-	unsigned int   m_errors;
-	wxString       m_text;
-	CHeaderData    m_header;
+	unsigned int     m_rptSeq;
+	unsigned char    m_outSeq;
+	unsigned int     m_id;
+	unsigned char    m_band1;
+	unsigned char    m_band2;
+	unsigned char    m_band3;
+	unsigned char*   m_data;
+	sockaddr_storage m_yourAddr;
+	unsigned int     m_yourAddrLen;
+	unsigned int     m_myPort;
+	unsigned int     m_errors;
+	wxString         m_text;
+	CHeaderData      m_header;
 };
 
 #endif

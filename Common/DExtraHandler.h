@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2015,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public:
 	static void setHeaderLogger(CHeaderLogger* logger);
 	static void setMaxDongles(unsigned int maxDongles);
 
-	static void link(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, const in_addr& address);
+	static void link(IReflectorCallback* handler, const wxString& repeater, const wxString& reflector, const sockaddr_storage& addr, unsigned int addrLen);
 	static void unlink(IReflectorCallback* handler, const wxString& reflector = wxEmptyString, bool exclude = true);
 	static void unlink();
 
@@ -85,8 +85,8 @@ public:
 	static wxString getDongles();
 
 protected:
-	CDExtraHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDExtraProtocolHandler* protoHandler, const in_addr& address, unsigned int port, DIRECTION direction);
-	CDExtraHandler(CDExtraProtocolHandler* protoHandler, const wxString& reflector, const in_addr& address, unsigned int port, DIRECTION direction);
+	CDExtraHandler(IReflectorCallback* handler, const wxString& reflector, const wxString& repeater, CDExtraProtocolHandler* protoHandler, const sockaddr_storage& addr, unsigned int addrLen, DIRECTION direction);
+	CDExtraHandler(CDExtraProtocolHandler* protoHandler, const wxString& reflector, const sockaddr_storage& addr, unsigned int addrLen, DIRECTION direction);
 	~CDExtraHandler();
 
 	void processInt(CHeaderData& header);
@@ -117,8 +117,8 @@ private:
 	wxString                m_reflector;
 	wxString                m_repeater;
 	CDExtraProtocolHandler* m_handler;
-	in_addr                 m_yourAddress;
-	unsigned int            m_yourPort;
+	sockaddr_storage        m_yourAddr;
+	unsigned int            m_yourAddrLen;
 	DIRECTION               m_direction;
 	DEXTRA_STATE            m_linkState;
 	IReflectorCallback*     m_destination;

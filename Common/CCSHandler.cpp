@@ -132,7 +132,8 @@ m_offset(offset),
 m_description1(description1),
 m_description2(description2),
 m_url(url),
-m_ccsAddress(),
+m_ccsAddr(),
+m_ccsAddrLen(0U),
 m_protocol(localPort, m_localAddress),
 m_state(CS_DISABLED),
 m_local(),
@@ -257,7 +258,7 @@ void CCCSHandler::process(CAMBEData& data)
 			wxLogMessage(wxT("CCS: Rejecting new incoming CCS link from %s @ %s to %s"), myCall1.c_str(), rptCall1.c_str(), yourCall.c_str());
 
 			CCCSData data(yourCall, myCall1, CT_TERMINATE);
-			data.setDestination(m_ccsAddress, CCS_PORT);
+			data.setDestination(m_ccsAddr, m_ccsAddrLen);
 
 			m_protocol.writeMisc(data);
 			m_protocol.writeMisc(data);
@@ -351,7 +352,7 @@ void CCCSHandler::process(CConnectData& connect)
 
 		// Give our location, frequency, etc
 		CCCSData data(m_callsign, m_latitude, m_longitude, m_frequency, m_offset, m_description1, m_description2, m_url, CT_INFO);
-		data.setDestination(m_ccsAddress, CCS_PORT);
+		data.setDestination(m_ccsAddr, m_ccsAddrLen);
 		m_protocol.writeMisc(data);
 
 		m_state = CS_CONNECTED;
@@ -369,16 +370,8 @@ void CCCSHandler::process(CConnectData& connect)
 
 bool CCCSHandler::connect()
 {
-	// Is CCS disabled?
-	if (m_localAddress.IsSameAs(wxT("127.0.0.1")))
-		return false;
-
 	// Can we resolve the CCS server address?
-	m_ccsAddress = CUDPReaderWriter::lookup(m_ccsHost);
-	if (m_ccsAddress.s_addr == INADDR_NONE) {
-		wxLogError(wxT("CCS: Unable to find the IP address for %s"), m_ccsHost.c_str());
-		return false;
-	}
+	CUDPReaderWriter::lookup(m_ccsHost, CCS_PORT, m_ccsAddr, m_ccsAddrLen);
 
 	bool res = m_protocol.open();
 	if (!res)
@@ -396,7 +389,7 @@ bool CCCSHandler::connect()
 void CCCSHandler::disconnectInt()
 {
 	if (m_state == CS_CONNECTED || m_state == CS_ACTIVE) {
-		CConnectData connect(m_callsign, CT_UNLINK, m_ccsAddress, CCS_PORT);
+		CConnectData connect(m_callsign, CT_UNLINK, m_ccsAddr, m_ccsAddrLen);
 		m_protocol.writeConnect(connect);
 	}
 
@@ -449,7 +442,7 @@ void CCCSHandler::stopLink(const wxString& user, const wxString& type)
 		wxLogMessage(wxT("CCS: Link to %s from %s has been terminated via %s by %s"), m_yourCall.c_str(), m_local.c_str(), type.c_str(), user.c_str());
 
 	CCCSData data(m_local, m_yourCall, CT_TERMINATE);
-	data.setDestination(m_ccsAddress, CCS_PORT);
+	data.setDestination(m_ccsAddr, m_ccsAddrLen);
 
 	m_protocol.writeMisc(data);
 	m_protocol.writeMisc(data);
@@ -475,7 +468,7 @@ void CCCSHandler::unlink(const wxString& callsign)
 	wxLogMessage(wxT("CCS: Link to %s from %s has been terminated by command"), m_yourCall.c_str(), m_local.c_str());
 
 	CCCSData data(m_local, m_yourCall, CT_TERMINATE);
-	data.setDestination(m_ccsAddress, CCS_PORT);
+	data.setDestination(m_ccsAddr, m_ccsAddrLen);
 
 	m_protocol.writeMisc(data);
 	m_protocol.writeMisc(data);
@@ -496,7 +489,7 @@ void CCCSHandler::writeHeard(CHeaderData& header)
 		return;
 
 	CHeardData heard(header, m_callsign, m_reflector);
-	heard.setDestination(m_ccsAddress, CCS_PORT);
+	heard.setDestination(m_ccsAddr, m_ccsAddrLen);
 	m_protocol.writeHeard(heard);
 }
 
@@ -523,7 +516,7 @@ void CCCSHandler::writeAMBE(CAMBEData& data)
 	header.setRptCall2(m_reflector);
 
 	temp.setRptSeq(m_seqNo++);
-	temp.setDestination(m_ccsAddress, CCS_PORT);
+	temp.setDestination(m_ccsAddr, m_ccsAddrLen);
 	m_protocol.writeData(temp);
 }
 
@@ -562,7 +555,7 @@ void CCCSHandler::clockInt(unsigned int ms)
 	}
 
 	if (m_tryTimer.isRunning() && m_tryTimer.hasExpired()) {
-		CConnectData connect(m_callsign, CT_LINK1, m_ccsAddress, CCS_PORT);
+		CConnectData connect(m_callsign, CT_LINK1, m_ccsAddr, m_ccsAddrLen);
 		if (m_latitude != 0.0 && m_longitude != 0.0) {
 			wxString locator = CUtils::latLonToLoc(m_latitude, m_longitude);
 			connect.setLocator(locator);
@@ -574,7 +567,7 @@ void CCCSHandler::clockInt(unsigned int ms)
 	}
 
 	if (m_pollTimer.isRunning() && m_pollTimer.hasExpired()) {
-		CPollData poll(m_callsign, m_ccsAddress, CCS_PORT);
+		CPollData poll(m_callsign, m_ccsAddr, m_ccsAddrLen);
 		m_protocol.writePoll(poll);
 
 		m_pollTimer.start();
@@ -584,7 +577,7 @@ void CCCSHandler::clockInt(unsigned int ms)
 		wxLogMessage(wxT("CCS: Activity timeout on link for %s"), m_callsign.c_str(), m_callsign.c_str());
 
 		CCCSData data(m_local, m_yourCall, CT_TERMINATE);
-		data.setDestination(m_ccsAddress, CCS_PORT);
+		data.setDestination(m_ccsAddr, m_ccsAddrLen);
 
 		m_protocol.writeMisc(data);
 		m_protocol.writeMisc(data);
@@ -600,7 +593,7 @@ void CCCSHandler::clockInt(unsigned int ms)
 	}
 
 	if (m_waitTimer.isRunning() && m_waitTimer.hasExpired()) {
-		CConnectData connect(m_callsign, CT_LINK1, m_ccsAddress, CCS_PORT);
+		CConnectData connect(m_callsign, CT_LINK1, m_ccsAddr, m_ccsAddrLen);
 		if (m_latitude != 0.0 && m_longitude != 0.0) {
 			wxString locator = CUtils::latLonToLoc(m_latitude, m_longitude);
 			connect.setLocator(locator);
@@ -617,7 +610,7 @@ void CCCSHandler::clockInt(unsigned int ms)
 		CHeaderData header;
 		header.setMyCall1(m_callsign.Left(LONG_CALLSIGN_LENGTH - 1U));
 		CHeardData heard(header, m_callsign, wxEmptyString);
-		heard.setDestination(m_ccsAddress, CCS_PORT);
+		heard.setDestination(m_ccsAddr, m_ccsAddrLen);
 		m_protocol.writeHeard(heard);
 
 		m_announceTimer.start(3600U);

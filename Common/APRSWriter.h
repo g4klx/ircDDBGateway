@@ -92,8 +92,8 @@ private:
 	CTimer             m_idTimer;
 	wxString           m_gateway;
 	CEntry_t           m_array;
-	in_addr            m_aprsAddress;
-	unsigned int       m_aprsPort;
+	sockaddr_storage   m_aprsAddr;
+	unsigned int       m_aprsAddrLen;
 	CUDPReaderWriter   m_aprsSocket;
 #if defined(USE_GPSD)
 	bool               m_gpsdEnabled;

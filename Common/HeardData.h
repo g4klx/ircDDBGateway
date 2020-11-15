@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,25 +37,25 @@ public:
 	CHeardData(const CHeaderData& data, const wxString& repeater, const wxString& reflector);
 	~CHeardData();
 
-	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, const in_addr& address, unsigned int port);
+	bool setIcomRepeaterData(const unsigned char* data, unsigned int length, const sockaddr_storage& addr, unsigned int addrLen);
 
 	unsigned int getCCSData(unsigned char* data, unsigned int length) const;
 
 	wxString     getRepeater() const;
 	wxString     getUser() const;
 
-	void setDestination(const in_addr& address, unsigned int port);
+	void setDestination(const sockaddr_storage& addr, unsigned int addrLen);
 
-	in_addr      getAddress() const;
-	unsigned int getPort() const;
+	// sockaddr_storage getAddr() const;
+	// unsigned int     getAddrLen() const;
 
 private:
-	wxString     m_reflector;
-	wxString     m_repeater;
-	wxString     m_user;
-	wxString     m_ext;
-	in_addr      m_address;
-	unsigned int m_port;
+	wxString         m_reflector;
+	wxString         m_repeater;
+	wxString         m_user;
+	wxString         m_ext;
+	sockaddr_storage m_addr;
+	unsigned int     m_addrLen;
 };
 
 #endif

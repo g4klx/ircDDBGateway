@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -41,34 +41,34 @@ public:
 	CCCSData();
 	~CCCSData();
 
-	bool setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort);
+	bool setCCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort);
 
 	unsigned int getCCSData(unsigned char* data, unsigned int length) const;
 
-	void setDestination(const in_addr& address, unsigned int port);
+	void setDestination(const sockaddr_storage& addr, unsigned int addrLen);
 
 	wxString     getLocal() const;
 	wxString     getRemote() const;
 	CC_TYPE      getType() const;
 
-	in_addr      getYourAddress() const;
-	unsigned int getYourPort() const;
-	unsigned int getMyPort() const;
+	sockaddr_storage getYourAddr() const;
+	unsigned int     getYourAddrLen() const;
+	unsigned int     getMyPort() const;
 
 private:
-	wxString     m_local;
-	wxString     m_remote;
-	double       m_latitude;
-	double       m_longitude;
-	double       m_frequency;
-	double       m_offset;
-	wxString     m_description1;
-	wxString     m_description2;
-	wxString     m_url;
-	CC_TYPE      m_type;
-	in_addr      m_yourAddress;
-	unsigned int m_yourPort;
-	unsigned int m_myPort;
+	wxString         m_local;
+	wxString         m_remote;
+	double           m_latitude;
+	double           m_longitude;
+	double           m_frequency;
+	double           m_offset;
+	wxString         m_description1;
+	wxString         m_description2;
+	wxString         m_url;
+	CC_TYPE          m_type;
+	sockaddr_storage m_yourAddr;
+	unsigned int     m_yourAddrLen;
+	unsigned int     m_myPort;
 };
 
 #endif
