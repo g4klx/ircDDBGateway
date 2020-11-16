@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 #include "TCPReaderWriterServer.h"
+#include "UDPReaderWriter.h"
 
 #if !defined(__WINDOWS__)
 #include <cerrno>
@@ -159,28 +160,20 @@ void CTCPReaderWriterServer::stop()
 
 bool CTCPReaderWriterServer::open()
 {
-	m_fd = ::socket(PF_INET, SOCK_STREAM, 0);
+	struct sockaddr_storage addr;
+	unsigned int addrLen;
+	if (CUDPReaderWriter::lookup(m_address, m_port, addr, addrLen) != 0) {
+		wxLogError(wxT("The local address is invalid - %s"), m_address.c_str());
+		return false;
+	}
+
+	m_fd = ::socket(addr.ss_family, SOCK_STREAM, 0);
 	if (m_fd < 0) {
 #if defined(__WINDOWS__)
 		wxLogError(wxT("Cannot create the TCP server socket, err=%d"), ::GetLastError());
 #else
 		wxLogError(wxT("Cannot create the TCP server socket, err=%d"), errno);
 #endif
-		return false;
-	}
-
-	struct sockaddr_in addr;
-	::memset(&addr, 0x00, sizeof(struct sockaddr_in));
-	addr.sin_family = AF_INET;
-	addr.sin_port   = htons(m_port);
-	if (m_address.IsEmpty())
-		addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	else
-		addr.sin_addr = lookup(m_address);
-
-	if (addr.sin_addr.s_addr == INADDR_NONE) {
-		wxLogError(wxT("The address is invalid - %s"), m_address.c_str());
-		close();
 		return false;
 	}
 
@@ -195,7 +188,7 @@ bool CTCPReaderWriterServer::open()
 		return false;
 	}
 
-	if (::bind(m_fd, (sockaddr*)&addr, sizeof(struct sockaddr_in)) == -1) {
+	if (::bind(m_fd, (sockaddr*)&addr, addrLen) == -1) {
 #if defined(__WINDOWS__)
 		wxLogError(wxT("Cannot bind the TCP server address, err=%d"), ::GetLastError());
 #else
@@ -247,11 +240,11 @@ int CTCPReaderWriterServer::accept()
 		return -1;
 #endif
 
-	struct sockaddr_in addr;
+	struct sockaddr_storage addr;
 #if defined(__WINDOWS__)
-	int len = sizeof(struct sockaddr_in);
+	int len = sizeof(struct sockaddr_storage);
 #else
-	socklen_t len = sizeof(struct sockaddr_in);
+	socklen_t len = sizeof(struct sockaddr_storage);
 #endif
 
 	ret = ::accept(m_fd, (sockaddr*)&addr, &len);
@@ -278,42 +271,3 @@ void CTCPReaderWriterServer::close()
 	}
 }
 
-in_addr CTCPReaderWriterServer::lookup(const wxString& hostname) const
-{
-	in_addr addr;
-#if defined(WIN32)
-	unsigned long address = ::inet_addr(hostname.mb_str());
-	if (address != INADDR_NONE && address != INADDR_ANY) {
-		addr.s_addr = address;
-		return addr;
-	}
-
-	struct hostent* hp = ::gethostbyname(hostname.mb_str());
-	if (hp != NULL) {
-		::memcpy(&addr, hp->h_addr_list[0], hp->h_length);
-		return addr;
-	}
-
-	wxLogError(wxT("Cannot find %s"), hostname.c_str());
-
-	addr.s_addr = INADDR_NONE;
-	return addr;
-#else
-	in_addr_t address = ::inet_addr(hostname.mb_str());
-	if (address != in_addr_t(-1)) {
-		addr.s_addr = address;
-		return addr;
-	}
-
-	struct hostent* hp = ::gethostbyname(hostname.mb_str());
-	if (hp != NULL) {
-		::memcpy(&addr, hp->h_addr_list[0], hp->h_length);
-		return addr;
-	}
-
-	wxLogError(wxT("Cannot find %s"), hostname.c_str());
-
-	addr.s_addr = INADDR_NONE;
-	return addr;
-#endif
-}

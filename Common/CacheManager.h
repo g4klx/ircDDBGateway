@@ -166,7 +166,10 @@ public:
 	CRepeaterData* findRepeater(const wxString& repeater);
 
 	void updateUser(const wxString& user, const wxString& repeater, const wxString& gateway, const wxString& address, const wxString& timeStamp, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+
 	void updateRepeater(const wxString& repeater, const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
+
+	void updateGateway(const wxString& gateway, const sockaddr_storage& addr, unsigned int addrLen, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
 	void updateGateway(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
 
 private:

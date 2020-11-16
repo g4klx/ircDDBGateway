@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2006-2014,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2006-2014,2018,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ CUDPReaderWriter::CUDPReaderWriter(const wxString& address, unsigned int port) :
 m_address(address),
 m_port(port),
 m_addr(),
+m_addrLen(0U),
 m_fd(-1)
 {
 #if defined(__WINDOWS__)
@@ -41,6 +42,7 @@ CUDPReaderWriter::CUDPReaderWriter(unsigned int port) :
 m_address(),
 m_port(port),
 m_addr(),
+m_addrLen(0U),
 m_fd(-1)
 {
 #if defined(__WINDOWS__)
@@ -55,6 +57,7 @@ CUDPReaderWriter::CUDPReaderWriter() :
 m_address(),
 m_port(0U),
 m_addr(),
+m_addrLen(0U),
 m_fd(-1)
 {
 #if defined(__WINDOWS__)
@@ -72,49 +75,98 @@ CUDPReaderWriter::~CUDPReaderWriter()
 #endif
 }
 
-in_addr CUDPReaderWriter::lookup(const wxString& hostname)
+int CUDPReaderWriter::lookup(const wxString& hostname, unsigned int port, sockaddr_storage& addr, unsigned int& address_length)
 {
-	in_addr addr;
-#if defined(WIN32)
-	unsigned long address = ::inet_addr(hostname.mb_str());
-	if (address != INADDR_NONE && address != INADDR_ANY) {
-		addr.s_addr = address;
-		return addr;
+	struct addrinfo hints;
+	::memset(&hints, 0, sizeof(hints));
+
+	return lookup(hostname, port, addr, address_length, hints);
+}
+
+int CUDPReaderWriter::lookup(const wxString& hostname, unsigned int port, sockaddr_storage& addr, unsigned int& address_length, struct addrinfo& hints)
+{
+	std::string portstr = std::to_string(port);
+	struct addrinfo *res;
+
+	/* port is always digits, no needs to lookup service */
+	hints.ai_flags |= AI_NUMERICSERV;
+
+	int err = ::getaddrinfo(hostname.IsEmpty() ? NULL : (const char*)hostname, portstr.c_str(), &hints, &res);
+	if (err != 0) {
+		sockaddr_in* paddr = (sockaddr_in*)&addr;
+		::memset(paddr, 0x00U, address_length = sizeof(sockaddr_in));
+		paddr->sin_family = AF_INET;
+		paddr->sin_port = htons(port);
+		paddr->sin_addr.s_addr = htonl(INADDR_NONE);
+		wxLogError(wxT("Cannot find address for host %s"), hostname.c_str());
+		return err;
 	}
 
-	struct hostent* hp = ::gethostbyname(hostname.mb_str());
-	if (hp != NULL) {
-		::memcpy(&addr, hp->h_addr_list[0], sizeof(struct in_addr));
-		return addr;
+	::memcpy(&addr, res->ai_addr, address_length = res->ai_addrlen);
+
+	::freeaddrinfo(res);
+
+	return 0;
+}
+
+bool CUDPReaderWriter::match(const sockaddr_storage& addr1, const sockaddr_storage& addr2, IPMATCHTYPE type)
+{
+	if (addr1.ss_family != addr2.ss_family)
+		return false;
+
+	if (type == IMT_ADDRESS_AND_PORT) {
+		switch (addr1.ss_family) {
+		case AF_INET:
+			struct sockaddr_in *in_1, *in_2;
+			in_1 = (struct sockaddr_in*)&addr1;
+			in_2 = (struct sockaddr_in*)&addr2;
+			return (in_1->sin_addr.s_addr == in_2->sin_addr.s_addr) && (in_1->sin_port == in_2->sin_port);
+		case AF_INET6:
+			struct sockaddr_in6 *in6_1, *in6_2;
+			in6_1 = (struct sockaddr_in6*)&addr1;
+			in6_2 = (struct sockaddr_in6*)&addr2;
+			return IN6_ARE_ADDR_EQUAL(&in6_1->sin6_addr, &in6_2->sin6_addr) && (in6_1->sin6_port == in6_2->sin6_port);
+		default:
+			return false;
+		}
+	} else if (type == IMT_ADDRESS_ONLY) {
+		switch (addr1.ss_family) {
+		case AF_INET:
+			struct sockaddr_in *in_1, *in_2;
+			in_1 = (struct sockaddr_in*)&addr1;
+			in_2 = (struct sockaddr_in*)&addr2;
+			return in_1->sin_addr.s_addr == in_2->sin_addr.s_addr;
+		case AF_INET6:
+			struct sockaddr_in6 *in6_1, *in6_2;
+			in6_1 = (struct sockaddr_in6*)&addr1;
+			in6_2 = (struct sockaddr_in6*)&addr2;
+			return IN6_ARE_ADDR_EQUAL(&in6_1->sin6_addr, &in6_2->sin6_addr);
+		default:
+			return false;
+		}
+	} else {
+		return false;
 	}
-
-	wxLogError(wxT("Cannot find address for host %s"), hostname.c_str());
-
-	addr.s_addr = INADDR_NONE;
-	return addr;
-#else
-	in_addr_t address = ::inet_addr(hostname.mb_str());
-	if (address != in_addr_t(-1)) {
-		addr.s_addr = address;
-		return addr;
-	}
-
-	struct hostent* hp = ::gethostbyname(hostname.mb_str());
-	if (hp != NULL) {
-		::memcpy(&addr, hp->h_addr_list[0], sizeof(struct in_addr));
-		return addr;
-	}
-
-	wxLogError(wxT("Cannot find address for host %s"), hostname.c_str());
-
-	addr.s_addr = INADDR_NONE;
-	return addr;
-#endif
 }
 
 bool CUDPReaderWriter::open()
 {
-	m_fd = ::socket(PF_INET, SOCK_DGRAM, 0);
+	sockaddr_storage addr;
+	unsigned int addrLen;
+	
+	lookup(m_address, m_port, addr, addrLen);
+
+	return open(addr);
+}
+
+bool CUDPReaderWriter::open(const sockaddr_storage& addr)
+{
+	return open(addr.ss_family);
+}
+
+bool CUDPReaderWriter::open(int family)
+{
+	m_fd = ::socket(family, SOCK_DGRAM, 0);
 	if (m_fd < 0) {
 #if defined(__WINDOWS__)
 		wxLogError(wxT("Cannot create the UDP socket, err: %lu"), ::GetLastError());
@@ -125,20 +177,17 @@ bool CUDPReaderWriter::open()
 	}
 
 	if (m_port > 0U) {
-		sockaddr_in addr;
-		::memset(&addr, 0x00, sizeof(sockaddr_in));
-		addr.sin_family      = AF_INET;
-		addr.sin_port        = htons(m_port);
-		addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		sockaddr_storage addr;
+		unsigned int addrLen;
 
 		if (!m_address.IsEmpty()) {
-#if defined(__WINDOWS__)
-			addr.sin_addr.s_addr = ::inet_addr(m_address.mb_str());
-#else
-			addr.sin_addr.s_addr = ::inet_addr(m_address.mb_str());
-#endif
-			if (addr.sin_addr.s_addr == INADDR_NONE) {
-				wxLogError(wxT("The address is invalid - %s"), m_address.c_str());
+			if (lookup(m_address, m_port, addr, addrLen) != 0) {
+				wxLogError(wxT("The local address is invalid - %s"), m_address.c_str());
+				return false;
+			}
+		} else {
+			if (lookup("", m_port, addr, addrLen) != 0) {
+				wxLogError(wxT("The local address is invalid"));
 				return false;
 			}
 		}
@@ -153,7 +202,7 @@ bool CUDPReaderWriter::open()
 			return false;
 		}
 
-		if (::bind(m_fd, (sockaddr*)&addr, sizeof(sockaddr_in)) == -1) {
+		if (::bind(m_fd, (sockaddr*)&addr, sizeof(sockaddr_storage)) == -1) {
 #if defined(__WINDOWS__)
 			wxLogError(wxT("Cannot bind the UDP address (port: %u), err: %lu"), m_port, ::GetLastError());
 #else
@@ -166,7 +215,7 @@ bool CUDPReaderWriter::open()
 	return true;
 }
 
-int CUDPReaderWriter::read(unsigned char* buffer, unsigned int length, in_addr& address, unsigned int& port)
+int CUDPReaderWriter::read(unsigned char* buffer, unsigned int length, sockaddr_storage& addr, unsigned int& addrLen)
 {
 	// Check that the readfrom() won't block
 	fd_set readFds;
@@ -195,11 +244,10 @@ int CUDPReaderWriter::read(unsigned char* buffer, unsigned int length, in_addr& 
 	if (ret == 0)
 		return 0;
 
-	sockaddr_in addr;
 #if defined(__WINDOWS__)
-	int size = sizeof(sockaddr_in);
+	int size = sizeof(sockaddr_storage);
 #else
-	socklen_t size = sizeof(sockaddr_in);
+	socklen_t size = sizeof(sockaddr_storage);
 #endif
 
 	ssize_t len = ::recvfrom(m_fd, (char*)buffer, length, 0, (sockaddr *)&addr, &size);
@@ -212,22 +260,14 @@ int CUDPReaderWriter::read(unsigned char* buffer, unsigned int length, in_addr& 
 		return -1;
 	}
 
-	address = addr.sin_addr;
-	port    = ntohs(addr.sin_port);
+	addrLen = size;
 
 	return len;
 }
 
-bool CUDPReaderWriter::write(const unsigned char* buffer, unsigned int length, const in_addr& address, unsigned int port)
+bool CUDPReaderWriter::write(const unsigned char* buffer, unsigned int length, const sockaddr_storage& addr, unsigned int addrLen)
 {
-	sockaddr_in addr;
-	::memset(&addr, 0x00, sizeof(sockaddr_in));
-
-	addr.sin_family = AF_INET;
-	addr.sin_addr   = address;
-	addr.sin_port   = htons(port);
-
-	ssize_t ret = ::sendto(m_fd, (char *)buffer, length, 0, (sockaddr *)&addr, sizeof(sockaddr_in));
+	ssize_t ret = ::sendto(m_fd, (char *)buffer, length, 0, (sockaddr *)&addr, addrLen);
 	if (ret < 0) {
 #if defined(__WINDOWS__)
 		wxLogError(wxT("Error returned from sendto (port: %u), err: %lu"), m_port, ::GetLastError());

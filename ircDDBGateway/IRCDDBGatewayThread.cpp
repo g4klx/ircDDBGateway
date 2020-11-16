@@ -1093,20 +1093,20 @@ void CIRCDDBGatewayThread::loadGateways()
 	CHostFile hostFile(fileName.GetFullPath(), false);
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString gateway = hostFile.getName(i);
-		in_addr address  = CUDPReaderWriter::lookup(hostFile.getAddress(i));
 
-		if (address.s_addr != INADDR_NONE) {
-			unsigned char* ucp = (unsigned char*)&address;
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		if (CUDPReaderWriter::lookup(hostFile.getAddress(i), DCS_PORT, addr, addrLen) == 0) {
+			bool lock = hostFile.getLock(i);
 
-			wxString addrText;
-			addrText.Printf(wxT("%u.%u.%u.%u"), ucp[0U] & 0xFFU, ucp[1U] & 0xFFU, ucp[2U] & 0xFFU, ucp[3U] & 0xFFU);
-
-			wxLogMessage(wxT("Locking %s to %s"), gateway.c_str(), addrText.c_str());
+			if (lock)
+				wxLogMessage(wxT("Locking %s"), gateway.c_str());
 
 			gateway.Append(wxT("        "));
 			gateway.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			gateway.Append(wxT("G"));
-			m_cache.updateGateway(gateway, addrText, DP_DEXTRA, true, false);
+
+			m_cache.updateGateway(gateway, addr, addrLen, DP_DEXTRA, true, false);
 
 			count++;
 		}
@@ -1170,22 +1170,20 @@ void CIRCDDBGatewayThread::loadDExtraReflectors(const wxString& fileName)
 	CHostFile hostFile(fileName, false);
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
-		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
-		bool lock          = hostFile.getLock(i);
 
-		if (address.s_addr != INADDR_NONE) {
-			unsigned char* ucp = (unsigned char*)&address;
-
-			wxString addrText;
-			addrText.Printf(wxT("%u.%u.%u.%u"), ucp[0U] & 0xFFU, ucp[1U] & 0xFFU, ucp[2U] & 0xFFU, ucp[3U] & 0xFFU);
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		if (CUDPReaderWriter::lookup(hostFile.getAddress(i), DCS_PORT, addr, addrLen) == 0) {
+			bool lock = hostFile.getLock(i);
 
 			if (lock)
-				wxLogMessage(wxT("Locking %s to %s"), reflector.c_str(), addrText.c_str());
+				wxLogMessage(wxT("Locking %s"), reflector.c_str());
 
 			reflector.Append(wxT("        "));
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
-			m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
+
+			m_cache.updateGateway(reflector, addr, addrLen, DP_DEXTRA, lock, true);
 
 			count++;
 		}
@@ -1201,22 +1199,20 @@ void CIRCDDBGatewayThread::loadDPlusReflectors(const wxString& fileName)
 	CHostFile hostFile(fileName, false);
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
-		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
-		bool lock          = hostFile.getLock(i);
 
-		if (address.s_addr != INADDR_NONE) {
-			unsigned char* ucp = (unsigned char*)&address;
-
-			wxString addrText;
-			addrText.Printf(wxT("%u.%u.%u.%u"), ucp[0U] & 0xFFU, ucp[1U] & 0xFFU, ucp[2U] & 0xFFU, ucp[3U] & 0xFFU);
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		if (CUDPReaderWriter::lookup(hostFile.getAddress(i), DCS_PORT, addr, addrLen) == 0) {
+			bool lock = hostFile.getLock(i);
 
 			if (lock)
-				wxLogMessage(wxT("Locking %s to %s"), reflector.c_str(), addrText.c_str());
+				wxLogMessage(wxT("Locking %s"), reflector.c_str());
 
 			reflector.Append(wxT("        "));
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
-			m_cache.updateGateway(reflector, addrText, DP_DPLUS, lock, true);
+
+			m_cache.updateGateway(reflector, addr, addrLen, DP_DPLUS, lock, true);
 
 			count++;
 		}
@@ -1232,22 +1228,20 @@ void CIRCDDBGatewayThread::loadDCSReflectors(const wxString& fileName)
 	CHostFile hostFile(fileName, false);
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
-		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
-		bool lock          = hostFile.getLock(i);
 
-		if (address.s_addr != INADDR_NONE) {
-			unsigned char* ucp = (unsigned char*)&address;
-
-			wxString addrText;
-			addrText.Printf(wxT("%u.%u.%u.%u"), ucp[0U] & 0xFFU, ucp[1U] & 0xFFU, ucp[2U] & 0xFFU, ucp[3U] & 0xFFU);
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		if (CUDPReaderWriter::lookup(hostFile.getAddress(i), DCS_PORT, addr, addrLen) == 0) {
+			bool lock = hostFile.getLock(i);
 
 			if (lock)
-				wxLogMessage(wxT("Locking %s to %s"), reflector.c_str(), addrText.c_str());
+				wxLogMessage(wxT("Locking %s"), reflector.c_str());
 
 			reflector.Append(wxT("        "));
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
-			m_cache.updateGateway(reflector, addrText, DP_DCS, lock, true);
+
+			m_cache.updateGateway(reflector, addr, addrLen, DP_DCS, lock, true);
 
 			count++;
 		}
@@ -1266,26 +1260,19 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 		if (!reflector.StartsWith(wxT("XLX")))
 			continue;
 
-		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
-		bool lock          = hostFile.getLock(i);
-
-		if (address.s_addr != INADDR_NONE) {
-			unsigned char* ucp = (unsigned char*)&address;
-
-			wxString addrText;
-			addrText.Printf(wxT("%u.%u.%u.%u"), ucp[0U] & 0xFFU, ucp[1U] & 0xFFU, ucp[2U] & 0xFFU, ucp[3U] & 0xFFU);
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		if (CUDPReaderWriter::lookup(hostFile.getAddress(i), DCS_PORT, addr, addrLen) == 0) {
+			bool lock = hostFile.getLock(i);
 
 			if (lock)
-				wxLogMessage(wxT("Locking %s to %s"), reflector.c_str(), addrText.c_str());
+				wxLogMessage(wxT("Locking %s"), reflector.c_str());
 
 			reflector.Append(wxT("        "));
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
 
-			//if (m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
-				m_cache.updateGateway(reflector, addrText, DP_DCS, lock, true);
-			//else if (m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
-			//	m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
+			m_cache.updateGateway(reflector, addr, addrLen, DP_DCS, lock, true);
 
 			count++;
 		}

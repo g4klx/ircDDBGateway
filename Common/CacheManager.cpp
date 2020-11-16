@@ -120,9 +120,17 @@ void CCacheManager::updateRepeater(const wxString& repeater, const wxString& gat
 	m_gatewayCache.update(gateway, address, protocol, addrLock, protoLock);
 }
 
+void CCacheManager::updateGateway(const wxString& gateway, const sockaddr_storage& addr, unsigned int addrLen, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
+{
+	wxMutexLocker locker(m_mutex);
+
+	m_gatewayCache.update(gateway, addr, addrLen, protocol, addrLock, protoLock);
+}
+
 void CCacheManager::updateGateway(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock)
 {
 	wxMutexLocker locker(m_mutex);
 
 	m_gatewayCache.update(gateway, address, protocol, addrLock, protoLock);
 }
+

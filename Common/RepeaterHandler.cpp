@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018,2019 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2019,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,8 +64,8 @@ m_index(0x00U),
 m_rptCallsign(),
 m_gwyCallsign(),
 m_band(' '),
-m_address(),
-m_port(port),
+m_addr(),
+m_addrLen(0U),
 m_hwType(hwType),
 m_repeaterHandler(handler),
 m_frequency(frequency),
@@ -108,7 +108,8 @@ m_g2User(),
 m_g2Repeater(),
 m_g2Gateway(),
 m_g2Header(NULL),
-m_g2Address(),
+m_g2Addr(),
+m_g2AddrLen(0U),
 m_linkStatus(LS_NONE),
 m_linkRepeater(),
 m_linkGateway(),
@@ -153,7 +154,7 @@ m_heardTimer(1000U, 0U, 100U)		// 100ms
 	m_gwyCallsign.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 	m_gwyCallsign.Append(wxT("G"));
 
-	m_address.s_addr = ::inet_addr(address.mb_str());
+	CUDPReaderWriter::lookup(address, port, m_addr, m_addrLen);
 
 	m_pollTimer.start();
 
@@ -415,12 +416,12 @@ void CRepeaterHandler::finalise()
 CRepeaterHandler* CRepeaterHandler::findDVRepeater(const CHeaderData& header)
 {
 	wxString rpt1 = header.getRptCall1();
-	in_addr address = header.getYourAddress();
+	sockaddr_storage addr = header.getYourAddr();
 
 	for (unsigned int i = 0U; i < m_maxRepeaters; i++) {
 		CRepeaterHandler* repeater = m_repeaters[i];
 		if (repeater != NULL) {
-			if (!repeater->m_ddMode && repeater->m_address.s_addr == address.s_addr && repeater->m_rptCallsign.IsSameAs(rpt1))
+			if (!repeater->m_ddMode && CUDPReaderWriter::match(repeater->m_addr, addr, IMT_ADDRESS_ONLY) && repeater->m_rptCallsign.IsSameAs(rpt1))
 				return repeater;
 		}
 	}
@@ -460,13 +461,12 @@ CRepeaterHandler* CRepeaterHandler::findDVRepeater(const wxString& callsign)
 
 CRepeaterHandler* CRepeaterHandler::findRepeater(const CPollData& data)
 {
-	in_addr   address = data.getYourAddress();
-	unsigned int port = data.getYourPort();
+	sockaddr_storage addr = data.getYourAddr();
 
 	for (unsigned int i = 0U; i < m_maxRepeaters; i++) {
 		CRepeaterHandler* repeater = m_repeaters[i];
 		if (repeater != NULL) {
-			if (repeater->m_address.s_addr == address.s_addr && repeater->m_port == port)
+			if (CUDPReaderWriter::match(repeater->m_addr, addr))
 				return repeater;
 		}
 	}
@@ -826,7 +826,7 @@ void CRepeaterHandler::processRepeater(CAMBEData& data)
 			break;
 
 		case G2_OK:
-			data.setDestination(m_g2Address, G2_DV_PORT);
+			data.setDestination(m_g2Addr, m_g2AddrLen);
 			m_g2Handler->writeAMBE(data);
 
 			if (data.isEnd()) {
@@ -1091,7 +1091,7 @@ bool CRepeaterHandler::process(CDDData& data)
 	else
 		data.setRepeaters(m_gwyCallsign, m_rptCallsign);
 
-	data.setDestination(m_address, m_port);
+	data.setDestination(m_addr, m_addrLen);
 	data.setFlags(0xC0U, 0x00U, 0x00U);
 	data.setMyCall1(m_ddCallsign);
 	data.setMyCall2(wxT("    "));
@@ -1119,7 +1119,7 @@ bool CRepeaterHandler::process(CHeaderData& header, DIRECTION, AUDIO_SOURCE sour
 		header.setBand1(m_band1);
 		header.setBand2(m_band2);
 		header.setBand3(m_band3);
-		header.setDestination(m_address, m_port);
+		header.setDestination(m_addr, m_addrLen);
 		header.setRepeaters(m_gwyCallsign, m_rptCallsign);
 
 		m_repeaterHandler->writeHeader(header);
@@ -1162,7 +1162,7 @@ bool CRepeaterHandler::process(CAMBEData& data, DIRECTION, AUDIO_SOURCE source)
 	data.setBand1(m_band1);
 	data.setBand2(m_band2);
 	data.setBand3(m_band3);
-	data.setDestination(m_address, m_port);
+	data.setDestination(m_addr, m_addrLen);
 
 	m_repeaterHandler->writeAMBE(data);
 
@@ -1205,12 +1205,12 @@ void CRepeaterHandler::resolveUserInt(const wxString& user, const wxString& repe
 			}
 
 			// User found, update the settings and send the header to the correct place
-			m_g2Address.s_addr = ::inet_addr(address.mb_str());
+			CUDPReaderWriter::lookup(address, G2_DV_PORT, m_g2Addr, m_g2AddrLen);
 
 			m_g2Repeater = repeater;
 			m_g2Gateway  = gateway;
 
-			m_g2Header->setDestination(m_g2Address, G2_DV_PORT);
+			m_g2Header->setDestination(m_g2Addr, m_g2AddrLen);
 			m_g2Header->setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(*m_g2Header);
 
@@ -1237,12 +1237,12 @@ void CRepeaterHandler::resolveRepeaterInt(const wxString& repeater, const wxStri
 
 		if (!address.IsEmpty()) {
 			// Repeater found, update the settings and send the header to the correct place
-			m_g2Address.s_addr = ::inet_addr(address.mb_str());
+			CUDPReaderWriter::lookup(address, G2_DV_PORT, m_g2Addr, m_g2AddrLen);
 
 			m_g2Repeater = repeater;
 			m_g2Gateway  = gateway;
 
-			m_g2Header->setDestination(m_g2Address, G2_DV_PORT);
+			m_g2Header->setDestination(m_g2Addr, m_g2AddrLen);
 			m_g2Header->setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(*m_g2Header);
 
@@ -1266,13 +1266,14 @@ void CRepeaterHandler::resolveRepeaterInt(const wxString& repeater, const wxStri
 
 		if (!address.IsEmpty()) {
 			// Repeater found
-			in_addr addr;
+			sockaddr_storage addr;
+			unsigned int addrLen;
 			switch (protocol) {
 				case DP_DPLUS:
 					if (m_dplusEnabled) {
 						m_linkGateway = gateway;
-						addr.s_addr = ::inet_addr(address.mb_str());
-						CDPlusHandler::link(this, m_rptCallsign, m_linkRepeater, addr);
+						CUDPReaderWriter::lookup(address, DPLUS_PORT, addr, addrLen);
+						CDPlusHandler::link(this, m_rptCallsign, m_linkRepeater, addr, addrLen);
 						m_linkStatus = LS_LINKING_DPLUS;
 					} else {
 						wxLogMessage(wxT("Require D-Plus for linking to %s, but D-Plus is disabled"), repeater.c_str());
@@ -1287,8 +1288,8 @@ void CRepeaterHandler::resolveRepeaterInt(const wxString& repeater, const wxStri
 				case DP_DCS:
 					if (m_dcsEnabled) {
 						m_linkGateway = gateway;
-						addr.s_addr = ::inet_addr(address.mb_str());
-						CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, addr);
+						CUDPReaderWriter::lookup(address, DCS_PORT, addr, addrLen);
+						CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, addr, addrLen);
 						m_linkStatus = LS_LINKING_DCS;
 					} else {
 						wxLogMessage(wxT("Require DCS for linking to %s, but DCS is disabled"), repeater.c_str());
@@ -1302,16 +1303,16 @@ void CRepeaterHandler::resolveRepeaterInt(const wxString& repeater, const wxStri
 
 				case DP_LOOPBACK:
 					m_linkGateway = gateway;
-					addr.s_addr = ::inet_addr(address.mb_str());
-					CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, addr);
+					CUDPReaderWriter::lookup(address, DCS_PORT, addr, addrLen);
+					CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, addr, addrLen);
 					m_linkStatus = LS_LINKING_LOOPBACK;
 					break;
 
 				default:
 					if (m_dextraEnabled) {
 						m_linkGateway = gateway;
-						addr.s_addr = ::inet_addr(address.mb_str());
-						CDExtraHandler::link(this, m_rptCallsign, m_linkRepeater, addr);
+						CUDPReaderWriter::lookup(address, DEXTRA_PORT, addr, addrLen);
+						CDExtraHandler::link(this, m_rptCallsign, m_linkRepeater, addr, addrLen);
 						m_linkStatus = LS_LINKING_DEXTRA;
 					} else {
 						wxLogMessage(wxT("Require DExtra for linking to %s, but DExtra is disabled"), repeater.c_str());
@@ -1977,10 +1978,11 @@ void CRepeaterHandler::g2CommandHandler(const wxString& callsign, const wxString
 			m_g2Header = new CHeaderData(header);
 			m_queryTimer.start();
 		} else {
-			m_g2Status = G2_OK;
-			m_g2Address = data->getAddress();
+			m_g2Status  = G2_OK;
+			m_g2Addr    = data->getAddr();
+			m_g2AddrLen = data->getAddrLen();
 			m_g2Gateway = data->getGateway();
-			header.setDestination(m_g2Address, G2_DV_PORT);
+			header.setDestination(m_g2Addr, m_g2AddrLen);
 			header.setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(header);
 			delete data;
@@ -2019,10 +2021,11 @@ void CRepeaterHandler::g2CommandHandler(const wxString& callsign, const wxString
 
 			m_g2Status   = G2_OK;
 			m_g2User     = callsign;
-			m_g2Address  = data->getAddress();
+			m_g2Addr     = data->getAddr();
+			m_g2AddrLen  = data->getAddrLen();
 			m_g2Repeater = data->getRepeater();
 			m_g2Gateway  = data->getGateway();
-			header.setDestination(m_g2Address, G2_DV_PORT);
+			header.setDestination(m_g2Addr, m_g2AddrLen);
 			header.setRepeaters(m_g2Gateway, m_g2Repeater);
 			m_g2Handler->writeHeader(header);
 
@@ -2196,7 +2199,7 @@ void CRepeaterHandler::linkInt(const wxString& callsign)
 			case DP_DPLUS:
 				if (m_dplusEnabled) {
 					m_linkStatus = LS_LINKING_DPLUS;
-					CDPlusHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+					CDPlusHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 					writeLinkingTo(m_linkRepeater);
 					triggerInfo();
 				} else {
@@ -2210,7 +2213,7 @@ void CRepeaterHandler::linkInt(const wxString& callsign)
 			case DP_DCS:
 				if (m_dcsEnabled) {
 					m_linkStatus = LS_LINKING_DCS;
-					CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+					CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 					writeLinkingTo(m_linkRepeater);
 					triggerInfo();
 				} else {
@@ -2223,7 +2226,7 @@ void CRepeaterHandler::linkInt(const wxString& callsign)
 
 			case DP_LOOPBACK:
 				m_linkStatus = LS_LINKING_LOOPBACK;
-				CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+				CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 				writeLinkingTo(m_linkRepeater);
 				triggerInfo();
 				break;
@@ -2231,7 +2234,7 @@ void CRepeaterHandler::linkInt(const wxString& callsign)
 			default:
 				if (m_dextraEnabled) {
 					m_linkStatus = LS_LINKING_DEXTRA;
-					CDExtraHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+					CDExtraHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 					writeLinkingTo(m_linkRepeater);
 					triggerInfo();
 				} else {
@@ -2361,7 +2364,7 @@ void CRepeaterHandler::startupInt()
 				case DP_DPLUS:
 					if (m_dplusEnabled) {
 						m_linkStatus = LS_LINKING_DPLUS;
-						CDPlusHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+						CDPlusHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 						writeLinkingTo(m_linkRepeater);
 						triggerInfo();
 					} else {
@@ -2375,7 +2378,7 @@ void CRepeaterHandler::startupInt()
 				case DP_DCS:
 					if (m_dcsEnabled) {
 						m_linkStatus = LS_LINKING_DCS;
-						CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+						CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 						writeLinkingTo(m_linkRepeater);
 						triggerInfo();
 					} else {
@@ -2388,7 +2391,7 @@ void CRepeaterHandler::startupInt()
 
 				case DP_LOOPBACK:
 					m_linkStatus = LS_LINKING_LOOPBACK;
-					CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+					CDCSHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 					writeLinkingTo(m_linkRepeater);
 					triggerInfo();
 					break;
@@ -2396,7 +2399,7 @@ void CRepeaterHandler::startupInt()
 				default:
 					if (m_dextraEnabled) {
 						m_linkStatus = LS_LINKING_DEXTRA;
-						CDExtraHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddress());
+						CDExtraHandler::link(this, m_rptCallsign, m_linkRepeater, data->getAddr(), data->getAddrLen());
 						writeLinkingTo(m_linkRepeater);
 						triggerInfo();
 					} else {
@@ -2469,7 +2472,7 @@ void CRepeaterHandler::writeLinkingTo(const wxString &callsign)
 			break;
 	}
 
-	CTextData textData(m_linkStatus, callsign, text, m_address, m_port);
+	CTextData textData(m_linkStatus, callsign, text, m_addr, m_addrLen);
 	m_repeaterHandler->writeText(textData);
 
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
@@ -2519,7 +2522,7 @@ void CRepeaterHandler::writeLinkedTo(const wxString &callsign)
 			break;
 	}
 
-	CTextData textData(m_linkStatus, callsign, text, m_address, m_port);
+	CTextData textData(m_linkStatus, callsign, text, m_addr, m_addrLen);
 	m_repeaterHandler->writeText(textData);
 
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
@@ -2569,7 +2572,7 @@ void CRepeaterHandler::writeNotLinked()
 			break;
 	}
 
-	CTextData textData(LS_NONE, wxEmptyString, text, m_address, m_port);
+	CTextData textData(LS_NONE, wxEmptyString, text, m_addr, m_addrLen);
 	m_repeaterHandler->writeText(textData);
 
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
@@ -2631,10 +2634,10 @@ void CRepeaterHandler::writeIsBusy(const wxString& callsign)
 			break;
 	}
 
-	CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
+	CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_addr, m_addrLen, true);
 	m_repeaterHandler->writeText(textData1);
 
-	CTextData textData2(m_linkStatus, m_linkRepeater, text, m_address, m_port);
+	CTextData textData2(m_linkStatus, m_linkRepeater, text, m_addr, m_addrLen);
 	m_repeaterHandler->writeText(textData2);
 
 	m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
@@ -2692,13 +2695,13 @@ void CRepeaterHandler::ccsLinkMade(const wxString& callsign, DIRECTION direction
 		m_linkRepeater = callsign;
 		m_queryTimer.stop();
 
-		CTextData textData(m_linkStatus, callsign, text, m_address, m_port);
+		CTextData textData(m_linkStatus, callsign, text, m_addr, m_addrLen);
 		m_repeaterHandler->writeText(textData);
 
 		m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
 		triggerInfo();
 	} else {
-		CTextData textData(m_linkStatus, m_linkRepeater, text, m_address, m_port, true);
+		CTextData textData(m_linkStatus, m_linkRepeater, text, m_addr, m_addrLen, true);
 		m_repeaterHandler->writeText(textData);
 
 		m_infoAudio->setTempStatus(LS_LINKED_CCS, callsign, text);
@@ -2766,10 +2769,10 @@ void CRepeaterHandler::ccsLinkEnded(const wxString&, DIRECTION direction)
 
 		bool res = restoreLinks();
 		if (!res) {
-			CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
+			CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_addr, m_addrLen, true);
 			m_repeaterHandler->writeText(textData1);
 
-			CTextData textData2(m_linkStatus, m_linkRepeater, text, m_address, m_port);
+			CTextData textData2(m_linkStatus, m_linkRepeater, text, m_addr, m_addrLen);
 			m_repeaterHandler->writeText(textData2);
 
 			m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
@@ -2777,7 +2780,7 @@ void CRepeaterHandler::ccsLinkEnded(const wxString&, DIRECTION direction)
 			triggerInfo();
 		}
 	} else {
-		CTextData textData(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
+		CTextData textData(m_linkStatus, m_linkRepeater, tempText, m_addr, m_addrLen, true);
 		m_repeaterHandler->writeText(textData);
 
 		m_infoAudio->setTempStatus(m_linkStatus, m_linkRepeater, tempText);
@@ -2845,10 +2848,10 @@ void CRepeaterHandler::ccsLinkFailed(const wxString& dtmf, DIRECTION direction)
 
 		bool res = restoreLinks();
 		if (!res) {
-			CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
+			CTextData textData1(m_linkStatus, m_linkRepeater, tempText, m_addr, m_addrLen, true);
 			m_repeaterHandler->writeText(textData1);
 
-			CTextData textData2(m_linkStatus, m_linkRepeater, text, m_address, m_port);
+			CTextData textData2(m_linkStatus, m_linkRepeater, text, m_addr, m_addrLen);
 			m_repeaterHandler->writeText(textData2);
 
 			m_infoAudio->setStatus(m_linkStatus, m_linkRepeater, text);
@@ -2856,7 +2859,7 @@ void CRepeaterHandler::ccsLinkFailed(const wxString& dtmf, DIRECTION direction)
 			triggerInfo();
 		}
 	} else {
-		CTextData textData(m_linkStatus, m_linkRepeater, tempText, m_address, m_port, true);
+		CTextData textData(m_linkStatus, m_linkRepeater, tempText, m_addr, m_addrLen, true);
 		m_repeaterHandler->writeText(textData);
 
 		m_infoAudio->setTempStatus(m_linkStatus, m_linkRepeater, tempText);
@@ -2868,7 +2871,7 @@ void CRepeaterHandler::writeStatus(CStatusData& statusData)
 {
 	for (unsigned int i = 0U; i < m_maxRepeaters; i++) {
 		if (m_repeaters[i] != NULL) {
-			statusData.setDestination(m_repeaters[i]->m_address, m_repeaters[i]->m_port);
+			statusData.setDestination(m_repeaters[i]->m_addr, m_repeaters[i]->m_addrLen);
 			m_repeaters[i]->m_repeaterHandler->writeStatus(statusData);
 		}
 	}

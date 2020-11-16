@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011-2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -596,7 +596,8 @@ void CStarNetHandler::process(CHeaderData &header)
 						repeater->m_destination = wxT("/") + userData->getRepeater().Left(6U) + userData->getRepeater().Right(1U);
 						repeater->m_repeater    = userData->getRepeater();
 						repeater->m_gateway     = userData->getGateway();
-						repeater->m_address     = userData->getAddress();
+						repeater->m_addr        = userData->getAddr();
+						repeater->m_addrLen     = userData->getAddrLen();
 						repeater->m_local       = CRepeaterHandler::findDVRepeater(userData->getRepeater());
 						m_repeaters[userData->getRepeater()] = repeater;
 					}
@@ -1143,7 +1144,7 @@ void CStarNetHandler::sendToRepeaters(CHeaderData& header) const
 		CStarNetRepeater* repeater = it->second;
 		if (repeater != NULL) {
 			header.setYourCall(repeater->m_destination);
-			header.setDestination(repeater->m_address, G2_DV_PORT);
+			header.setDestination(repeater->m_addr, repeater->m_addrLen);
 			header.setRepeaters(repeater->m_gateway, repeater->m_repeater);
 			if (repeater->m_local != NULL)
 				repeater->m_local->process(header, DIR_INCOMING, AS_G2);
@@ -1158,7 +1159,7 @@ void CStarNetHandler::sendToRepeaters(CAMBEData& data) const
 	for (CStarNetRepeatersHashMap::const_iterator it = m_repeaters.begin(); it != m_repeaters.end(); ++it) {
 		CStarNetRepeater* repeater = it->second;
 		if (repeater != NULL) {
-			data.setDestination(repeater->m_address, G2_DV_PORT);
+			data.setDestination(repeater->m_addr, repeater->m_addrLen);
 			if (repeater->m_local != NULL)
 				repeater->m_local->process(data, DIR_INCOMING, AS_G2);
 			else
@@ -1214,7 +1215,7 @@ void CStarNetHandler::sendAck(const CUserData& user, const wxString& text) const
 	unsigned int id = CHeaderData::createId();
 
 	CHeaderData header(m_groupCallsign, wxT("    "), user.getUser(), user.getGateway(), user.getRepeater());
-	header.setDestination(user.getAddress(), G2_DV_PORT);
+	header.setDestination(user.getAddr(), user.getAddrLen());
 	header.setId(id);
 	m_g2Handler->writeHeader(header);
 
@@ -1223,7 +1224,7 @@ void CStarNetHandler::sendAck(const CUserData& user, const wxString& text) const
 
 	CAMBEData data;
 	data.setId(id);
-	data.setDestination(user.getAddress(), G2_DV_PORT);
+	data.setDestination(user.getAddr(), user.getAddrLen());
 
 	unsigned char buffer[DV_FRAME_MAX_LENGTH_BYTES];
 	::memcpy(buffer + 0U, NULL_AMBE_DATA_BYTES, VOICE_FRAME_LENGTH_BYTES);

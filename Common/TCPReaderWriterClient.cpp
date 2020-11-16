@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -97,7 +97,12 @@ bool CTCPReaderWriterClient::open()
 	if (m_address.IsEmpty() || m_port == 0U)
 		return false;
 
-	m_fd = ::socket(PF_INET, SOCK_STREAM, 0);
+	struct sockaddr_storage addr;
+	unsigned int addrLen;
+	if (CUDPReaderWriter::lookup(m_address, m_port, addr, addrLen) != 0)
+		return false;
+
+	m_fd = ::socket(addr.ss_family, SOCK_STREAM, 0);
 	if (m_fd < 0) {
 #if defined(__WINDOWS__)
 		wxLogError(wxT("Cannot create the TCP client socket, err=%d"), ::GetLastError());
@@ -108,22 +113,15 @@ bool CTCPReaderWriterClient::open()
 	}
 
 	if (!m_localAddress.IsEmpty()) {
-		sockaddr_in addr;
-		::memset(&addr, 0x00, sizeof(struct sockaddr_in));
-		addr.sin_family = AF_INET;
-		addr.sin_port   = 0U;
-#if defined(__WINDOWS__)
-		addr.sin_addr.s_addr = ::inet_addr(m_localAddress.mb_str());
-#else
-		addr.sin_addr.s_addr = ::inet_addr(m_localAddress.mb_str());
-#endif
-		if (addr.sin_addr.s_addr == INADDR_NONE) {
-			wxLogError(wxT("The address is invalid - %s"), m_localAddress.c_str());
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		if (CUDPReaderWriter::lookup(m_localAddress, 0U, addr, addrLen) != 0) {
+			wxLogError(wxT("The local address is invalid - %s"), m_localAddress.c_str());
 			close();
 			return false;
 		}
 
-		if (::bind(m_fd, (sockaddr*)&addr, sizeof(sockaddr_in)) == -1) {
+		if (::bind(m_fd, (sockaddr*)&addr, addrLen) == -1) {
 #if defined(__WINDOWS__)
 		wxLogError(wxT("Cannot bind the TCP client address, err=%d"), ::GetLastError());
 #else
@@ -134,18 +132,7 @@ bool CTCPReaderWriterClient::open()
 		}
 	}
 
-	struct sockaddr_in addr;
-	::memset(&addr, 0x00, sizeof(struct sockaddr_in));
-	addr.sin_family = AF_INET;
-	addr.sin_port   = htons(m_port);
-	addr.sin_addr   = CUDPReaderWriter::lookup(m_address);
-
-	if (addr.sin_addr.s_addr == INADDR_NONE) {
-		close();
-		return false;
-	}
-
-	if (::connect(m_fd, (sockaddr*)&addr, sizeof(struct sockaddr_in)) == -1) {
+	if (::connect(m_fd, (sockaddr*)&addr, addrLen) == -1) {
 #if defined(__WINDOWS__)
 		wxLogError(wxT("Cannot connect the TCP client socket, err=%d"), ::GetLastError());
 #else

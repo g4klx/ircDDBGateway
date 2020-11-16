@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,43 +21,43 @@
 #include "DStarDefines.h"
 #include "Utils.h"
 
-CPollData::CPollData(const wxString& data1, const wxString& data2, DIRECTION direction, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CPollData::CPollData(const wxString& data1, const wxString& data2, DIRECTION direction, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_data1(data1),
 m_data2(data2),
 m_direction(direction),
 m_dongle(false),
 m_length(0U),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 }
 
-CPollData::CPollData(const wxString& data, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CPollData::CPollData(const wxString& data, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_data1(data),
 m_data2(),
 m_direction(DIR_OUTGOING),
 m_dongle(false),
 m_length(0U),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 }
 
-CPollData::CPollData(const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort) :
+CPollData::CPollData(const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort) :
 m_data1(),
 m_data2(),
 m_direction(DIR_OUTGOING),
 m_dongle(false),
 m_length(0U),
-m_yourAddress(yourAddress),
-m_yourPort(yourPort),
+m_yourAddr(yourAddr),
+m_yourAddrLen(yourAddrLen),
 m_myPort(myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 }
 
 CPollData::CPollData() :
@@ -66,8 +66,8 @@ m_data2(),
 m_direction(DIR_OUTGOING),
 m_dongle(false),
 m_length(0U),
-m_yourAddress(),
-m_yourPort(0U),
+m_yourAddr(),
+m_yourAddrLen(0U),
 m_myPort(0U)
 {
 }
@@ -76,28 +76,28 @@ CPollData::~CPollData()
 {
 }
 
-bool CPollData::setDExtraData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CPollData::setDExtraData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 9U);
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	m_data1   = wxString((const char*)data, wxConvLocal, LONG_CALLSIGN_LENGTH);
 	m_dongle  = data[LONG_CALLSIGN_LENGTH] != 0x00;
 
 	m_length      = length;
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 
 	return true;
 }
 
-bool CPollData::setDCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CPollData::setDCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	switch (length) {
 		case 17U:
@@ -105,8 +105,8 @@ bool CPollData::setDCSData(const unsigned char* data, unsigned int length, const
 			m_data2       = wxString((const char*)(data + 9U), wxConvLocal, LONG_CALLSIGN_LENGTH);
 			m_length      = length;
 			m_direction   = DIR_INCOMING;
-			m_yourAddress = yourAddress;
-			m_yourPort    = yourPort;
+			m_yourAddr    = yourAddr;
+			m_yourAddrLen = yourAddrLen;
 			m_myPort      = myPort;
 			break;
 
@@ -116,8 +116,8 @@ bool CPollData::setDCSData(const unsigned char* data, unsigned int length, const
 			m_data2.Append(wxString((const char*)(data + 17U), wxConvLocal, 1U));
 			m_length      = length;
 			m_direction   = DIR_OUTGOING;
-			m_yourAddress = yourAddress;
-			m_yourPort    = yourPort;
+			m_yourAddr    = yourAddr;
+			m_yourAddrLen = yourAddrLen;
 			m_myPort      = myPort;
 			break;
 	}
@@ -125,28 +125,28 @@ bool CPollData::setDCSData(const unsigned char* data, unsigned int length, const
 	return true;
 }
 
-bool CPollData::setCCSData(const unsigned char* data, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CPollData::setCCSData(const unsigned char* data, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
 	wxASSERT(data != NULL);
 	wxASSERT(length >= 25U);
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	m_data1       = wxString((const char*)(data + 0U), wxConvLocal, 25U);
 	m_length      = length;
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
 }
 
-bool CPollData::setDPlusData(const unsigned char*, unsigned int length, const in_addr& yourAddress, unsigned int yourPort, unsigned int myPort)
+bool CPollData::setDPlusData(const unsigned char*, unsigned int length, const sockaddr_storage& yourAddr, unsigned int yourAddrLen, unsigned int myPort)
 {
-	wxASSERT(yourPort > 0U);
+	wxASSERT(yourAddrLen > 0U);
 
 	m_length      = length;
-	m_yourAddress = yourAddress;
-	m_yourPort    = yourPort;
+	m_yourAddr    = yourAddr;
+	m_yourAddrLen = yourAddrLen;
 	m_myPort      = myPort;
 
 	return true;
@@ -258,14 +258,14 @@ bool CPollData::isDongle() const
 	return m_dongle;
 }
 
-in_addr CPollData::getYourAddress() const
+sockaddr_storage CPollData::getYourAddr() const
 {
-	return m_yourAddress;
+	return m_yourAddr;
 }
 
-unsigned int CPollData::getYourPort() const
+unsigned int CPollData::getYourAddrLen() const
 {
-	return m_yourPort;
+	return m_yourAddrLen;
 }
 
 unsigned int CPollData::getMyPort() const

@@ -59,7 +59,9 @@ bool CAPRSTransmit::run()
 	if (!opened)
 		return false;
 
-	in_addr address = CUDPReaderWriter::lookup(wxT("127.0.0.1"));
+	sockaddr_storage addr;
+	unsigned int addrLen;
+	CUDPReaderWriter::lookup("127.0.0.1", G2_DV_PORT, addr, addrLen);
 
 	unsigned int id = CHeaderData::createId();
 
@@ -73,7 +75,7 @@ bool CAPRSTransmit::run()
 	header.setRptCall1(callsignG);
 	header.setRptCall2(m_repeaterCallsign);
 	header.setYourCall(wxT("CQCQCQ  "));
-	header.setDestination(address, G2_DV_PORT);
+	header.setDestination(addr, addrLen);
 
 	sendHeader(header);
 
@@ -83,7 +85,7 @@ bool CAPRSTransmit::run()
 	encoder.setTextData(wxT("APRS to DPRS"));
 
 	CAMBEData data;
-	data.setDestination(address, G2_DV_PORT);
+	data.setDestination(addr, addrLen);
 	data.setId(id);
 
 	wxStopWatch timer;
@@ -132,7 +134,7 @@ bool CAPRSTransmit::sendHeader(const CHeaderData& header)
 	unsigned int length = header.getG2Data(buffer, 60U, true);
 
 	for (unsigned int i = 0U; i < 2U; i++) {
-		bool res = m_socket.write(buffer, length, header.getYourAddress(), header.getYourPort());
+		bool res = m_socket.write(buffer, length, header.getYourAddr(), header.getYourAddrLen());
 		if (!res)
 			return false;
 	}
@@ -145,7 +147,7 @@ bool CAPRSTransmit::sendData(const CAMBEData& data)
 	unsigned char buffer[60U];
 	unsigned int length = data.getG2Data(buffer, 60U);
 
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 }
 
 unsigned int CAPRSTransmit::calcCRC(const wxString& gpsData)

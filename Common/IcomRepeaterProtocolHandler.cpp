@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ const unsigned int LOOP_TICKS    = 200U;
 CIcomRepeaterProtocolHandler::CIcomRepeaterProtocolHandler(const wxString& address, unsigned int port, const wxString& icomAddress, unsigned int icomPort) :
 wxThread(wxTHREAD_JOINABLE),
 m_socket(address, port),
-m_icomAddress(),
-m_icomPort(icomPort),
+m_icomAddr(),
+m_icomAddrLen(),
 m_over1(false),
 m_seqNo(0U),
 m_tries(0U),
@@ -53,7 +53,7 @@ m_retryTimer(LOOP_TICKS, 0U, 200U)		// 200ms
 	wxASSERT(icomPort > 0U);
 	wxASSERT(port > 0U);
 
-	m_icomAddress.s_addr = ::inet_addr(icomAddress.mb_str());
+	CUDPReaderWriter::lookup(icomAddress, icomPort, m_icomAddr, m_icomAddrLen);
 
 	m_buffer = new unsigned char[BUFFER_LENGTH];
 
@@ -100,7 +100,7 @@ bool CIcomRepeaterProtocolHandler::open()
 	buffer[8U] = 0x00;
 	buffer[9U] = 0x00;
 
-	ret = m_socket.write(buffer, 10U, m_icomAddress, m_icomPort);
+	ret = m_socket.write(buffer, 10U, m_icomAddr, m_icomAddrLen);
 	if (!ret) {
 		m_socket.close();
 		return false;
@@ -108,9 +108,9 @@ bool CIcomRepeaterProtocolHandler::open()
 
 	// Wait for a reply from the RP2C
 	for (unsigned int i = 0U; i < 10U; i++) {
-		in_addr address;
-		unsigned int port;
-		int length = m_socket.read(m_buffer, BUFFER_LENGTH, address, port);
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		int length = m_socket.read(m_buffer, BUFFER_LENGTH, addr, addrLen);
 
 		if (length == 10 && m_buffer[0U] == 'I' && m_buffer[1U] == 'N' && m_buffer[2U] == 'I' && m_buffer[3U] == 'T' && m_buffer[6U] == 0x72 && m_buffer[7U] == 0x00) {
 			m_seqNo = m_buffer[4U] * 256U + m_buffer[5U] + 1U;
@@ -204,13 +204,13 @@ void CIcomRepeaterProtocolHandler::readIcomPackets()
 {
 	for (;;) {
 		// No more data?
-		in_addr address;
-		unsigned int port;
-		int length = m_socket.read(m_buffer, BUFFER_LENGTH, address, port);
+		sockaddr_storage addr;
+		unsigned int addrLen;
+		int length = m_socket.read(m_buffer, BUFFER_LENGTH, addr, addrLen);
 		if (length <= 0)
 			return;
 
-		if (address.s_addr != m_icomAddress.s_addr || port != m_icomPort) {
+		if (!CUDPReaderWriter::match(addr, m_icomAddr)) {
 			wxLogError(wxT("Incoming Icom data from an unknown source"));
 			continue;
 		}
@@ -247,7 +247,7 @@ void CIcomRepeaterProtocolHandler::readIcomPackets()
 		// Heard data
 		if (m_buffer[6] == 0x73 && m_buffer[7] == 0x21) {
 			CHeardData* heard = new CHeardData;
-			bool ret = heard->setIcomRepeaterData(m_buffer, length, m_icomAddress, m_icomPort);
+			bool ret = heard->setIcomRepeaterData(m_buffer, length, m_icomAddr, m_icomAddrLen);
 			if (!ret) {
 				wxLogError(wxT("Invalid heard data from the RP2C"));
 				delete heard;
@@ -267,7 +267,7 @@ void CIcomRepeaterProtocolHandler::readIcomPackets()
 		// DD Data
 		if (m_buffer[6] == 0x73 && m_buffer[7] == 0x11) {
 			CDDData* data = new CDDData;
-			bool ret = data->setIcomRepeaterData(m_buffer, length, m_icomAddress, m_icomPort);
+			bool ret = data->setIcomRepeaterData(m_buffer, length, m_icomAddr, m_icomAddrLen);
 			if (!ret) {
 				wxLogError(wxT("Invalid DD data from the RP2C"));
 				delete data;
@@ -282,7 +282,7 @@ void CIcomRepeaterProtocolHandler::readIcomPackets()
 		if (m_buffer[6] == 0x73 && m_buffer[7] == 0x12 && m_buffer[10] == 0x20) {
 			if ((m_buffer[16] & 0x80) == 0x80) {
 				CHeaderData* header = new CHeaderData;
-				bool ret = header->setIcomRepeaterData(m_buffer, length, true, m_icomAddress, m_icomPort);
+				bool ret = header->setIcomRepeaterData(m_buffer, length, true, m_icomAddr, m_icomAddrLen);
 				if (!ret) {
 					wxLogError(wxT("Invalid header data or checksum from the RP2C"));
 					delete header;
@@ -298,7 +298,7 @@ void CIcomRepeaterProtocolHandler::readIcomPackets()
 				continue;
 			} else {
 				CAMBEData* data = new CAMBEData;
-				bool ret = data->setIcomRepeaterData(m_buffer, length, m_icomAddress, m_icomPort);
+				bool ret = data->setIcomRepeaterData(m_buffer, length, m_icomAddr, m_icomAddrLen);
 				if (!ret) {
 					wxLogError(wxT("Invalid AMBE data from the RP2C"));
 					delete data;
@@ -362,7 +362,7 @@ void CIcomRepeaterProtocolHandler::sendGwyPackets()
 	}
 
 	if (length > 0U) {
-		m_socket.write(m_buffer, length, m_icomAddress, m_icomPort);
+		m_socket.write(m_buffer, length, m_icomAddr, m_icomAddrLen);
 
 		m_tries++;
 		m_retryTimer.start();
@@ -545,7 +545,7 @@ bool CIcomRepeaterProtocolHandler::sendAck(wxUint16 seqNo)
 	buffer[8U] = 0x00U;
 	buffer[9U] = 0x00U;
 
-	return m_socket.write(buffer, 10U, m_icomAddress, m_icomPort);
+	return m_socket.write(buffer, 10U, m_icomAddr, m_icomAddrLen);
 }
 
 void CIcomRepeaterProtocolHandler::sendSingleReply(const CHeaderData& header)

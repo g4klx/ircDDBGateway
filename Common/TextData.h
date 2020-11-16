@@ -43,7 +43,7 @@ private:
 	LINK_STATUS      m_status;
 	unsigned char*   m_reflector;
 	unsigned char*   m_text;
-	sockaddr_storage m_address;
+	sockaddr_storage m_addr;
 	unsigned int     m_addrLen;
 	bool             m_temporary;
 };

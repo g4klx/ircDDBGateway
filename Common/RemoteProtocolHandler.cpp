@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@ const unsigned int BUFFER_LENGTH = 2000U;
 
 CRemoteProtocolHandler::CRemoteProtocolHandler(unsigned int port, const wxString& address) :
 m_socket(address, port),
-m_address(),
-m_port(0U),
+m_addr(),
+m_addrLen(0U),
 m_loggedIn(false),
 m_type(RPHT_NONE),
 m_inBuffer(NULL),
@@ -54,10 +54,10 @@ RPH_TYPE CRemoteProtocolHandler::readType()
 {
 	m_type = RPHT_NONE;
 
-	in_addr address;
-	unsigned int port;
+	sockaddr_storage addr;
+	unsigned int addrLen;
 
-	int length = m_socket.read(m_inBuffer, BUFFER_LENGTH, address, port);
+	int length = m_socket.read(m_inBuffer, BUFFER_LENGTH, addr, addrLen);
 	if (length <= 0)
 		return m_type;
 
@@ -65,12 +65,13 @@ RPH_TYPE CRemoteProtocolHandler::readType()
 
 	if (::memcmp(m_inBuffer, "LIN", 3U) == 0) {
 		m_loggedIn = false;
-		m_address  = address;
-		m_port     = port;
+		m_addr     = addr;
+		m_addrLen  = addrLen;
 		m_type = RPHT_LOGIN;
 		return m_type;
 	}
 
+/* XXX FIXME How to detect loopback in IPv4 and IPv6?
 	if (address.s_addr == inet_addr("127.0.0.1")) {
 		if (::memcmp(m_inBuffer, "LKS", 3U) == 0) {
 			m_inLength = length;
@@ -78,9 +79,9 @@ RPH_TYPE CRemoteProtocolHandler::readType()
 			return m_type;
 		}
 	}
-
+*/
 	if (m_loggedIn) {
-		if (address.s_addr != m_address.s_addr || port != m_port) {
+		if (!CUDPReaderWriter::match(addr, m_addr)) {
 			sendNAK(wxT("You are not logged in"));
 			return m_type;
 		}
@@ -294,7 +295,7 @@ bool CRemoteProtocolHandler::sendCallsigns(const wxArrayString& repeaters, const
 
 	// CUtils::dump(wxT("Outgoing"), m_outBuffer, p - m_outBuffer);
 
-	return m_socket.write(m_outBuffer, p - m_outBuffer, m_address, m_port);
+	return m_socket.write(m_outBuffer, p - m_outBuffer, m_addr, m_addrLen);
 }
 
 bool CRemoteProtocolHandler::sendRepeater(const CRemoteRepeaterData& data)
@@ -345,7 +346,7 @@ bool CRemoteProtocolHandler::sendRepeater(const CRemoteRepeaterData& data)
 
 	// CUtils::dump(wxT("Outgoing"), m_outBuffer, p - m_outBuffer);
 
-	return m_socket.write(m_outBuffer, p - m_outBuffer, m_address, m_port);
+	return m_socket.write(m_outBuffer, p - m_outBuffer, m_addr, m_addrLen);
 }
 
 bool CRemoteProtocolHandler::sendStarNetGroup(const CRemoteStarNetGroup& data)
@@ -392,7 +393,7 @@ bool CRemoteProtocolHandler::sendStarNetGroup(const CRemoteStarNetGroup& data)
 
 	// CUtils::dump(wxT("Outgoing"), m_outBuffer, p - m_outBuffer);
 
-	return m_socket.write(m_outBuffer, p - m_outBuffer, m_address, m_port);
+	return m_socket.write(m_outBuffer, p - m_outBuffer, m_addr, m_addrLen);
 }
 
 void CRemoteProtocolHandler::setLoggedIn(bool set)
@@ -411,7 +412,7 @@ bool CRemoteProtocolHandler::sendACK()
 
 	// CUtils::dump(wxT("Outgoing"), m_outBuffer, 3U);
 
-	return m_socket.write(m_outBuffer, 3U, m_address, m_port);
+	return m_socket.write(m_outBuffer, 3U, m_addr, m_addrLen);
 }
 
 bool CRemoteProtocolHandler::sendNAK(const wxString& text)
@@ -425,7 +426,7 @@ bool CRemoteProtocolHandler::sendNAK(const wxString& text)
 
 	// CUtils::dump(wxT("Outgoing"), m_outBuffer, 3U + text.Len() + 1U);
 
-	return m_socket.write(m_outBuffer, 3U + text.Len() + 1U, m_address, m_port);
+	return m_socket.write(m_outBuffer, 3U + text.Len() + 1U, m_addr, m_addrLen);
 }
 
 bool CRemoteProtocolHandler::sendRandom(wxUint32 random)
@@ -437,5 +438,5 @@ bool CRemoteProtocolHandler::sendRandom(wxUint32 random)
 
 	// CUtils::dump(wxT("Outgoing"), m_outBuffer, 3U + sizeof(wxUint32));
 
-	return m_socket.write(m_outBuffer, 3U + sizeof(wxUint32), m_address, m_port);
+	return m_socket.write(m_outBuffer, 3U + sizeof(wxUint32), m_addr, m_addrLen);
 }

@@ -32,6 +32,15 @@
 #include <errno.h>
 #endif
 
+#if !defined(UDP_SOCKET_MAX)
+#define UDP_SOCKET_MAX	1
+#endif
+
+enum IPMATCHTYPE {
+	IMT_ADDRESS_AND_PORT,
+	IMT_ADDRESS_ONLY
+};
+
 class CUDPReaderWriter {
 public:
 	CUDPReaderWriter(const wxString& address, unsigned int port);
@@ -39,10 +48,13 @@ public:
 	CUDPReaderWriter();
 	~CUDPReaderWriter();
 
-	static int lookup(const wxString& hostName, unsigned int port, sockaddr_storage& addr, unsigned int& addrLen);
+	static int lookup(const wxString& hostName, unsigned int port, sockaddr_storage& address, unsigned int& address_length);
+	static int lookup(const wxString& hostName, unsigned int port, sockaddr_storage& address, unsigned int& address_length, struct addrinfo& hints);
 
-	static bool match(const sockaddr_storage& first, const sockaddr_storage& second);
+	static bool match(const sockaddr_storage& addr1, const sockaddr_storage& addr2, IPMATCHTYPE type = IMT_ADDRESS_AND_PORT);
 
+	bool open(const sockaddr_storage& addr);
+	bool open(int family);
 	bool open();
 
 	int  read(unsigned char* buffer, unsigned int length, sockaddr_storage& addr, unsigned int& addrLen);

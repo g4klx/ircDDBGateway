@@ -103,6 +103,7 @@ public:
 
 	CGatewayRecord* find(const wxString& gateway);
 
+	void update(const wxString& gateway, const sockaddr_storage& addr, unsigned int addrLen, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
 	void update(const wxString& gateway, const wxString& address, DSTAR_PROTOCOL protocol, bool addrLock, bool protoLock);
 
 	unsigned int getCount() const;

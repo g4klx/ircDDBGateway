@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,15 +21,15 @@
 #include "DStarDefines.h"
 #include "Utils.h"
 
-CTextData::CTextData(LINK_STATUS status, const wxString& reflector, const wxString& text, const in_addr& address, unsigned int port, bool temporary) :
+CTextData::CTextData(LINK_STATUS status, const wxString& reflector, const wxString& text, const sockaddr_storage& addr, unsigned int addrLen, bool temporary) :
 m_status(status),
 m_reflector(NULL),
 m_text(NULL),
-m_address(address),
-m_port(port),
+m_addr(addr),
+m_addrLen(addrLen),
 m_temporary(temporary)
 {
-	wxASSERT(port > 0U);
+	wxASSERT(addrLen > 0U);
 
 	m_reflector = new unsigned char[8U];
 	m_text      = new unsigned char[20U];
@@ -46,15 +46,15 @@ m_temporary(temporary)
 		m_text[i] = text.GetChar(i);
 }
 
-CTextData::CTextData(const wxString& text, const in_addr& address, unsigned int port, bool temporary) :
+CTextData::CTextData(const wxString& text, const sockaddr_storage& addr, unsigned int addrLen, bool temporary) :
 m_status(LS_NONE),
 m_reflector(NULL),
 m_text(NULL),
-m_address(address),
-m_port(port),
+m_addr(addr),
+m_addrLen(addrLen),
 m_temporary(temporary)
 {
-	wxASSERT(port > 0U);
+	wxASSERT(addrLen > 0U);
 
 	m_reflector = new unsigned char[8U];
 	m_text      = new unsigned char[20U];
@@ -95,12 +95,12 @@ unsigned int CTextData::getHBRepeaterData(unsigned char *data, unsigned int leng
 	}
 }
 
-in_addr CTextData::getAddress() const
+sockaddr_storage CTextData::getAddr() const
 {
-	return m_address;
+	return m_addr;
 }
 
-unsigned int CTextData::getPort() const
+unsigned int CTextData::getAddrLen() const
 {
-	return m_port;
+	return m_addrLen;
 }

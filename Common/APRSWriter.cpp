@@ -193,7 +193,7 @@ bool CAPRSWriter::open()
 		wxLogMessage(wxT("Connected to GPSD"));
 	}
 #endif
-	bool ret = m_aprsSocket.open();
+	bool ret = m_aprsSocket.open(m_aprsAddr);
 	if (!ret)
 		return false;
 

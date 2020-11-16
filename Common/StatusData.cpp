@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2012 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2012,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@
 CStatusData::CStatusData(const wxString& text, unsigned int n) :
 m_data(NULL),
 m_n(n),
-m_address(),
-m_port(0U)
+m_addr(),
+m_addrLen(0U)
 {
 	m_data = new unsigned char[20U];
 	::memset(m_data, ' ', 20U);
@@ -58,18 +58,18 @@ unsigned int CStatusData::getHBRepeaterData(unsigned char *data, unsigned int le
 	return 26U;
 }
 
-void CStatusData::setDestination(const in_addr& address, unsigned int port)
+void CStatusData::setDestination(const sockaddr_storage& addr, unsigned int addrLen)
 {
-	m_address = address;
-	m_port    = port;
+	m_addr    = addr;
+	m_addrLen = addrLen;
 }
 
-in_addr CStatusData::getAddress() const
+sockaddr_storage CStatusData::getAddr() const
 {
-	return m_address;
+	return m_addr;
 }
 
-unsigned int CStatusData::getPort() const
+unsigned int CStatusData::getAddrLen() const
 {
-	return m_port;
+	return m_addrLen;
 }
