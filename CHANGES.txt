@@ -1,4 +1,4 @@
-ircDDB Gateway - 20180627
+ircDDB Gateway - 20201116
 =========================
 
 20101010
@@ -1487,4 +1487,9 @@ Support the GPS data from the Kenwood TH-D74.
 
 Add support for external GPS input for mobile systems.
 Add audio bypass processing for fast data mode.
+
+20201116
+--------
+
+Add support for IPv6.
 

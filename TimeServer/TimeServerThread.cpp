@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2012,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -43,7 +43,8 @@ m_callsignC(),
 m_callsignD(),
 m_callsignE(),
 m_callsignG(),
-m_address(),
+m_addr(),
+m_addrLen(0U),
 m_language(LANG_ENGLISH_UK_1),
 m_format(FORMAT_VOICE_TIME),
 m_interval(INTERVAL_15MINS),
@@ -56,8 +57,6 @@ m_encoder(),
 m_data(NULL),
 m_killed(false)
 {
-	m_address.s_addr = INADDR_NONE;
-
 	m_data = new CAMBEData*[MAX_FRAMES];
 
 	for (unsigned int i = 0U; i < MAX_FRAMES; i++)
@@ -76,7 +75,7 @@ CTimeServerThread::~CTimeServerThread()
 void CTimeServerThread::run()
 {
 	// Wait here until we have the essentials to run
-	while (!m_killed && m_address.s_addr == INADDR_NONE && m_callsignA.IsEmpty() && m_callsignB.IsEmpty() && m_callsignC.IsEmpty() && m_callsignD.IsEmpty() && m_callsignE.IsEmpty())
+	while (!m_killed && m_addrLen == 0U && m_callsignA.IsEmpty() && m_callsignB.IsEmpty() && m_callsignC.IsEmpty() && m_callsignD.IsEmpty() && m_callsignE.IsEmpty())
 		::wxMilliSleep(500UL);		// 1/2 sec
 
 	if (m_killed)
@@ -162,9 +161,9 @@ bool CTimeServerThread::setGateway(const wxString& callsign, bool sendA, bool se
 
 	m_callsign.Append(wxT(" "));
 
-	m_address = CUDPReaderWriter::lookup(address);
+	CUDPReaderWriter::lookup(address, G2_DV_PORT, m_addr, m_addrLen);
 
-	bool ret = m_socket.open();
+	bool ret = m_socket.open(m_addr);
 	if (!ret)
 		return false;
 
@@ -1158,7 +1157,7 @@ bool CTimeServerThread::lookup(const wxString &id)
 		unsigned char* dataIn = m_ambe + (start + i) * VOICE_FRAME_LENGTH_BYTES;
 
 		CAMBEData* dataOut = new CAMBEData;
-		dataOut->setDestination(m_address, G2_DV_PORT);
+		dataOut->setDestination(m_addr, m_addrLen);
 		dataOut->setSeq(m_seqNo);
 
 		unsigned char buffer[DV_FRAME_LENGTH_BYTES];
@@ -1205,7 +1204,7 @@ void CTimeServerThread::end()
 {
 	CAMBEData* dataOut = new CAMBEData;
 	dataOut->setData(END_PATTERN_BYTES, DV_FRAME_LENGTH_BYTES);
-	dataOut->setDestination(m_address, G2_DV_PORT);
+	dataOut->setDestination(m_addr, m_addrLen);
 	dataOut->setSeq(m_seqNo);
 	dataOut->setEnd(true);
 
@@ -1226,7 +1225,7 @@ bool CTimeServerThread::send(const wxArrayString &words, unsigned int hour, unsi
 	header.setRptCall1(m_callsignG);
 	header.setRptCall2(m_callsign);		// Just for the slow data header
 	header.setYourCall(wxT("CQCQCQ  "));
-	header.setDestination(m_address, G2_DV_PORT);
+	header.setDestination(m_addr, m_addrLen);
 
 	wxString slowData;
 	switch (m_language) {
@@ -1320,7 +1319,7 @@ bool CTimeServerThread::send(const wxArrayString &words, unsigned int hour, unsi
 
 		for (unsigned int i = 0U; i < 21U; i++) {
 			CAMBEData* dataOut = new CAMBEData;
-			dataOut->setDestination(m_address, G2_DV_PORT);
+			dataOut->setDestination(m_addr, m_addrLen);
 			dataOut->setSeq(i);
 
 			unsigned char buffer[DV_FRAME_LENGTH_BYTES];
@@ -1342,7 +1341,7 @@ bool CTimeServerThread::send(const wxArrayString &words, unsigned int hour, unsi
 
 		CAMBEData* dataOut = new CAMBEData;
 		dataOut->setData(END_PATTERN_BYTES, DV_FRAME_LENGTH_BYTES);
-		dataOut->setDestination(m_address, G2_DV_PORT);
+		dataOut->setDestination(m_addr, m_addrLen);
 		dataOut->setSeq(0U);
 		dataOut->setEnd(true);
 
@@ -1443,7 +1442,7 @@ bool CTimeServerThread::sendHeader(const CHeaderData &header)
 	return true;
 #else
 	for (unsigned int i = 0U; i < 5U; i++) {
-		bool res = m_socket.write(buffer, length, header.getYourAddress(), header.getYourPort());
+		bool res = m_socket.write(buffer, length, header.getYourAddr(), header.getYourAddrLen());
 		if (!res)
 			return false;
 	}
@@ -1461,6 +1460,6 @@ bool CTimeServerThread::sendData(const CAMBEData& data)
 	CUtils::dump(wxT("Sending Data"), buffer, length);
 	return true;
 #else
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 #endif
 }

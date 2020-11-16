@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2014,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -112,11 +112,13 @@ CTextTransmit::~CTextTransmit()
 
 bool CTextTransmit::run()
 {
-	bool opened = m_socket.open();
+	sockaddr_storage addr;
+	unsigned int addrLen;
+	CUDPReaderWriter::lookup(wxT("127.0.0.1"), G2_DV_PORT, addr, addrLen);
+
+	bool opened = m_socket.open(addr);
 	if (!opened)
 		return false;
-
-	in_addr address = CUDPReaderWriter::lookup(wxT("127.0.0.1"));
 
 	unsigned int id = CHeaderData::createId();
 
@@ -130,7 +132,7 @@ bool CTextTransmit::run()
 	header.setRptCall1(callsignG);
 	header.setRptCall2(m_callsign);
 	header.setYourCall(wxT("CQCQCQ  "));
-	header.setDestination(address, G2_DV_PORT);
+	header.setDestination(addr, addrLen);
 
 	sendHeader(header);
 
@@ -139,7 +141,7 @@ bool CTextTransmit::run()
 	encoder.setTextData(m_text);
 
 	CAMBEData data;
-	data.setDestination(address, G2_DV_PORT);
+	data.setDestination(addr, addrLen);
 	data.setId(id);
 
 	wxStopWatch timer;
@@ -192,7 +194,7 @@ bool CTextTransmit::sendHeader(const CHeaderData& header)
 	unsigned int length = header.getG2Data(buffer, 60U, true);
 
 	for (unsigned int i = 0U; i < 2U; i++) {
-		bool res = m_socket.write(buffer, length, header.getYourAddress(), header.getYourPort());
+		bool res = m_socket.write(buffer, length, header.getYourAddr(), header.getYourAddrLen());
 		if (!res)
 			return false;
 	}
@@ -205,5 +207,5 @@ bool CTextTransmit::sendData(const CAMBEData& data)
 	unsigned char buffer[40U];
 	unsigned int length = data.getG2Data(buffer, 40U);
 
-	return m_socket.write(buffer, length, data.getYourAddress(), data.getYourPort());
+	return m_socket.write(buffer, length, data.getYourAddr(), data.getYourAddrLen());
 }

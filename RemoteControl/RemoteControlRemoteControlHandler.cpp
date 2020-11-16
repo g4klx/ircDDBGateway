@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2011,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2011,2013,2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@ const unsigned int MAX_RETRIES = 3U;
 
 CRemoteControlRemoteControlHandler::CRemoteControlRemoteControlHandler(const wxString& address, unsigned int port) :
 m_socket(wxEmptyString, 0U),
-m_address(),
-m_port(port),
+m_addr(),
+m_addrLen(0U),
 m_loggedIn(false),
 m_retryCount(0U),
 m_type(RCT_NONE),
@@ -38,7 +38,7 @@ m_outLength(0U)
 	wxASSERT(!address.IsEmpty());
 	wxASSERT(port > 0U);
 
-	m_address = CUDPReaderWriter::lookup(address);
+	CUDPReaderWriter::lookup(address, port, m_addr, m_addrLen);
 
 	m_inBuffer  = new unsigned char[BUFFER_LENGTH];
 	m_outBuffer = new unsigned char[BUFFER_LENGTH];
@@ -59,10 +59,10 @@ RC_TYPE CRemoteControlRemoteControlHandler::readType()
 {
 	m_type = RCT_NONE;
 
-	in_addr address;
-	unsigned int port;
+	sockaddr_storage addr;
+	unsigned int addrLen;
 
-	int length = m_socket.read(m_inBuffer, BUFFER_LENGTH, address, port);
+	int length = m_socket.read(m_inBuffer, BUFFER_LENGTH, addr, addrLen);
 	if (length <= 0)
 		return m_type;
 
@@ -258,13 +258,13 @@ bool CRemoteControlRemoteControlHandler::login()
 	if (m_loggedIn)
 		return false;
 
-	if (m_address.s_addr == INADDR_NONE)
+	if (m_addrLen == 0U)
 		return false;
 
 	::memcpy(m_outBuffer, "LIN", 3U);
 	m_outLength = 3U;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -287,7 +287,7 @@ bool CRemoteControlRemoteControlHandler::getCallsigns()
 	::memcpy(m_outBuffer, "GCS", 3U);
 	m_outLength = 3U;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -316,7 +316,7 @@ bool CRemoteControlRemoteControlHandler::sendHash(const unsigned char* hash, uns
 	m_outLength += length;
 	p += length;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -347,7 +347,7 @@ bool CRemoteControlRemoteControlHandler::getRepeater(const wxString& callsign)
 	m_outLength += LONG_CALLSIGN_LENGTH;
 	p += LONG_CALLSIGN_LENGTH;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -378,7 +378,7 @@ bool CRemoteControlRemoteControlHandler::getStarNet(const wxString& callsign)
 	m_outLength += LONG_CALLSIGN_LENGTH;
 	p += LONG_CALLSIGN_LENGTH;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -422,7 +422,7 @@ bool CRemoteControlRemoteControlHandler::link(const wxString& callsign, RECONNEC
 	m_outLength += LONG_CALLSIGN_LENGTH;
 	p += LONG_CALLSIGN_LENGTH;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -466,7 +466,7 @@ bool CRemoteControlRemoteControlHandler::unlink(const wxString& callsign, PROTOC
 	m_outLength += LONG_CALLSIGN_LENGTH;
 	p += LONG_CALLSIGN_LENGTH;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -505,7 +505,7 @@ bool CRemoteControlRemoteControlHandler::logoff(const wxString& callsign, const 
 	m_outLength += LONG_CALLSIGN_LENGTH;
 	p += LONG_CALLSIGN_LENGTH;
 
-	bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+	bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	if (!ret) {
 		m_retryCount = 0U;
 		return false;
@@ -524,7 +524,7 @@ bool CRemoteControlRemoteControlHandler::logout()
 	m_outLength = 3U;
 
 	for (unsigned int i = 0U; i < 5U; i++) {
-		bool ret = m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+		bool ret = m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 		if (!ret) {
 			m_retryCount = 0U;
 			return false;
@@ -545,7 +545,7 @@ bool CRemoteControlRemoteControlHandler::retry()
 			return false;
 		}
 
-		m_socket.write(m_outBuffer, m_outLength, m_address, m_port);
+		m_socket.write(m_outBuffer, m_outLength, m_addr, m_addrLen);
 	}
 
 	return true;
