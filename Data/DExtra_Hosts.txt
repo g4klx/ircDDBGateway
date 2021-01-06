@@ -34,7 +34,7 @@ XRF017	92.177.212.64
 XRF018	flatcap.badweather.net
 XRF019	46.28.108.233
 XRF019	xlx019.ok2it.com
-XRF020	xrf020.k2dls.net
+XRF020	xrf020.k2ie.net
 XRF021	44.103.34.4
 XRF022	83.137.45.98
 XRF022	xrf022.tms-it.net
