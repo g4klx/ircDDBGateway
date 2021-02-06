@@ -322,10 +322,10 @@ m_miscellaneous(NULL)
 	noteBook->AddPage(m_gpsd, wxT("GPSD"), false);
 
 	TEXT_LANG language;
-	bool infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled;
-	m_config->getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
+	bool infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled, gatewayCQLinkEnabled;
+	m_config->getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled, gatewayCQLinkEnabled);
 
-	m_miscellaneous = new CIRCDDBGatewayConfigMiscellaneousSet(noteBook, -1, APPLICATION_NAME, language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
+	m_miscellaneous = new CIRCDDBGatewayConfigMiscellaneousSet(noteBook, -1, APPLICATION_NAME, language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled, gatewayCQLinkEnabled);
 	noteBook->AddPage(m_miscellaneous, wxT("Misc"), false);
 
 	sizer->Add(noteBook, 0, wxEXPAND | wxALL, BORDER_SIZE);
@@ -622,7 +622,8 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	bool logEnabled    = m_miscellaneous->getLogEnabled();
 	bool dratsEnabled  = m_miscellaneous->getDRATSEnabled();
 	bool dtmfEnabled   = m_miscellaneous->getDTMFEnabled();
-	m_config->setMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
+	bool gatewayCQLinkEnabled = m_miscellaneous->getGatewayCQLinkEnabled();
+	m_config->setMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled, gatewayCQLinkEnabled);
 
 	bool ret = m_config->write();
 	if (!ret) {

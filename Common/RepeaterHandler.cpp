@@ -52,6 +52,7 @@ bool                      CRepeaterHandler::m_dcsEnabled = true;
 bool                      CRepeaterHandler::m_infoEnabled = true;
 bool                      CRepeaterHandler::m_echoEnabled = true;
 bool                      CRepeaterHandler::m_dtmfEnabled = true;
+bool					  CRepeaterHandler::m_gatewayCQLinkEnabled = false;
 
 CHeaderLogger*            CRepeaterHandler::m_headerLogger = NULL;
 
@@ -326,6 +327,11 @@ void CRepeaterHandler::setEchoEnabled(bool enabled)
 void CRepeaterHandler::setDTMFEnabled(bool enabled)
 {
 	m_dtmfEnabled = enabled;
+}
+
+void CRepeaterHandler::setGatewayCQLinkEnabled(bool enabled)
+{
+	m_gatewayCQLinkEnabled = enabled;
 }
 
 void CRepeaterHandler::setHeaderLogger(CHeaderLogger* logger)
@@ -1946,6 +1952,12 @@ void CRepeaterHandler::g2CommandHandler(const wxString& callsign, const wxString
 			return;
 		}
 
+		if (m_gatewayCQLinkEnabled) {
+			wxLogMessage(wxT("%s is trying to G2 route, but GatewayCQ linking is enabled."), user.c_str());
+			m_g2Status = G2_NONE;
+			return;
+		}
+
 		// This a repeater route
 		// Convert "/1234567" to "123456 7"
 		wxString repeater = callsign.Mid(1, LONG_CALLSIGN_LENGTH - 2U);
@@ -2057,6 +2069,12 @@ void CRepeaterHandler::reflectorCommandHandler(const wxString& callsign, const w
 
 	m_queryTimer.stop();
 
+	bool linkRepeater = false;
+
+	if (callsign.Left(1).IsSameAs(wxT("/")) && m_gatewayCQLinkEnabled) {
+		linkRepeater = true;
+	}
+	
 	wxString letter = callsign.Right(1);
 
 	if (letter.IsSameAs(wxT("U"))) {
@@ -2075,7 +2093,7 @@ void CRepeaterHandler::reflectorCommandHandler(const wxString& callsign, const w
 
 		writeNotLinked();
 		triggerInfo();
-	} else if (letter.IsSameAs(wxT("L"))) {
+	} else if (letter.IsSameAs(wxT("L")) || linkRepeater) {
 		wxString reflector;
 
 		// Handle the special case of "       L"
@@ -2085,10 +2103,22 @@ void CRepeaterHandler::reflectorCommandHandler(const wxString& callsign, const w
 
 			reflector = m_linkStartup;
 		} else {
-			// Extract the callsign "1234567L" -> "123456 7"
-			reflector = callsign.Left(LONG_CALLSIGN_LENGTH - 2U);
-			reflector.Append(wxT(" "));
-			reflector.Append(callsign.Mid(LONG_CALLSIGN_LENGTH - 2U, 1));
+
+			if (linkRepeater) {
+				// This a repeater route
+				// Convert "/1234567" to "123456 7"
+				reflector = callsign.Mid(1, LONG_CALLSIGN_LENGTH - 2U);
+				reflector.Append(wxT(" "));
+				reflector.Append(callsign.Mid(LONG_CALLSIGN_LENGTH - 1U, 1));
+
+				wxLogMessage(wxT("%s is trying to GatewayCQ link to %s"), user.c_str(), callsign.c_str());
+			}
+			else {
+				// Extract the callsign "1234567L" -> "123456 7"
+				reflector = callsign.Left(LONG_CALLSIGN_LENGTH - 2U);
+				reflector.Append(wxT(" "));
+				reflector.Append(callsign.Mid(LONG_CALLSIGN_LENGTH - 2U, 1));
+			}
 		}
 
 		// Ensure duplicate link requests aren't acted on

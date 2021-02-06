@@ -68,6 +68,7 @@ public:
 	virtual void setInfoEnabled(bool enabled);
 	virtual void setEchoEnabled(bool enabled);
 	virtual void setDTMFEnabled(bool enabled);
+	virtual void setGatewayCQLinkEnabled(bool enabled);
 	virtual void setDDModeEnabled(bool enabled);
 	virtual void setRemote(bool enabled, const wxString& password, unsigned int port);
 	virtual void setLocation(double latitude, double longitude);
@@ -115,6 +116,7 @@ private:
 	bool                      m_infoEnabled;
 	bool                      m_echoEnabled;
 	bool                      m_dtmfEnabled;
+	bool                      m_gatewayCQLinkEnabled;
 	bool                      m_logEnabled;
 	bool                      m_ddModeEnabled;
 	IRCDDB_STATUS             m_lastStatus;

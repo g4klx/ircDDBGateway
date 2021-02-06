@@ -286,9 +286,9 @@ void CIRCDDBGatewayApp::createThread()
 	}
 
 	TEXT_LANG language;
-	bool infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled;
-	m_config->getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled);
-	wxLogInfo(wxT("Language: %d, info enabled: %d, echo enabled: %d, log enabled : %d, D-RATS enabled: %d, DTMF control enabled: %d"), int(language), int(infoEnabled), int(echoEnabled), int(logEnabled), int(dratsEnabled), int(dtmfEnabled));
+	bool infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled, gatewayCQLinkEnabled;
+	m_config->getMiscellaneous(language, infoEnabled, echoEnabled, logEnabled, dratsEnabled, dtmfEnabled, gatewayCQLinkEnabled);
+	wxLogInfo(wxT("Language: %d, info enabled: %d, echo enabled: %d, log enabled : %d, D-RATS enabled: %d, DTMF control enabled: %d, Gateway CQ Link enabled: %d"), int(language), int(infoEnabled), int(echoEnabled), int(logEnabled), int(dratsEnabled), int(dtmfEnabled), int(gatewayCQLinkEnabled));
 
 	bool gpsdEnabled;
 	wxString gpsdAddress, gpsdPort;
@@ -964,7 +964,7 @@ void CIRCDDBGatewayApp::createThread()
 	thread->setInfoEnabled(infoEnabled);
 	thread->setEchoEnabled(echoEnabled);
 	thread->setDTMFEnabled(dtmfEnabled);
-	thread->setLog(logEnabled);
+	thread->setGatewayCQLinkEnabled(gatewayCQLinkEnabled);
 	thread->setLocation(latitude, longitude);
 
 	// Convert the worker class into a thread

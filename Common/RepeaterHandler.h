@@ -76,6 +76,7 @@ public:
 	static void setInfoEnabled(bool enabled);
 	static void setEchoEnabled(bool enabled);
 	static void setDTMFEnabled(bool enabled);
+	static void setGatewayCQLinkEnabled(bool enabled);
 	static void setWhiteList(CCallsignList* list);
 	static void setBlackList(CCallsignList* list);
 	static void setRestrictList(CCallsignList* list);
@@ -161,6 +162,7 @@ private:
 	static bool      m_infoEnabled;
 	static bool      m_echoEnabled;
 	static bool      m_dtmfEnabled;
+	static bool		 m_gatewayCQLinkEnabled;
 
 	static CHeaderLogger*   m_headerLogger;
 

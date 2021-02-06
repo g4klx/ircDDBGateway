@@ -25,7 +25,7 @@
 
 class CIRCDDBGatewayConfigMiscellaneousSet : public wxPanel {
 public:
-	CIRCDDBGatewayConfigMiscellaneousSet(wxWindow* parent, int id, const wxString& title, TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled);
+	CIRCDDBGatewayConfigMiscellaneousSet(wxWindow* parent, int id, const wxString& title, TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled, bool gatewayCQLinkEnabled);
 	virtual ~CIRCDDBGatewayConfigMiscellaneousSet();
 
 	virtual bool Validate();
@@ -42,6 +42,8 @@ public:
 
 	virtual bool      getDTMFEnabled() const;
 
+	virtual bool      getGatewayCQLinkEnabled() const;
+
 private:
 	wxString  m_title;
 	wxChoice* m_language;
@@ -50,6 +52,7 @@ private:
 	wxChoice* m_logEnabled;
 	wxChoice* m_dratsEnabled;
 	wxChoice* m_dtmfEnabled;
+	wxChoice* m_gatewayCQLinkEnabled;
 };
 
 #endif

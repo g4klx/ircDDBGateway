@@ -200,6 +200,7 @@ const wxString  KEY_ECHO_ENABLED             = wxT("echoEnabled");
 const wxString  KEY_LOG_ENABLED              = wxT("logEnabled");
 const wxString  KEY_DRATS_ENABLED            = wxT("dratsEnabled");
 const wxString  KEY_DTMF_ENABLED             = wxT("dtmfEnabled");
+const wxString  KEY_GW_CQ_LINK_ENABLED	     = wxT("gatewayCQLinkEnabled");
 const wxString  KEY_GPSD_ENABLED             = wxT("gpsdEnabled");
 const wxString  KEY_GPSD_ADDRESS             = wxT("gpsdAddress");
 const wxString  KEY_GPSD_PORT                = wxT("gpsdPort");
@@ -284,6 +285,7 @@ const bool         DEFAULT_INFO_ENABLED          = true;
 const bool         DEFAULT_ECHO_ENABLED          = true;
 const bool         DEFAULT_DRATS_ENABLED         = false;
 const bool         DEFAULT_DTMF_ENABLED          = true;
+const bool         DEFAULT_GW_CQ_LINK_ENABLED    = false;
 const bool         DEFAULT_GPSD_ENABLED          = false;
 const wxString     DEFAULT_GPSD_ADDRESS          = wxT("127.0.0.1");
 const wxString     DEFAULT_GPSD_PORT             = wxT("2947");
@@ -477,6 +479,7 @@ m_echoEnabled(DEFAULT_ECHO_ENABLED),
 m_logEnabled(DEFAULT_LOG_ENABLED),
 m_dratsEnabled(DEFAULT_DRATS_ENABLED),
 m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
+m_gatewayCQLinkEnabled(DEFAULT_GW_CQ_LINK_ENABLED),
 m_gpsdEnabled(DEFAULT_GPSD_ENABLED),
 m_gpsdAddress(DEFAULT_GPSD_ADDRESS),
 m_gpsdPort(DEFAULT_GPSD_PORT),
@@ -893,6 +896,8 @@ m_y(DEFAULT_WINDOW_Y)
 
 	m_config->Read(m_name + KEY_DTMF_ENABLED, &m_dtmfEnabled, DEFAULT_DTMF_ENABLED);
 
+	m_config->Read(m_name + KEY_GW_CQ_LINK_ENABLED, &m_gatewayCQLinkEnabled, DEFAULT_GW_CQ_LINK_ENABLED);
+
 	m_config->Read(m_name + KEY_GPSD_ENABLED, &m_gpsdEnabled, DEFAULT_GPSD_ENABLED);
 
 	m_config->Read(m_name + KEY_GPSD_ADDRESS, &m_gpsdAddress, DEFAULT_GPSD_ADDRESS);
@@ -1096,6 +1101,7 @@ m_echoEnabled(DEFAULT_ECHO_ENABLED),
 m_logEnabled(DEFAULT_LOG_ENABLED),
 m_dratsEnabled(DEFAULT_DRATS_ENABLED),
 m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
+m_gatewayCQLinkEnabled(DEFAULT_GW_CQ_LINK_ENABLED),
 m_gpsdEnabled(DEFAULT_GPSD_ENABLED),
 m_gpsdAddress(DEFAULT_GPSD_ADDRESS),
 m_gpsdPort(DEFAULT_GPSD_PORT),
@@ -1574,6 +1580,9 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_DTMF_ENABLED)) {
 			val.ToLong(&temp1);
 			m_dtmfEnabled = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_GW_CQ_LINK_ENABLED)) {
+			val.ToLong(&temp1);
+			m_gatewayCQLinkEnabled = temp1 == 1L;
 		} else if (key.IsSameAs(KEY_GPSD_ENABLED)) {
 			val.ToLong(&temp1);
 			m_gpsdEnabled = temp1 == 1L;
@@ -2178,7 +2187,7 @@ void CIRCDDBGatewayConfig::setRemote(bool enabled, const wxString& password, uns
 	m_remotePort     = port;
 }
 
-void CIRCDDBGatewayConfig::getMiscellaneous(TEXT_LANG& language, bool& infoEnabled, bool& echoEnabled, bool& logEnabled, bool& dratsEnabled, bool& dtmfEnabled) const
+void CIRCDDBGatewayConfig::getMiscellaneous(TEXT_LANG& language, bool& infoEnabled, bool& echoEnabled, bool& logEnabled, bool& dratsEnabled, bool& dtmfEnabled, bool& gatewayCQLinkEnabled) const
 {
 	language     = m_language;
 	infoEnabled  = m_infoEnabled;
@@ -2186,9 +2195,10 @@ void CIRCDDBGatewayConfig::getMiscellaneous(TEXT_LANG& language, bool& infoEnabl
 	logEnabled   = m_logEnabled;
 	dratsEnabled = m_dratsEnabled;
 	dtmfEnabled  = m_dtmfEnabled;
+	gatewayCQLinkEnabled = m_gatewayCQLinkEnabled;
 }
 
-void CIRCDDBGatewayConfig::setMiscellaneous(TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled)
+void CIRCDDBGatewayConfig::setMiscellaneous(TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled, bool gatewayCQLinkEnabled)
 {
 	m_language     = language;
 	m_infoEnabled  = infoEnabled;
@@ -2196,6 +2206,7 @@ void CIRCDDBGatewayConfig::setMiscellaneous(TEXT_LANG language, bool infoEnabled
 	m_logEnabled   = logEnabled;
 	m_dratsEnabled = dratsEnabled;
 	m_dtmfEnabled  = dtmfEnabled;
+	m_gatewayCQLinkEnabled = gatewayCQLinkEnabled;
 }
 
 void CIRCDDBGatewayConfig::getGPSD(bool& enabled, wxString& address, wxString& port) const
@@ -2450,6 +2461,7 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_LOG_ENABLED, m_logEnabled);
 	m_config->Write(m_name + KEY_DRATS_ENABLED, m_dratsEnabled);
 	m_config->Write(m_name + KEY_DTMF_ENABLED, m_dtmfEnabled);
+	m_config->Write(m_name + KEY_GW_CQ_LINK_ENABLED, m_gatewayCQLinkEnabled);
 	m_config->Write(m_name + KEY_GPSD_ENABLED, m_gpsdEnabled);
 	m_config->Write(m_name + KEY_GPSD_ADDRESS, m_gpsdAddress);
 	m_config->Write(m_name + KEY_GPSD_PORT, m_gpsdPort);
@@ -2659,6 +2671,7 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%d"), KEY_LOG_ENABLED.c_str(), m_logEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DRATS_ENABLED.c_str(), m_dratsEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DTMF_ENABLED.c_str(), m_dtmfEnabled ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%d"), KEY_GW_CQ_LINK_ENABLED.c_str(), m_gatewayCQLinkEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_GPSD_ENABLED.c_str(), m_gpsdEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_GPSD_ADDRESS.c_str(), m_gpsdAddress.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_GPSD_PORT.c_str(), m_gpsdPort.c_str()); file.AddLine(buffer);

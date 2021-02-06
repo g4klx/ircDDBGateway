@@ -23,7 +23,7 @@ const unsigned int CONTROL_WIDTH = 130U;
 
 const unsigned int BORDER_SIZE = 5U;
 
-CIRCDDBGatewayConfigMiscellaneousSet::CIRCDDBGatewayConfigMiscellaneousSet(wxWindow* parent, int id, const wxString& title, TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled) :
+CIRCDDBGatewayConfigMiscellaneousSet::CIRCDDBGatewayConfigMiscellaneousSet(wxWindow* parent, int id, const wxString& title, TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled, bool gatewayCQLinkEnabled) :
 wxPanel(parent, id),
 m_title(title),
 m_language(NULL),
@@ -31,6 +31,7 @@ m_infoEnabled(NULL),
 m_echoEnabled(NULL),
 m_logEnabled(NULL),
 m_dratsEnabled(NULL),
+m_gatewayCQLinkEnabled(NULL),
 m_dtmfEnabled(NULL)
 {
 	wxFlexGridSizer* sizer = new wxFlexGridSizer(2);
@@ -99,6 +100,12 @@ m_dtmfEnabled(NULL)
 	m_dtmfEnabled->Append(_("Enabled"));
 	sizer->Add(m_dtmfEnabled, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 	m_dtmfEnabled->SetSelection(dtmfEnabled ? 1 : 0);
+
+	m_gatewayCQLinkEnabled = new wxChoice(this, -1, wxDefaultPosition, wxSize(CONTROL_WIDTH, -1));
+	m_gatewayCQLinkEnabled->Append(_("Disabled"));
+	m_gatewayCQLinkEnabled->Append(_("Enabled"));
+	sizer->Add(m_gatewayCQLinkEnabled, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
+	m_gatewayCQLinkEnabled->SetSelection(gatewayCQLinkEnabled ? 1 : 0);
 
 	SetAutoLayout(true);
 
@@ -178,6 +185,15 @@ bool CIRCDDBGatewayConfigMiscellaneousSet::getDRATSEnabled() const
 bool CIRCDDBGatewayConfigMiscellaneousSet::getDTMFEnabled() const
 {
 	int c = m_dtmfEnabled->GetCurrentSelection();
+	if (c == wxNOT_FOUND)
+		return false;
+
+	return c == 1;
+}
+
+bool CIRCDDBGatewayConfigMiscellaneousSet::getGatewayCQLinkEnabled() const
+{
+	int c = m_gatewayCQLinkEnabled->GetCurrentSelection();
 	if (c == wxNOT_FOUND)
 		return false;
 

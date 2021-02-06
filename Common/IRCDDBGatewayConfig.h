@@ -109,8 +109,8 @@ public:
 	void getRemote(bool& enabled, wxString& password, unsigned int& port) const;
 	void setRemote(bool enabled, const wxString& password, unsigned int port);
 
-	void getMiscellaneous(TEXT_LANG& language, bool& infoEnabled, bool& echoEnabled, bool& logEnabled, bool& dratsEnabled, bool& dtmfEnabled) const;
-	void setMiscellaneous(TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled);
+	void getMiscellaneous(TEXT_LANG& language, bool& infoEnabled, bool& echoEnabled, bool& logEnabled, bool& dratsEnabled, bool& dtmfEnabled, bool& gatewayCQLinkEnabled) const;
+	void setMiscellaneous(TEXT_LANG language, bool infoEnabled, bool echoEnabled, bool logEnabled, bool dratsEnabled, bool dtmfEnabled, bool gatewayCQLinkEnabled);
 
 	void getGPSD(bool& enabled, wxString& address, wxString& port) const;
 	void setGPSD(bool enabled, const wxString& address, const wxString& port);
@@ -307,6 +307,7 @@ private:
 	bool          m_logEnabled;
 	bool          m_dratsEnabled;
 	bool          m_dtmfEnabled;
+	bool		  m_gatewayCQLinkEnabled;
 	bool          m_gpsdEnabled;
 	wxString      m_gpsdAddress;
 	wxString      m_gpsdPort;

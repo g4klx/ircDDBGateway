@@ -92,6 +92,7 @@ m_ccsHost(),
 m_infoEnabled(true),
 m_echoEnabled(true),
 m_dtmfEnabled(true),
+m_gatewayCQLinkEnabled(false),
 m_logEnabled(false),
 m_ddModeEnabled(false),
 m_lastStatus(IS_DISABLED),
@@ -287,6 +288,7 @@ void CIRCDDBGatewayThread::run()
 	CRepeaterHandler::setInfoEnabled(m_infoEnabled);
 	CRepeaterHandler::setEchoEnabled(m_echoEnabled);
 	CRepeaterHandler::setDTMFEnabled(m_dtmfEnabled);
+	CRepeaterHandler::setGatewayCQLinkEnabled(m_gatewayCQLinkEnabled);
 	if (m_whiteList != NULL) {
 		CDExtraHandler::setWhiteList(m_whiteList);
 		CDPlusHandler::setWhiteList(m_whiteList);
@@ -637,6 +639,11 @@ void CIRCDDBGatewayThread::setEchoEnabled(bool enabled)
 void CIRCDDBGatewayThread::setDTMFEnabled(bool enabled)
 {
 	m_dtmfEnabled = enabled;
+}
+
+void CIRCDDBGatewayThread::setGatewayCQLinkEnabled(bool enabled)
+{
+	m_gatewayCQLinkEnabled = enabled;
 }
 
 void CIRCDDBGatewayThread::setDDModeEnabled(bool enabled)
