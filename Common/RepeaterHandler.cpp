@@ -52,7 +52,7 @@ bool                      CRepeaterHandler::m_dcsEnabled = true;
 bool                      CRepeaterHandler::m_infoEnabled = true;
 bool                      CRepeaterHandler::m_echoEnabled = true;
 bool                      CRepeaterHandler::m_dtmfEnabled = true;
-bool					  CRepeaterHandler::m_gatewayCQLinkEnabled = false;
+bool                      CRepeaterHandler::m_gatewayCQLinkEnabled = false;
 
 CHeaderLogger*            CRepeaterHandler::m_headerLogger = NULL;
 
