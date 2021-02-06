@@ -307,7 +307,7 @@ private:
 	bool          m_logEnabled;
 	bool          m_dratsEnabled;
 	bool          m_dtmfEnabled;
-	bool		  m_gatewayCQLinkEnabled;
+	bool          m_gatewayCQLinkEnabled;
 	bool          m_gpsdEnabled;
 	wxString      m_gpsdAddress;
 	wxString      m_gpsdPort;

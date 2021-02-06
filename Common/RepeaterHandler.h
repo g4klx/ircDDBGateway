@@ -162,7 +162,7 @@ private:
 	static bool      m_infoEnabled;
 	static bool      m_echoEnabled;
 	static bool      m_dtmfEnabled;
-	static bool		 m_gatewayCQLinkEnabled;
+	static bool      m_gatewayCQLinkEnabled;
 
 	static CHeaderLogger*   m_headerLogger;
 
