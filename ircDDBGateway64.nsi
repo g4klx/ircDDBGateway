@@ -71,6 +71,8 @@ Section "Repeater Program Files" SecProgram
   File "Data\TIME_en_US.indx"
   File "Data\TIME_fr_FR.ambe"
   File "Data\TIME_fr_FR.indx"
+  File "Data\TIME_pt_PT.ambe"
+  File "Data\TIME_pt_PT.indx"
   File "Data\TIME_se_SE.ambe"
   File "Data\TIME_se_SE.indx"
   File "Data\de_DE.ambe"
@@ -91,6 +93,8 @@ Section "Repeater Program Files" SecProgram
   File "Data\no_NO.indx"
   File "Data\pl_PL.ambe"
   File "Data\pl_PL.indx"
+  File "Data\pt_PT.ambe"
+  File "Data\pt_PT.indx"
   File "Data\se_SE.ambe"
   File "Data\se_SE.indx"
 

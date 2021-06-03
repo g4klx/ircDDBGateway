@@ -20,6 +20,8 @@ usr/share/opendv/no_NO.ambe
 usr/share/opendv/no_NO.indx
 usr/share/opendv/pl_PL.ambe
 usr/share/opendv/pl_PL.indx
+usr/share/opendv/pt_PT.ambe
+usr/share/opendv/pt_PT.indx
 usr/share/opendv/se_SE.ambe
 usr/share/opendv/se_SE.indx
 usr/share/opendv/TIME_de_DE.ambe
@@ -30,5 +32,7 @@ usr/share/opendv/TIME_en_US.ambe
 usr/share/opendv/TIME_en_US.indx
 usr/share/opendv/TIME_fr_FR.ambe
 usr/share/opendv/TIME_fr_FR.indx
+usr/share/opendv/TIME_pt_PT.ambe
+usr/share/opendv/TIME_pt_PT.indx
 usr/share/opendv/TIME_se_SE.ambe
 usr/share/opendv/TIME_se_SE.indx

@@ -83,6 +83,10 @@ void CAudioUnit::setLanguage(TEXT_LANG language)
 			ambeFileName = wxT("no_NO.ambe");
 			indxFileName = wxT("no_NO.indx");
 			break;
+		case TL_PORTUGUES:
+			ambeFileName = wxT("pt_PT.ambe");
+			indxFileName = wxT("pt_PT.indx");
+			break;
 		default:
 			ambeFileName = wxT("en_GB.ambe");
 			indxFileName = wxT("en_GB.indx");
