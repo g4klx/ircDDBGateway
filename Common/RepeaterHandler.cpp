@@ -2462,7 +2462,7 @@ void CRepeaterHandler::writeLinkingTo(const wxString &callsign)
 			text.Printf(wxT("Kobler til %s"), callsign.c_str());
 			break;
 		case TL_PORTUGUES:
-			text.Printf(wxT("Conectando, %s"), callsign.c_str());
+			text.Printf(wxT("A ligar a %s"), callsign.c_str());
 			break;
 		default:
 			text.Printf(wxT("Linking to %s"), callsign.c_str());
@@ -2512,7 +2512,7 @@ void CRepeaterHandler::writeLinkedTo(const wxString &callsign)
 			text.Printf(wxT("Tilkoblet %s"), callsign.c_str());
 			break;
 		case TL_PORTUGUES:
-			text.Printf(wxT("Conectado a %s"), callsign.c_str());
+			text.Printf(wxT("Ligado a %s"), callsign.c_str());
 			break;
 		default:
 			text.Printf(wxT("Linked to %s"), callsign.c_str());
@@ -2562,7 +2562,7 @@ void CRepeaterHandler::writeNotLinked()
 			text = wxT("Ikke linket");
 			break;
 		case TL_PORTUGUES:
-			text = wxT("Desconectado");
+			text = wxT("Desligado");
 			break;
 		default:
 			text = wxT("Not linked");
@@ -2622,8 +2622,8 @@ void CRepeaterHandler::writeIsBusy(const wxString& callsign)
 			tempText.Printf(wxT("%s er opptatt"), callsign.c_str());
 			break;
 		case TL_PORTUGUES:
-			text = wxT("Desconectado");
-			tempText.Printf(wxT("%s, ocupado"), callsign.c_str());
+			text = wxT("Desligado");
+			tempText.Printf(wxT("%s ocupado"), callsign.c_str());
 			break;
 		default:
 			text = wxT("Not linked");
@@ -2678,7 +2678,7 @@ void CRepeaterHandler::ccsLinkMade(const wxString& callsign, DIRECTION direction
 			text.Printf(wxT("Tilkoblet %s"), callsign.c_str());
 			break;
 		case TL_PORTUGUES:
-			text.Printf(wxT("Conectado a %s"), callsign.c_str());
+			text.Printf(wxT("Ligado a %s"), callsign.c_str());
 			break;
 		default:
 			text.Printf(wxT("Linked to %s"), callsign.c_str());
@@ -2750,7 +2750,7 @@ void CRepeaterHandler::ccsLinkEnded(const wxString&, DIRECTION direction)
 			tempText = wxT("CCS er avsluttet");
 			break;
 		case TL_PORTUGUES:
-			text = wxT("Desconectado");
+			text = wxT("Desligado");
 			tempText = wxT("CCS terminou");
 			break;
 		default:
@@ -2829,7 +2829,7 @@ void CRepeaterHandler::ccsLinkFailed(const wxString& dtmf, DIRECTION direction)
 			tempText.Printf(wxT("%s ukjent"), dtmf.c_str());
 			break;
 		case TL_PORTUGUES:
-			text = wxT("Desconectado");
+			text = wxT("Desligado");
 			tempText.Printf(wxT("%s desconhecido"), dtmf.c_str());
 			break;
 		default:

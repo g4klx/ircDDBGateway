@@ -897,18 +897,18 @@ wxArrayString CTimeServerThread::sendTimePtPT(unsigned int hour, unsigned int mi
 			hour = 0U;
 	}
 
-	if (hour == 1U || hour == 13U)
+	if (hour == 0U || hour == 12U || hour == 1U || hour == 13U || min == 45U)
 		words.Add(wxT("E"));
-	else if (hour == 0U || hour == 12U)
-		words.Add(wxT("Es"));
 	else
 		words.Add(wxT("Sao"));
 
 	if (min == 45U) {
-		if (hour == 0U || hour == 12U || hour == 1U || hour == 13U)
-			words.Add(wxT("quinze_para"));
+		if (hour == 0U || hour == 1U || hour == 13U)
+			words.Add(wxT("um_quarto_para_a"));
+		else if (hour == 12U)
+			words.Add(wxT("um_quarto_para_o"));
 		else
-			words.Add(wxT("quinze_para_as"));
+			words.Add(wxT("um_quarto_para_as"));
 	}
 
 	if (hour == 0U) {
@@ -935,16 +935,26 @@ wxArrayString CTimeServerThread::sendTimePtPT(unsigned int hour, unsigned int mi
 		words.Add(wxT("dez"));
 	} else if (hour == 11U || hour == 23U) {
 		words.Add(wxT("onze"));
-	} else {
+	} else if (hour == 12U) {
 		words.Add(wxT("meio-dia"));
 	}
 
-	if (min == 0U)
-		words.Add(wxT("hora"));
-	else if (min == 15U)
-		words.Add(wxT("e_quinze"));
+	if (min == 0U) {
+		if (hour == 1U || hour == 13U)
+			words.Add(wxT("hora"));
+		else if (hour != 0U && hour != 12U)
+			words.Add(wxT("horas"));
+	} else if (min == 15U)
+		words.Add(wxT("e_um_quarto"));
 	else if (min == 30U)
 		words.Add(wxT("e_meia"));
+
+	if (hour > 0U && hour < 12U)
+		words.Add(wxT("da_manha"));
+	else if (hour > 12U && hour < 20U)
+		words.Add(wxT("da_tarde"));
+	else if (hour >= 20U && hour <= 23U)
+		words.Add(wxT("da_noite"));
 
 	return words;
 }
