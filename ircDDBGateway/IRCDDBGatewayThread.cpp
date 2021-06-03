@@ -1263,9 +1263,6 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 	for (unsigned int i = 0U; i < hostFile.getCount(); i++) {
 		wxString reflector = hostFile.getName(i);
 
-		if (!reflector.StartsWith(wxT("XLX")))
-			continue;
-
 		in_addr address    = CUDPReaderWriter::lookup(hostFile.getAddress(i));
 		bool lock          = hostFile.getLock(i);
 
@@ -1282,12 +1279,36 @@ void CIRCDDBGatewayThread::loadXLXReflectors()
 			reflector.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 			reflector.Append(wxT("G"));
 
-			//if (m_dcsEnabled && reflector.StartsWith(wxT("DCS")))
+			if (m_dcsEnabled && reflector.StartsWith(wxT("DCS"))) {
 				m_cache.updateGateway(reflector, addrText, DP_DCS, lock, true);
-			//else if (m_dextraEnabled && reflector.StartsWith(wxT("XRF")))
-			//	m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
-
-			count++;
+				count++;
+			}
+			else if (m_dextraEnabled && reflector.StartsWith(wxT("XRF"))) {
+				m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
+				count++;
+			}
+			else if (m_dplusEnabled && reflector.StartsWith(wxT("REF"))) {
+				m_cache.updateGateway(reflector, addrText, DP_DPLUS, lock, true);
+				count++;
+			}
+			else {
+				// legacy 'XLX' entries - not really needed
+				if (m_dcsEnabled) {
+					m_cache.updateGateway(reflector, addrText, DP_DCS, lock, true);
+					count++;
+				}
+				else if (m_dextraEnabled) {
+					m_cache.updateGateway(reflector, addrText, DP_DEXTRA, lock, true);
+					count++;
+				}
+				else if (m_dplusEnabled) {
+					m_cache.updateGateway(reflector, addrText, DP_DPLUS, lock, true);
+					count++;
+				}
+				else {
+					// no protocol available - drop
+				}
+			}
 		}
 	}
 
