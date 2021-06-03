@@ -618,8 +618,12 @@ wxArrayString CTimeServerThread::sendTimeFrFR(unsigned int hour, unsigned int mi
 
 	words.Add(wxT("il_est"));
 
-	if (min == 45U)
-		hour++;
+	if (min == 45U) {
+		if (hour == 23U)
+			hour = 0U;
+		else
+			hour++;
+	}
 
 	if (hour == 0U) {
 		words.Add(wxT("minuit"));
@@ -660,10 +664,6 @@ wxArrayString CTimeServerThread::sendTimeFrFR(unsigned int hour, unsigned int mi
 		words.Add(wxT("et_demie"));
 	} else if (min == 45U) {
 		words.Add(wxT("moins_le_quart"));
-		if (hour == 23U)
-			hour = 0U;
-		else
-			hour++;
 	}
 
 	return words;
