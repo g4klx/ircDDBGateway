@@ -105,6 +105,22 @@ clean:
 	$(MAKE) -C VoiceTransmit clean
 	$(MAKE) -C ircDDBGatewayConfig clean
 
+.PHONY: uninstall
+uninstall:
+ifeq ($(TARGET), opendv)
+	userdel opendv || true
+	rm -r /var/log/opendv || true
+endif
+	rm -r $(DESTDIR)$(DATADIR) || true
+	rm $(DESTDIR)$(BINDIR)/aprstransmitd || true
+	rm $(DESTDIR)$(BINDIR)/ircddbgatewayd || true
+	rm $(DESTDIR)$(BINDIR)/remotecontrold || true
+	rm $(DESTDIR)$(BINDIR)/starnetserverd || true
+	rm $(DESTDIR)$(BINDIR)/texttransmitd || true
+	rm $(DESTDIR)$(BINDIR)/timercontrold || true
+	rm $(DESTDIR)$(BINDIR)/timeserverd || true
+	@echo "*** NOTE: Leaving /etc/ircddbgateway in place ***"
+
 .PHONY: force
 force :
 	@true

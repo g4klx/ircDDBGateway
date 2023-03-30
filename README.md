@@ -47,3 +47,5 @@ When building in TARGET=opendv mode, the necessary systemd unit files will be in
 sudo systemctl enable ircddbgatewayd.service #enable service
 sudo service ircddbgatewayd start
 ```
+
+If you wish to remove the manually installed files you may use `sudo make uninstall`
