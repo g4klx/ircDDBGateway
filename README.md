@@ -38,7 +38,11 @@ make
 make -f MakefileGUI #only required if you want to build the GUI programs
 sudo make install
 ```
+Note that you may need to use `sudo -E make install` to pass the environment variables, or just `sudo TARGET=opendv make install` to correctly create the opendv user/directories, depending on your system configuration.
+
 Now you should edit the configuration in the file /etc/ircddbgateway to match your needs.
+
+When building in TARGET=opendv mode, the necessary systemd unit files will be installed. To ensure ircddbgatewayd starts at system boot, and then immediately start it, use:
 ```shell
 sudo systemctl enable ircddbgatewayd.service #enable service
 sudo service ircddbgatewayd start
