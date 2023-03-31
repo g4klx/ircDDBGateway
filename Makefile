@@ -110,6 +110,7 @@ uninstall:
 ifeq ($(TARGET), opendv)
 	userdel opendv || true
 	rm -r /var/log/opendv || true
+	rm $(DESTDIR)/etc/systemd/system/ircddbgatewayd.service
 endif
 	rm -r $(DESTDIR)$(DATADIR) || true
 	rm $(DESTDIR)$(BINDIR)/aprstransmitd || true

@@ -44,8 +44,12 @@ Now you should edit the configuration in the file /etc/ircddbgateway to match yo
 
 When building in TARGET=opendv mode, the necessary systemd unit files will be installed. To ensure ircddbgatewayd starts at system boot, and then immediately start it, use:
 ```shell
-sudo systemctl enable ircddbgatewayd.service #enable service
+sudo systemctl enable ircddbgatewayd.service
 sudo service ircddbgatewayd start
 ```
 
-If you wish to remove the manually installed files you may use `sudo make uninstall`
+If you wish to remove the manually installed files you may use `sudo make uninstall`.
+Note that this will remove the systemd unit, but will not first stop or disable the service. To do so, first use:
+```shell
+sudo systemctl disable --now ircddbgateway.service
+```
