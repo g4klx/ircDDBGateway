@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012,2013 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2020,2022,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,27 +16,18 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef	StarNetServerThreadHelper_H
-#define	StarNetServerThreadHelper_H
+#if !defined(MQTTLOG_H)
+#define	MQTTLOG_H
 
-#include "StarNetServerThread.h"
+#include "MQTTConnection.h"
 
-#include <wx/wx.h>
+#include <string>
 
-class CStarNetServerThreadHelper : public wxThread {
+#include <nlohmann/json.hpp>
 
-public:
-	CStarNetServerThreadHelper(CStarNetServerThread* thread);
-	virtual ~CStarNetServerThreadHelper();
+extern void MQTTLogInitialise();
+extern void MQTTLogFinalise();
 
-	virtual void start();
-
-	virtual void* Entry();
-
-	virtual void kill();
-
-private:
-	CStarNetServerThread* m_thread;
-};
+extern void WriteJSON(const std::string& topLevel, nlohmann::json& json);
 
 #endif

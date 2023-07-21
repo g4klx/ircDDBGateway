@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,9 +17,13 @@
  */
 
 #include "APRSWriter.h"
+#include "MQTTConnection.h"
 
 #include "DStarDefines.h"
 #include "Defs.h"
+
+// In MQTTLog.cpp
+extern CMQTTConnection* m_mqtt;
 
 CAPRSEntry::CAPRSEntry(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl) :
 m_callsign(callsign),
@@ -118,13 +122,10 @@ bool CAPRSEntry::isOK()
 	}
 }
 
-CAPRSWriter::CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway) :
+CAPRSWriter::CAPRSWriter(const wxString& gateway) :
 m_idTimer(1000U),
 m_gateway(),
-m_array(),
-m_aprsAddress(),
-m_aprsPort(port),
-m_aprsSocket()
+m_array()
 #if defined(USE_GPSD)
 ,m_gpsdEnabled(false),
 m_gpsdAddress(),
@@ -132,15 +133,11 @@ m_gpsdPort(),
 m_gpsdData()
 #endif
 {
-	wxASSERT(!address.IsEmpty());
-	wxASSERT(port > 0U);
 	wxASSERT(!gateway.IsEmpty());
 
 	m_gateway = gateway;
 	m_gateway.Truncate(LONG_CALLSIGN_LENGTH - 1U);
 	m_gateway.Trim();
-
-	m_aprsAddress = CUDPReaderWriter::lookup(address);
 }
 
 CAPRSWriter::~CAPRSWriter()
@@ -193,12 +190,6 @@ bool CAPRSWriter::open()
 		wxLogMessage(wxT("Connected to GPSD"));
 	}
 #endif
-	bool ret = m_aprsSocket.open();
-	if (!ret)
-		return false;
-
-	wxLogMessage(wxT("Opened connection to the APRS Gateway"));
-
 	m_idTimer.setTimeout(60U);
 	m_idTimer.start();
 
@@ -284,7 +275,7 @@ void CAPRSWriter::writeData(const wxString& callsign, const CAMBEData& data)
 
 	wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
-	m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+	m_mqtt->publish("aprs-gateway/aprs", ascii);
 
 	collector->reset();
 }
@@ -316,8 +307,6 @@ void CAPRSWriter::clock(unsigned int ms)
 
 void CAPRSWriter::close()
 {
-	m_aprsSocket.close();
-
 #if defined(USE_GPSD)
 	if (m_gpsdEnabled) {
 		::gps_stream(&m_gpsdData, WATCH_DISABLE, NULL);
@@ -419,7 +408,7 @@ void CAPRSWriter::sendIdFramesFixed()
 
 		wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
-		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+		m_mqtt->publish("aprs-gateway/aprs", ascii);
 
 		if (entry->getBand().Len() == 1U) {
 			output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cD%s%c&RNG%04.0lf/A=%06.0lf %s %s\r\n"),
@@ -434,7 +423,7 @@ void CAPRSWriter::sendIdFramesFixed()
 
 			wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
-			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+			m_mqtt->publish("aprs-gateway/aprs", ascii);
 		}
 	}
 }

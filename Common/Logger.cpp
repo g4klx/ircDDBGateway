@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2002,2003,2009,2011,2012,2019 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2002,2003,2009,2011,2012,2019,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,49 +17,24 @@
  */
 
 #include "Logger.h"
+#include "MQTTLog.h"
 
-CLogger::CLogger(const wxString& directory, const wxString& name) :
-wxLog(),
-m_name(name),
-m_file(NULL),
-m_fileName(),
-m_day(0)
+// In MQTTLog.cpp
+extern CMQTTConnection* m_mqtt;
+
+CLogger::CLogger() :
+wxLog()
 {
-	m_file = new wxFFile;
-
-	m_fileName.SetPath(directory);
-	m_fileName.SetExt(wxT("log"));
-
-	time_t timestamp;
-	::time(&timestamp);
-	struct tm* tm = ::gmtime(&timestamp);
-
-	wxString text;
-	text.Printf(wxT("%s-%04d-%02d-%02d"), m_name.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
-
-	m_day = tm->tm_yday;
-	m_fileName.SetName(text);
-
-	bool ret = m_file->Open(m_fileName.GetFullPath(), wxT("a+t"));
-	if (!ret) {
-		wxLogError(wxT("Cannot open %s file for appending"), m_fileName.GetFullPath().c_str());
-		return;
-	}
+	MQTTLogInitialise();
 }
 
 CLogger::~CLogger()
 {
-	wxASSERT(m_file != NULL);
-
-	m_file->Close();
-	delete m_file;
+	MQTTLogFinalise();
 }
 
 void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info)
 {
-	wxASSERT(m_file != NULL);
-	wxASSERT(m_file->IsOpened());
-
 	wxString letter;
 
 	switch (level) {
@@ -79,38 +54,10 @@ void CLogger::DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogReco
 	wxString message;
 	message.Printf(wxT("%s: %04d-%02d-%02d %02d:%02d:%02d: %s\n"), letter.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, msg.c_str());
 
-	writeLog(message.c_str(), info.timestamp);
+	if (m_mqtt != NULL)
+		m_mqtt->publish("log", message.c_str());
 
 	if (level == wxLOG_FatalError)
 		::abort();
-}
-
-void CLogger::writeLog(const wxChar* msg, time_t timestamp)
-{
-	wxASSERT(m_file != NULL);
-	wxASSERT(m_file->IsOpened());
-	wxASSERT(msg != NULL);
-
-	struct tm* tm = ::gmtime(&timestamp);
-
-	int day = tm->tm_yday;
-	if (day != m_day) {
-		wxString text;
-		text.Printf(wxT("%s-%04d-%02d-%02d"), m_name.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
-
-		m_day = day;
-		m_fileName.SetName(text);
-
-		m_file->Close();
-
-		bool ret = m_file->Open(m_fileName.GetFullPath(), wxT("a+t"));
-		if (!ret) {
-			wxLogError(wxT("Cannot open %s file for appending"), m_fileName.GetFullPath().c_str());
-			return;
-		}
-	}
-
-	m_file->Write(wxString(msg));
-	m_file->Flush();
 }
 

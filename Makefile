@@ -26,14 +26,14 @@ ifeq ($(BUILD), debug)
 else ifeq ($(BUILD), release)
 	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
 endif
-export LIBS    := $(shell wx-config --libs base,net)
+export LIBS    := $(shell wx-config --libs base,net) -lmosquitto
 export LDFLAGS := 
 
 .PHONY: all
 all:	ircDDBGateway/ircddbgatewayd APRSTransmit/aprstransmitd RemoteControl/remotecontrold \
-	StarNetServer/starnetserverd TextTransmit/texttransmitd TimerControl/timercontrold TimeServer/timeserverd VoiceTransmit/voicetransmitd
+	TextTransmit/texttransmitd TimerControl/timercontrold TimeServer/timeserverd VoiceTransmit/voicetransmitd
 
-ircDDBGateway/ircddbgatewayd:	Common/Common.a ircDDB/IRCDDB.a force
+ircDDBGateway/ircddbgatewayd:	GitVersion.h Common/Common.a ircDDB/IRCDDB.a force
 	$(MAKE) -C ircDDBGateway
 
 APRSTransmit/aprstransmitd:	Common/Common.a force
@@ -41,9 +41,6 @@ APRSTransmit/aprstransmitd:	Common/Common.a force
 
 RemoteControl/remotecontrold:	Common/Common.a force
 	$(MAKE) -C RemoteControl
-
-StarNetServer/starnetserverd:	Common/Common.a ircDDB/IRCDDB.a force
-	$(MAKE) -C StarNetServer
 
 TextTransmit/texttransmitd:	Common/Common.a force
 	$(MAKE) -C TextTransmit
@@ -62,6 +59,18 @@ Common/Common.a: force
 
 ircDDB/IRCDDB.a: force
 	$(MAKE) -C ircDDB
+
+Common/Common.a: GitVersion.h
+
+.PHONY: GitVersion.h
+
+# Export the current git version if the index file exists, else 000...
+GitVersion.h:
+ifneq ("$(wildcard .git/index)","")
+	echo "const wxChar *gitversion = wxT(\"$(shell git rev-parse HEAD)\");" > $@
+else
+	echo "const wxChar *gitversion = wxT(\"0000000000000000000000000000000000000000\");" > $@
+endif
 
 .PHONY: installdirs
 installdirs: force
@@ -85,7 +94,6 @@ endif
 	$(MAKE) -C APRSTransmit install
 	$(MAKE) -C ircDDBGateway install
 	$(MAKE) -C RemoteControl install
-	$(MAKE) -C StarNetServer install
 	$(MAKE) -C TextTransmit install
 	$(MAKE) -C TimerControl install
 	$(MAKE) -C TimeServer install
@@ -98,7 +106,6 @@ clean:
 	$(MAKE) -C APRSTransmit clean
 	$(MAKE) -C ircDDBGateway clean
 	$(MAKE) -C RemoteControl clean
-	$(MAKE) -C StarNetServer clean
 	$(MAKE) -C TextTransmit clean
 	$(MAKE) -C TimerControl clean
 	$(MAKE) -C TimeServer clean
@@ -116,7 +123,6 @@ endif
 	rm $(DESTDIR)$(BINDIR)/aprstransmitd || true
 	rm $(DESTDIR)$(BINDIR)/ircddbgatewayd || true
 	rm $(DESTDIR)$(BINDIR)/remotecontrold || true
-	rm $(DESTDIR)$(BINDIR)/starnetserverd || true
 	rm $(DESTDIR)$(BINDIR)/texttransmitd || true
 	rm $(DESTDIR)$(BINDIR)/timercontrold || true
 	rm $(DESTDIR)$(BINDIR)/timeserverd || true

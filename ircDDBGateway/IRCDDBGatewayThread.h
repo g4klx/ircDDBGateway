@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2015,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -155,6 +155,8 @@ private:
 
 	void readStatusFiles();
 	void readStatusFile(const wxString& filename, unsigned int n, wxString& var);
+
+	void writeJSONStatus(const std::string& status);
 };
 
 #endif

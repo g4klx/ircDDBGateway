@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2018,2020.2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #ifndef	APRSWriter_H
 #define	APRSWriter_H
 
-#include "UDPReaderWriter.h"
 #include "APRSCollector.h"
 #include "DStarDefines.h"
 #include "HeaderData.h"
@@ -71,7 +70,7 @@ WX_DECLARE_STRING_HASH_MAP(CAPRSEntry*, CEntry_t);
 
 class CAPRSWriter {
 public:
-	CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway);
+	CAPRSWriter(const wxString& gateway);
 	~CAPRSWriter();
 
 	bool open();
@@ -92,9 +91,6 @@ private:
 	CTimer             m_idTimer;
 	wxString           m_gateway;
 	CEntry_t           m_array;
-	in_addr            m_aprsAddress;
-	unsigned int       m_aprsPort;
-	CUDPReaderWriter   m_aprsSocket;
 #if defined(USE_GPSD)
 	bool               m_gpsdEnabled;
 	wxString           m_gpsdAddress;

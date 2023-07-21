@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2015,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2015,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "IRCDDBGatewayConfig.h"
 #include "IRCDDBGatewayAppD.h"
 #include "IRCDDBGatewayDefs.h"
+#include "MQTTConnection.h"
 #include "CallsignList.h"
 #include "APRSWriter.h"
 #include "Version.h"
@@ -54,6 +55,9 @@ const wxChar*   FGROUND_SWITCH = wxT("foreground");
 const wxString LOG_BASE_NAME    = wxT("ircDDBGateway");
 
 static CIRCDDBGatewayAppD* m_gateway = NULL;
+
+// In MQTTLog.cpp
+extern CMQTTConnection* m_mqtt;
 
 static void handler(int signum)
 {
@@ -185,6 +189,18 @@ CIRCDDBGatewayAppD::~CIRCDDBGatewayAppD()
 
 bool CIRCDDBGatewayAppD::init()
 {
+	CIRCDDBGatewayConfig config(m_confDir, CONFIG_FILE_NAME, m_name);
+
+	wxString mqttAddress;
+	unsigned short mqttPort;
+	unsigned int mqttKeepalive;
+	config.getMQTT(mqttAddress, mqttPort, mqttKeepalive);
+	std::vector<std::pair<wxString, void (*)(const unsigned char*, unsigned int)>> subscriptions;
+	m_mqtt = new CMQTTConnection(mqttAddress, mqttPort, "ircddb-gateway", subscriptions, mqttKeepalive);
+	bool ret = m_mqtt->open();
+	if (!ret)
+		return false;
+
 	if (m_foreground) {
 		initLogging(new CConsoleLogger());
 	} else if (!m_nolog) {
@@ -197,7 +213,7 @@ bool CIRCDDBGatewayAppD::init()
 		if (m_logDir.IsEmpty())
 			m_logDir = wxT(LOG_DIR);
 
-		initLogging(new CLogger(m_logDir, logBaseName));
+		initLogging(new CLogger);
 	} else {
 		new wxLogNull;
 	}
@@ -210,7 +226,7 @@ bool CIRCDDBGatewayAppD::init()
 	appName.Replace(wxT(" "), wxT("_"));
 
 	m_checker = new wxSingleInstanceChecker(appName, wxT("/tmp"));
-	bool ret = m_checker->IsAnotherRunning();
+	ret = m_checker->IsAnotherRunning();
 	if (ret) {
 		wxLogError(wxT("Another copy of the ircDDB Gateway is running, exiting"));
 		return false;
@@ -232,13 +248,13 @@ void CIRCDDBGatewayAppD::initLogging(wxLog *logger)
 {
 	wxLog::SetActiveTarget(logger);
 
-		if (m_debug) {
-			wxLog::SetVerbose(true);
-			wxLog::SetLogLevel(wxLOG_Debug);
-		} else {
-			wxLog::SetVerbose(false);
-			wxLog::SetLogLevel(wxLOG_Message);
-		}
+	if (m_debug) {
+		wxLog::SetVerbose(true);
+		wxLog::SetLogLevel(wxLOG_Debug);
+	} else {
+		wxLog::SetVerbose(false);
+		wxLog::SetLogLevel(wxLOG_Message);
+	}
 }
 
 void CIRCDDBGatewayAppD::run()
@@ -275,15 +291,13 @@ bool CIRCDDBGatewayAppD::createThread()
 
 	m_thread->setGateway(gatewayType, gatewayCallsign, gatewayAddress);
 
-	wxString aprsAddress;
-	unsigned int aprsPort;
 	bool aprsEnabled;
-	config.getDPRS(aprsEnabled, aprsAddress, aprsPort);
-	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsAddress.c_str(), aprsPort);
+	config.getDPRS(aprsEnabled);
+	wxLogInfo(wxT("APRS enabled: %d"), int(aprsEnabled));
 
 	CAPRSWriter* aprs = NULL;
-	if (aprsEnabled && !aprsAddress.IsEmpty() && aprsPort != 0U) {
-		aprs = new CAPRSWriter(aprsAddress, aprsPort, gatewayCallsign);
+	if (aprsEnabled) {
+		aprs = new CAPRSWriter(gatewayCallsign);
 
 		bool res = aprs->open();
 		if (!res)

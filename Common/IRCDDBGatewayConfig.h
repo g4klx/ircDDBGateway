@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -59,8 +59,8 @@ public:
 	void setIrcDDB3(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB4(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 
-	void getDPRS(bool& enabled, wxString& address, unsigned int& port) const;
-	void setDPRS(bool enabled, const wxString& address, unsigned int port);
+	void getDPRS(bool& enabled) const;
+	void setDPRS(bool enabled);
 
 	void getDExtra(bool& enabled, unsigned int& maxDongles) const;
 	void setDExtra(bool enabled, unsigned int maxDongles);
@@ -117,6 +117,8 @@ public:
 
 	void getPosition(int& x, int& y) const;
 	void setPosition(int x, int y);
+
+	void getMQTT(wxString& address, unsigned short& port, unsigned int& keepalive) const;
 
 	bool write();
 
@@ -235,8 +237,6 @@ private:
 	wxString      m_ircddbUsername4;
 	wxString      m_ircddbPassword4;
 	bool          m_aprsEnabled;
-	wxString      m_aprsAddress;
-	unsigned int  m_aprsPort;
 	bool          m_dextraEnabled;
 	unsigned int  m_dextraMaxDongles;
 	bool          m_dplusEnabled;
@@ -310,6 +310,9 @@ private:
 	bool          m_gpsdEnabled;
 	wxString      m_gpsdAddress;
 	wxString      m_gpsdPort;
+	wxString      m_mqttAddress;
+	unsigned short m_mqttPort;
+	unsigned int  m_mqttKeepalive;
 	int           m_x;
 	int           m_y;
 };

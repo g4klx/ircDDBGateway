@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -116,21 +116,19 @@ const wxString  KEY_IRCDDB_ENABLED1      = wxT("ircddbEnabled");
 const wxString  KEY_IRCDDB_HOSTNAME1     = wxT("ircddbHostname");
 const wxString  KEY_IRCDDB_USERNAME1     = wxT("ircddbUsername");
 const wxString  KEY_IRCDDB_PASSWORD1     = wxT("ircddbPassword");
-const wxString  KEY_IRCDDB_ENABLED2		 = wxT("ircddbEnabled2");
+const wxString  KEY_IRCDDB_ENABLED2      = wxT("ircddbEnabled2");
 const wxString  KEY_IRCDDB_HOSTNAME2	 = wxT("ircddbHostname2");
 const wxString  KEY_IRCDDB_USERNAME2	 = wxT("ircddbUsername2");
 const wxString  KEY_IRCDDB_PASSWORD2	 = wxT("ircddbPassword2");
-const wxString  KEY_IRCDDB_ENABLED3		 = wxT("ircddbEnabled3");
+const wxString  KEY_IRCDDB_ENABLED3	 = wxT("ircddbEnabled3");
 const wxString  KEY_IRCDDB_HOSTNAME3     = wxT("ircddbHostname3");
 const wxString  KEY_IRCDDB_USERNAME3	 = wxT("ircddbUsername3");
 const wxString  KEY_IRCDDB_PASSWORD3	 = wxT("ircddbPassword3");
-const wxString  KEY_IRCDDB_ENABLED4	     = wxT("ircddbEnabled4");
+const wxString  KEY_IRCDDB_ENABLED4      = wxT("ircddbEnabled4");
 const wxString  KEY_IRCDDB_HOSTNAME4     = wxT("ircddbHostname4");
 const wxString  KEY_IRCDDB_USERNAME4     = wxT("ircddbUsername4");
 const wxString  KEY_IRCDDB_PASSWORD4     = wxT("ircddbPassword4");
 const wxString  KEY_APRS_ENABLED         = wxT("aprsEnabled");
-const wxString  KEY_APRS_ADDRESS         = wxT("aprsAddress");
-const wxString  KEY_APRS_PORT            = wxT("aprsPort");
 const wxString  KEY_DEXTRA_ENABLED       = wxT("dextraEnabled");
 const wxString  KEY_DEXTRA_MAXDONGLES    = wxT("dextraMaxDongles");
 const wxString  KEY_DPLUS_ENABLED        = wxT("dplusEnabled");
@@ -139,7 +137,7 @@ const wxString  KEY_DPLUS_LOGIN          = wxT("dplusLogin");
 const wxString  KEY_DCS_ENABLED          = wxT("dcsEnabled");
 const wxString  KEY_CCS_ENABLED          = wxT("ccsEnabled");
 const wxString  KEY_CCS_HOST             = wxT("ccsHost");
-const wxString  KEY_XLX_ENABLED		     = wxT("xlxEnabled");
+const wxString  KEY_XLX_ENABLED	         = wxT("xlxEnabled");
 const wxString  KEY_XLX_HOSTS_FILE_URL	 = wxT("xlxHostsFileUrl");
 const wxString  KEY_STARNET_BAND1            = wxT("starNetBand1");
 const wxString  KEY_STARNET_CALLSIGN1        = wxT("starNetCallsign1");
@@ -203,6 +201,9 @@ const wxString  KEY_DTMF_ENABLED             = wxT("dtmfEnabled");
 const wxString  KEY_GPSD_ENABLED             = wxT("gpsdEnabled");
 const wxString  KEY_GPSD_ADDRESS             = wxT("gpsdAddress");
 const wxString  KEY_GPSD_PORT                = wxT("gpsdPort");
+const wxString  KEY_MQTT_ADDRESS             = wxT("mqttAddress");
+const wxString  KEY_MQTT_PORT                = wxT("mqttPort");
+const wxString  KEY_MQTT_KEEPALIVE           = wxT("mqttKeepalive");
 const wxString  KEY_WINDOW_X                 = wxT("windowX");
 const wxString  KEY_WINDOW_Y                 = wxT("windowY");
 
@@ -240,21 +241,19 @@ const bool         DEFAULT_IRCDDB_ENABLED1       = true;
 const wxString     DEFAULT_IRCDDB_HOSTNAME1      = wxT("group1-irc.ircddb.net");
 const wxString     DEFAULT_IRCDDB_USERNAME1      = wxEmptyString;
 const wxString     DEFAULT_IRCDDB_PASSWORD1      = wxEmptyString;
-const bool         DEFAULT_IRCDDB_ENABLED2		 = true;
-const wxString     DEFAULT_IRCDDB_HOSTNAME2		 = wxT("rr.openquad.net");
-const wxString     DEFAULT_IRCDDB_USERNAME2		 = wxEmptyString;
-const wxString     DEFAULT_IRCDDB_PASSWORD2		 = wxEmptyString;
-const bool         DEFAULT_IRCDDB_ENABLED3		 = false;
+const bool         DEFAULT_IRCDDB_ENABLED2	 = true;
+const wxString     DEFAULT_IRCDDB_HOSTNAME2	 = wxT("rr.openquad.net");
+const wxString     DEFAULT_IRCDDB_USERNAME2	 = wxEmptyString;
+const wxString     DEFAULT_IRCDDB_PASSWORD2	 = wxEmptyString;
+const bool         DEFAULT_IRCDDB_ENABLED3	 = false;
 const wxString     DEFAULT_IRCDDB_HOSTNAME3      = wxEmptyString;
-const wxString     DEFAULT_IRCDDB_USERNAME3		 = wxEmptyString;
-const wxString     DEFAULT_IRCDDB_PASSWORD3		 = wxEmptyString;
-const bool         DEFAULT_IRCDDB_ENABLED4		 = false;
-const wxString     DEFAULT_IRCDDB_HOSTNAME4		 = wxEmptyString;
-const wxString     DEFAULT_IRCDDB_USERNAME4		 = wxEmptyString;
-const wxString     DEFAULT_IRCDDB_PASSWORD4		 = wxEmptyString;
+const wxString     DEFAULT_IRCDDB_USERNAME3	 = wxEmptyString;
+const wxString     DEFAULT_IRCDDB_PASSWORD3	 = wxEmptyString;
+const bool         DEFAULT_IRCDDB_ENABLED4	 = false;
+const wxString     DEFAULT_IRCDDB_HOSTNAME4	 = wxEmptyString;
+const wxString     DEFAULT_IRCDDB_USERNAME4	 = wxEmptyString;
+const wxString     DEFAULT_IRCDDB_PASSWORD4	 = wxEmptyString;
 const bool         DEFAULT_APRS_ENABLED          = false;
-const wxString     DEFAULT_APRS_ADDRESS          = wxT("127.0.0.1");
-const unsigned int DEFAULT_APRS_PORT             = 8673U;
 const bool         DEFAULT_DEXTRA_ENABLED        = true;
 const unsigned int DEFAULT_DEXTRA_MAXDONGLES     = 5U;
 const bool         DEFAULT_DPLUS_ENABLED         = false;
@@ -263,7 +262,7 @@ const wxString     DEFAULT_DPLUS_LOGIN           = wxEmptyString;
 const bool         DEFAULT_DCS_ENABLED           = true;
 const bool         DEFAULT_CCS_ENABLED           = true;
 const wxString     DEFAULT_CCS_HOST              = wxT("CCS704  ");
-const bool	       DEFAULT_XLX_ENABLED           = true;
+const bool	       DEFAULT_XLX_ENABLED       = true;
 const wxString	   DEFAULT_XLX_HOSTS_FILE_URL	 = wxT("http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster");//we use the XLXDMRMaster list because it starts with XLX instead of DCS, XRF etc ....
 const wxString     DEFAULT_STARNET_BAND          = wxEmptyString;
 const wxString     DEFAULT_STARNET_CALLSIGN      = wxEmptyString;
@@ -287,6 +286,9 @@ const bool         DEFAULT_DTMF_ENABLED          = true;
 const bool         DEFAULT_GPSD_ENABLED          = false;
 const wxString     DEFAULT_GPSD_ADDRESS          = wxT("127.0.0.1");
 const wxString     DEFAULT_GPSD_PORT             = wxT("2947");
+const wxString     DEFAULT_MQTT_ADDRESS          = wxT("127.0.0.1");
+const unsigned short DEFAULT_MQTT_PORT           = 1883U;
+const unsigned int DEFAULT_MQTT_KEEPALIVE        = 60U;
 const int          DEFAULT_WINDOW_X              = -1;
 const int          DEFAULT_WINDOW_Y              = -1;
 
@@ -406,8 +408,6 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
-m_aprsAddress(DEFAULT_APRS_ADDRESS),
-m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
 m_dplusEnabled(DEFAULT_DPLUS_ENABLED),
@@ -480,6 +480,9 @@ m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
 m_gpsdEnabled(DEFAULT_GPSD_ENABLED),
 m_gpsdAddress(DEFAULT_GPSD_ADDRESS),
 m_gpsdPort(DEFAULT_GPSD_PORT),
+m_mqttAddress(DEFAULT_MQTT_ADDRESS),
+m_mqttPort(DEFAULT_MQTT_PORT),
+m_mqttKeepalive(DEFAULT_MQTT_KEEPALIVE),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -729,11 +732,6 @@ m_y(DEFAULT_WINDOW_Y)
 
 	m_config->Read(m_name + KEY_APRS_ENABLED, &m_aprsEnabled, DEFAULT_APRS_ENABLED);
 
-	m_config->Read(m_name + KEY_APRS_ADDRESS, &m_aprsAddress, DEFAULT_APRS_ADDRESS);
-
-	m_config->Read(m_name + KEY_APRS_PORT, &temp, long(DEFAULT_APRS_PORT));
-	m_aprsPort = (unsigned int)temp;
-
 	m_config->Read(m_name + KEY_DEXTRA_ENABLED, &m_dextraEnabled, DEFAULT_DEXTRA_ENABLED);
 
 	m_config->Read(m_name + KEY_DEXTRA_MAXDONGLES, &temp, long(DEFAULT_DEXTRA_MAXDONGLES));
@@ -900,6 +898,14 @@ m_y(DEFAULT_WINDOW_Y)
 	m_config->Read(m_name + KEY_GPSD_PORT, &temp, long(DEFAULT_GPSD_PORT));
 	m_gpsdPort = (unsigned int)temp;
 
+	m_config->Read(m_name + KEY_MQTT_ADDRESS, &m_mqttAddress, DEFAULT_MQTT_ADDRESS);
+
+	m_config->Read(m_name + KEY_MQTT_PORT, &temp, long(DEFAULT_MQTT_PORT));
+	m_mqttPort = (unsigned short)temp;
+
+	m_config->Read(m_name + KEY_MQTT_KEEPALIVE, &temp, long(DEFAULT_MQTT_KEEPALIVE));
+	m_mqttKeepalive = (unsigned int)temp;
+
 	m_config->Read(m_name + KEY_WINDOW_X, &temp, long(DEFAULT_WINDOW_X));
 	m_x = int(temp);
 
@@ -1025,8 +1031,6 @@ m_ircddbHostname4(DEFAULT_IRCDDB_HOSTNAME4),
 m_ircddbUsername4(DEFAULT_IRCDDB_USERNAME4),
 m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
-m_aprsAddress(DEFAULT_APRS_ADDRESS),
-m_aprsPort(DEFAULT_APRS_PORT),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
 m_dplusEnabled(DEFAULT_DPLUS_ENABLED),
@@ -1099,6 +1103,9 @@ m_dtmfEnabled(DEFAULT_DTMF_ENABLED),
 m_gpsdEnabled(DEFAULT_GPSD_ENABLED),
 m_gpsdAddress(DEFAULT_GPSD_ADDRESS),
 m_gpsdPort(DEFAULT_GPSD_PORT),
+m_mqttAddress(DEFAULT_MQTT_ADDRESS),
+m_mqttPort(DEFAULT_MQTT_PORT),
+m_mqttKeepalive(DEFAULT_MQTT_KEEPALIVE),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -1396,11 +1403,6 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_APRS_ENABLED)) {
 			val.ToLong(&temp1);
 			m_aprsEnabled = temp1 == 1L;
-		} else if (key.IsSameAs(KEY_APRS_ADDRESS)) {
-			m_aprsAddress = val;
-		} else if (key.IsSameAs(KEY_APRS_PORT)) {
-			val.ToULong(&temp2);
-			m_aprsPort = (unsigned int)temp2;
 		} else if (key.IsSameAs(KEY_DEXTRA_ENABLED)) {
 			val.ToLong(&temp1);
 			m_dextraEnabled = temp1 == 1L;
@@ -1581,6 +1583,14 @@ m_y(DEFAULT_WINDOW_Y)
 			m_gpsdAddress = val;
 		} else if (key.IsSameAs(KEY_GPSD_PORT)) {
 			m_gpsdPort = val;
+		} else if (key.IsSameAs(KEY_MQTT_ADDRESS)) {
+			m_mqttAddress = val;
+		} else if (key.IsSameAs(KEY_MQTT_PORT)) {
+			val.ToULong(&temp2);
+			m_mqttPort = (unsigned short)temp2;
+		} else if (key.IsSameAs(KEY_MQTT_KEEPALIVE)) {
+			val.ToULong(&temp2);
+			m_mqttKeepalive = (unsigned int)temp2;
 		} else if (key.IsSameAs(KEY_WINDOW_X)) {
 			val.ToLong(&temp1);
 			m_x = int(temp1);
@@ -1888,18 +1898,14 @@ void CIRCDDBGatewayConfig::setIrcDDB4(bool enabled, const wxString& hostname, co
 	m_ircddbPassword4 = password;
 }
 
-void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& address, unsigned int& port) const
+void CIRCDDBGatewayConfig::getDPRS(bool& enabled) const
 {
 	enabled = m_aprsEnabled;
-	address = m_aprsAddress;
-	port    = m_aprsPort;
 }
 
-void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& address, unsigned int port)
+void CIRCDDBGatewayConfig::setDPRS(bool enabled)
 {
-	m_aprsEnabled  = enabled;
-	m_aprsAddress = address;
-	m_aprsPort     = port;
+	m_aprsEnabled = enabled;
 }
 
 void CIRCDDBGatewayConfig::getDExtra(bool& enabled, unsigned int& maxDongles) const
@@ -2212,6 +2218,13 @@ void CIRCDDBGatewayConfig::setGPSD(bool enabled, const wxString& address, const 
 	m_gpsdPort    = port;
 }
 
+void CIRCDDBGatewayConfig::getMQTT(wxString& address, unsigned short& port, unsigned int& keepalive) const
+{
+	address   = m_mqttAddress;
+	port      = m_mqttPort;
+	keepalive = m_mqttKeepalive;
+}
+
 void CIRCDDBGatewayConfig::getPosition(int& x, int& y) const
 {
 	x = m_x;
@@ -2379,8 +2392,6 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_IRCDDB_USERNAME4, m_ircddbUsername4);
 	m_config->Write(m_name + KEY_IRCDDB_PASSWORD4, m_ircddbPassword4);
 	m_config->Write(m_name + KEY_APRS_ENABLED, m_aprsEnabled);
-	m_config->Write(m_name + KEY_APRS_ADDRESS, m_aprsAddress);
-	m_config->Write(m_name + KEY_APRS_PORT, long(m_aprsPort));
 	m_config->Write(m_name + KEY_DEXTRA_ENABLED, m_dextraEnabled);
 	m_config->Write(m_name + KEY_DEXTRA_MAXDONGLES, long(m_dextraMaxDongles));
 	m_config->Write(m_name + KEY_DPLUS_ENABLED, m_dplusEnabled);
@@ -2453,6 +2464,9 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_GPSD_ENABLED, m_gpsdEnabled);
 	m_config->Write(m_name + KEY_GPSD_ADDRESS, m_gpsdAddress);
 	m_config->Write(m_name + KEY_GPSD_PORT, m_gpsdPort);
+	m_config->Write(m_name + KEY_MQTT_ADDRESS, m_mqttAddress);
+	m_config->Write(m_name + KEY_MQTT_PORT, long(m_mqttPort));
+	m_config->Write(m_name + KEY_MQTT_KEEPALIVE, long(m_mqttKeepalive));
 	m_config->Write(m_name + KEY_WINDOW_X, long(m_x));
 	m_config->Write(m_name + KEY_WINDOW_Y, long(m_y));
 	m_config->Flush();
@@ -2588,8 +2602,6 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf("%s=%s", KEY_IRCDDB_USERNAME4.c_str(), m_ircddbUsername4.c_str()); file.AddLine(buffer);
 	buffer.Printf("%s=%s", KEY_IRCDDB_PASSWORD4.c_str(), m_ircddbPassword4.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_APRS_ENABLED.c_str(), m_aprsEnabled ? 1 : 0); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%s"), KEY_APRS_ADDRESS.c_str(), m_aprsAddress.c_str()); file.AddLine(buffer);
-	buffer.Printf(wxT("%s=%u"), KEY_APRS_PORT.c_str(), m_aprsPort); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DEXTRA_ENABLED.c_str(), m_dextraEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_DEXTRA_MAXDONGLES.c_str(), m_dextraMaxDongles); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DPLUS_ENABLED.c_str(), m_dplusEnabled ? 1 : 0); file.AddLine(buffer);
@@ -2662,6 +2674,9 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%d"), KEY_GPSD_ENABLED.c_str(), m_gpsdEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_GPSD_ADDRESS.c_str(), m_gpsdAddress.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_GPSD_PORT.c_str(), m_gpsdPort.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_MQTT_ADDRESS.c_str(), m_mqttAddress.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%u"), KEY_MQTT_PORT.c_str(), m_mqttPort); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%u"), KEY_MQTT_KEEPALIVE.c_str(), m_mqttKeepalive); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_X.c_str(), m_x); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_Y.c_str(), m_y); file.AddLine(buffer);
 

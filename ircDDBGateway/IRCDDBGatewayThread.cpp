@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "RepeaterHandler.h"
 #include "StarNetHandler.h"
 #include "CallsignServer.h"
+#include "MQTTConnection.h"
 #include "DExtraHandler.h"
 #include "DPlusHandler.h"
 #include "HeaderLogger.h"
@@ -35,10 +36,13 @@
 #include "PollData.h"
 #include "AMBEData.h"
 #include "HostFile.h"
+#include "Version.h"
 #include "CCSData.h"
+#include "MQTTLog.h"
 #include "DDData.h"
 #include "Utils.h"
 #include "Defs.h"
+#include "../GitVersion.h"
 
 #include <wx/filename.h>
 #include <wx/textfile.h>
@@ -52,6 +56,9 @@
 #else
 #include <arpa/inet.h>
 #endif
+
+// In MQTTLog.cpp
+extern CMQTTConnection* m_mqtt;
 
 const wxString LOOPBACK_ADDRESS = wxT("127.0.0.1");
 
@@ -236,7 +243,10 @@ void CIRCDDBGatewayThread::run()
 
 	m_stopped = false;
 
-	wxLogMessage(wxT("Starting the ircDDB Gateway thread"));
+	wxLogInfo(wxT("ircDDBGateway-%s is starting"), VERSION);
+	wxLogInfo(wxT("Built %s %s (GitID #%.7s)"), __TIME__, __DATE__, gitversion);
+
+	writeJSONStatus("ircDDBGateway is starting");
 
 	CHeaderLogger* headerLogger = NULL;
 	if (m_logEnabled) {
@@ -427,7 +437,8 @@ void CIRCDDBGatewayThread::run()
 		wxLogError(wxT("Unknown exception raised in the main thread"));
 	}
 
-	wxLogMessage(wxT("Stopping the ircDDB Gateway thread"));
+	wxLogInfo(wxT("ircDDBGateway is stopping"));
+	writeJSONStatus("ircDDBGateway is stopping");
 
 	// Unlink from all reflectors
 	CDExtraHandler::unlink();
@@ -1416,3 +1427,14 @@ void CIRCDDBGatewayThread::readStatusFile(const wxString& filename, unsigned int
 		var = text;
 	}
 }
+
+void CIRCDDBGatewayThread::writeJSONStatus(const std::string& status)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["message"]   = status;
+
+	WriteJSON("status", json);
+}
+

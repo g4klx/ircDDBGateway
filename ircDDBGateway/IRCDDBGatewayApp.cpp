@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "IRCDDBGatewayThread.h"
 #include "IRCDDBGatewayDefs.h"
 #include "IRCDDBGatewayApp.h"
+#include "MQTTConnection.h"
 #include "CallsignList.h"
 #include "APRSWriter.h"
 #include "Version.h"
@@ -46,6 +47,9 @@ const wxChar*    LOGDIR_OPTION = wxT("logdir");
 const wxChar*   CONFDIR_OPTION = wxT("confdir");
 
 const wxString LOG_BASE_NAME    = wxT("ircddbgateway");
+
+// In MQTTLog.cpp
+extern CMQTTConnection* m_mqtt;
 
 CIRCDDBGatewayApp::CIRCDDBGatewayApp() :
 wxApp(),
@@ -74,6 +78,28 @@ bool CIRCDDBGatewayApp::OnInit()
 	if (!wxApp::OnInit())
 		return false;
 
+#if defined(__WINDOWS__)
+	if (m_confDir.IsEmpty())
+		m_confDir = ::wxGetHomeDir();
+
+	m_config = new CIRCDDBGatewayConfig(new wxConfig(APPLICATION_NAME), m_confDir, CONFIG_FILE_NAME, m_name);
+#else
+	if (m_confDir.IsEmpty())
+		m_confDir = wxT(CONF_DIR);
+
+	m_config = new CIRCDDBGatewayConfig(m_confDir, CONFIG_FILE_NAME, m_name);
+#endif
+
+	std::string mqttAddress;
+	unsigned short mqttPort;
+	unsigned int mqttKeepalive;
+	m_config->getMQTT(mqttAddress, mqttPort, mqttKeepalive);
+	std::vector<std::pair<wxString, void (*)(const unsigned char*, unsigned int)>> subscriptions;
+	m_mqtt = new CMQTTConnection(mqttAddress, mqttPort, "ircddb-gateway", subscriptions, mqttKeepalive);m_conf.getMQTTKeepalive());
+	bool ret = m_mqtt->open();
+	if (!ret)
+		return false;
+
 	if (!m_nolog) {
 		wxString logBaseName = LOG_BASE_NAME;
 		if (!m_name.IsEmpty()) {
@@ -89,7 +115,7 @@ bool CIRCDDBGatewayApp::OnInit()
 			m_logDir = wxT(LOG_DIR);
 #endif
 
-		wxLog* log = new CLogger(m_logDir, logBaseName);
+		wxLog* log = new CLogger;
 		wxLog::SetActiveTarget(log);
 
 		if (m_debug) {
@@ -118,23 +144,11 @@ bool CIRCDDBGatewayApp::OnInit()
 	m_checker = new wxSingleInstanceChecker(appName);
 #endif
 
-	bool ret = m_checker->IsAnotherRunning();
+	ret = m_checker->IsAnotherRunning();
 	if (ret) {
 		wxLogError(wxT("Another copy of the ircDDB Gateway is running, exiting"));
 		return false;
 	}
-
-#if defined(__WINDOWS__)
-	if (m_confDir.IsEmpty())
-		m_confDir = ::wxGetHomeDir();
-
-	m_config = new CIRCDDBGatewayConfig(new wxConfig(APPLICATION_NAME), m_confDir, CONFIG_FILE_NAME, m_name);
-#else
-	if (m_confDir.IsEmpty())
-		m_confDir = wxT(CONF_DIR);
-
-	m_config = new CIRCDDBGatewayConfig(m_confDir, CONFIG_FILE_NAME, m_name);
-#endif
 
 	wxString frameName = APPLICATION_NAME + wxT(" - ");
 	if (!m_name.IsEmpty()) {
@@ -268,15 +282,13 @@ void CIRCDDBGatewayApp::createThread()
 
 	thread->setGateway(gatewayType, gatewayCallsign, gatewayAddress);
 
-	wxString aprsAddress;
-	unsigned int aprsPort;
 	bool aprsEnabled;
-	m_config->getDPRS(aprsEnabled, aprsAddress, aprsPort);
-	wxLogInfo(wxT("APRS enabled: %d, host: %s:%u"), int(aprsEnabled), aprsAddress.c_str(), aprsPort);
+	m_config->getDPRS(aprsEnabled);
+	wxLogInfo(wxT("APRS enabled: %d"), int(aprsEnabled));
 
 	CAPRSWriter* aprs = NULL;
-	if (aprsEnabled && !aprsAddress.IsEmpty() && aprsPort != 0U) {
-		aprs = new CAPRSWriter(aprsAddress, aprsPort, gatewayCallsign);
+	if (aprsEnabled) {
+		aprs = new CAPRSWriter(gatewayCallsign);
 
 		bool res = aprs->open();
 		if (!res)

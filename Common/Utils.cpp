@@ -1,5 +1,5 @@
 /*
- *	Copyright (C) 2009,2013 Jonathan Naylor, G4KLX
+ *	Copyright (C) 2009,2013,2023 Jonathan Naylor, G4KLX
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -12,6 +12,13 @@
  */
 
 #include "Utils.h"
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <Windows.h>
+#else
+#include <sys/time.h>
+#include <unistd.h>
+#endif
 
 void CUtils::dump(const wxChar* title, const bool* data, unsigned int length)
 {
@@ -255,3 +262,25 @@ void CUtils::clean(wxString &str, const wxString& allowed)
 			str.SetChar(i, wxT(' '));
 	}
 }
+
+std::string CUtils::createTimestamp()
+{
+	char buffer[100U];
+
+#if defined(_WIN32) || defined(_WIN64)
+	SYSTEMTIME st;
+	::GetSystemTime(&st);
+
+	::sprintf(buffer, "%04u-%02u-%02u %02u:%02u:%02u.%03u", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+#else
+	struct timeval now;
+	::gettimeofday(&now, NULL);
+
+	struct tm* tm = ::gmtime(&now.tv_sec);
+
+	::sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d.%03lld", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, now.tv_usec / 1000LL);
+#endif
+
+	return buffer;
+}
+

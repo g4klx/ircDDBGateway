@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2020,2022,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,31 +16,38 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef	StarNetServerAppD_H
-#define	StarNetServerAppD_H
+#include "MQTTLog.h"
 
-#include "StarNetServerThread.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
+#include <ctime>
+#include <cassert>
+#include <cstring>
 
-#include <wx/wx.h>
-#include <wx/config.h>
+CMQTTConnection* m_mqtt = NULL;
 
-class CStarNetServerAppD {
+void MQTTLogInitialise()
+{
+}
 
-public:
-	CStarNetServerAppD(bool nolog, const wxString& logDir, const wxString& confDir);
-	~CStarNetServerAppD();
+void MQTTLogFinalise()
+{
+	if (m_mqtt != NULL) {
+		m_mqtt->close();
+		delete m_mqtt;
+		m_mqtt = NULL;
+	}
+}
 
-	bool init();
+void WriteJSON(const std::string& topLevel, nlohmann::json& json)
+{
+	if (m_mqtt != NULL) {
+		nlohmann::json top;
 
-	void run();
+		top[topLevel] = json;
 
-private:
-	bool                  m_nolog;
-	wxString              m_logDir;
-	wxString              m_confDir;
-	CStarNetServerThread* m_thread;
+		m_mqtt->publish("json", top.dump());
+	}
+}
 
-	bool createThread();
-};
-
-#endif
