@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2013,2014 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2013,2014,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include "RepeaterHandler.h"
 #include "DStarDefines.h"
 #include "CCSHandler.h"
+#include "MQTTLog.h"
 #include "Utils.h"
 
 
@@ -252,6 +253,7 @@ void CCCSHandler::process(CAMBEData& data)
 		m_handler->ccsLinkMade(m_yourCall, m_direction);
 
 		wxLogMessage(wxT("CCS: New incoming link to %s from %s @ %s"), m_local.c_str(), m_yourCall.c_str(), m_rptCall1.c_str());
+		WriteJSONLinking("ccs", "in", "network", m_local, m_yourCall);
 	} else {
 		if (!m_yourCall.IsSameAs(myCall1) && !m_rptCall1.IsSameAs(rptCall1)) {
 			wxLogMessage(wxT("CCS: Rejecting new incoming CCS link from %s @ %s to %s"), myCall1.c_str(), rptCall1.c_str(), yourCall.c_str());
@@ -303,6 +305,7 @@ void CCCSHandler::process(CCCSData& data)
 		case CT_TERMINATE:
 			if (m_state == CS_ACTIVE) {
 				wxLogMessage(wxT("CCS: Link between %s and %s has been terminated"), data.getLocal().c_str(), data.getRemote().c_str());
+				WriteJSONUnlinked("ccs", "user", m_local, m_yourCall);
 				m_stateChange = true;
 				m_state       = CS_CONNECTED;
 				m_inactivityTimer.stop();
@@ -420,11 +423,13 @@ void CCCSHandler::startLink(const wxString& dtmf, const wxString& user, const wx
 	wxString callsign = findInCache(dtmf);
 	if (!callsign.IsEmpty()) {
 		wxLogMessage(wxT("CCS: New outgoing link to %s/%s via %s by %s"), dtmf.c_str(), callsign.c_str(), type.c_str(), user.c_str());
+		WriteJSONLinking("ccs", "out", "user", user, callsign);
 		m_handler->ccsLinkMade(callsign, m_direction);
 		m_yourCall = callsign;
 		m_rptCall1 = callsign;
 	} else {
 		wxLogMessage(wxT("CCS: New outgoing link to %s via %s by %s"), dtmf.c_str(), type.c_str(), user.c_str());
+		WriteJSONLinking("ccs", "out", "user", user, dtmf);
 		m_yourCall = dtmf;
 		m_yourCall.resize(LONG_CALLSIGN_LENGTH, wxT(' '));
 		m_rptCall1.Clear();
@@ -447,6 +452,7 @@ void CCCSHandler::stopLink(const wxString& user, const wxString& type)
 
 	if (!user.IsEmpty() && !type.IsEmpty())
 		wxLogMessage(wxT("CCS: Link to %s from %s has been terminated via %s by %s"), m_yourCall.c_str(), m_local.c_str(), type.c_str(), user.c_str());
+	WriteJSONUnlinked("ccs", "user", m_local, m_yourCall);
 
 	CCCSData data(m_local, m_yourCall, CT_TERMINATE);
 	data.setDestination(m_ccsAddress, CCS_PORT);
@@ -473,6 +479,7 @@ void CCCSHandler::unlink(const wxString& callsign)
 		return;
 
 	wxLogMessage(wxT("CCS: Link to %s from %s has been terminated by command"), m_yourCall.c_str(), m_local.c_str());
+	WriteJSONUnlinked("ccs", "user", m_local, m_yourCall);
 
 	CCCSData data(m_local, m_yourCall, CT_TERMINATE);
 	data.setDestination(m_ccsAddress, CCS_PORT);
@@ -543,6 +550,7 @@ void CCCSHandler::clockInt(unsigned int ms)
 
 	if (m_pollInactivityTimer.isRunning() && m_pollInactivityTimer.hasExpired()) {
 		wxLogMessage(wxT("CCS: Connection has failed (poll inactivity) for %s, reconnecting"), m_callsign.c_str());
+		WriteJSONRelinking("ccs", m_local, m_yourCall);
 
 		m_announceTimer.stop();
 		m_pollInactivityTimer.stop();
@@ -582,6 +590,7 @@ void CCCSHandler::clockInt(unsigned int ms)
 
 	if (m_inactivityTimer.isRunning() && m_inactivityTimer.hasExpired()) {
 		wxLogMessage(wxT("CCS: Activity timeout on link for %s"), m_callsign.c_str(), m_callsign.c_str());
+		WriteJSONUnlinked("ccs", "timer", m_local, m_yourCall);
 
 		CCCSData data(m_local, m_yourCall, CT_TERMINATE);
 		data.setDestination(m_ccsAddress, CCS_PORT);

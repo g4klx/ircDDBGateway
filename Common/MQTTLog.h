@@ -21,6 +21,8 @@
 
 #include "MQTTConnection.h"
 
+#include <wx/wx.h>
+
 #include <string>
 
 #include <nlohmann/json.hpp>
@@ -29,5 +31,9 @@ extern void MQTTLogInitialise();
 extern void MQTTLogFinalise();
 
 extern void WriteJSON(const std::string& topLevel, nlohmann::json& json);
+
+extern void WriteJSONLinking(const std::string& protocol, const std::string& direction, const std::string& reason, const wxString& local, const wxString& remote);
+extern void WriteJSONUnlinked(const std::string& protocol, const std::string& reason, const wxString& local, const wxString& remote);
+extern void WriteJSONRelinking(const std::string& protocol, const wxString& local, const wxString& remote);
 
 #endif

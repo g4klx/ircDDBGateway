@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2015 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2015,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include "RepeaterHandler.h"
 #include "DPlusHandler.h"
 #include "DStarDefines.h"
+#include "MQTTLog.h"
 #include "Utils.h"
 
 #include <wx/filename.h>
@@ -407,6 +408,7 @@ void CDPlusHandler::unlink(IReflectorCallback* handler, const wxString& callsign
 			if (exclude) {
 				if (reflector->m_direction == DIR_OUTGOING && reflector->m_destination == handler && !reflector->m_reflector.IsSameAs(callsign)) {
 					wxLogMessage(wxT("Removing outgoing D-Plus link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
+					WriteJSONUnlinked("d-plus", "network", reflector->m_repeater, reflector->m_reflector);
 
 					if (reflector->m_linkState == DPLUS_LINKING || reflector->m_linkState == DPLUS_LINKED) {
 						CConnectData connect(CT_UNLINK, reflector->m_yourAddress, DPLUS_PORT);
@@ -425,6 +427,7 @@ void CDPlusHandler::unlink(IReflectorCallback* handler, const wxString& callsign
 			} else {
 				if (reflector->m_destination == handler && reflector->m_reflector.IsSameAs(callsign)) {
 					wxLogMessage(wxT("Removing D-Plus link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
+					WriteJSONUnlinked("d-plus", "network", reflector->m_repeater, reflector->m_reflector);
 
 					if (reflector->m_linkState == DPLUS_LINKING || reflector->m_linkState == DPLUS_LINKED) {
 						CConnectData connect(CT_UNLINK, reflector->m_yourAddress, DPLUS_PORT);
@@ -469,8 +472,10 @@ void CDPlusHandler::unlink()
 	for (unsigned int i = 0U; i < m_maxReflectors; i++) {
 		CDPlusHandler* reflector = m_reflectors[i];
 		if (reflector != NULL) {
-			if (!reflector->m_reflector.IsEmpty())
+			if (!reflector->m_reflector.IsEmpty()) {
 				wxLogMessage(wxT("Unlinking from D-Plus reflector or dongle %s"), reflector->m_reflector.c_str());
+				WriteJSONUnlinked("d-plus", "user", reflector->m_repeater, reflector->m_reflector);
+			}
 
 			CConnectData connect(CT_UNLINK, reflector->m_yourAddress, reflector->m_yourPort);
 			reflector->m_handler->writeConnect(connect);
@@ -766,12 +771,15 @@ bool CDPlusHandler::clockInt(unsigned int ms)
 			switch (m_linkState) {
 				case DPLUS_LINKING:
 					wxLogMessage(wxT("D-Plus link to %s has failed to connect"), m_reflector.c_str());
+					WriteJSONUnlinked("d-plus", "network", m_repeater, m_reflector);
 					break;
 				case DPLUS_LINKED:
 					wxLogMessage(wxT("D-Plus link to %s has failed (poll inactivity)"), m_reflector.c_str());
+					WriteJSONUnlinked("d-plus", "timer", m_repeater, m_reflector);
 					break;
 				case DPLUS_UNLINKING:
 					wxLogMessage(wxT("D-Plus link to %s has failed to disconnect cleanly"), m_reflector.c_str());
+					WriteJSONUnlinked("d-plus", "network", m_repeater, m_reflector);
 					break;
 				default:
 					break;
@@ -781,6 +789,7 @@ bool CDPlusHandler::clockInt(unsigned int ms)
 		if (m_direction == DIR_OUTGOING) {
 			bool reconnect = m_destination->linkFailed(DP_DPLUS, m_reflector, true);
 			if (reconnect) {
+				WriteJSONLinking("d-plus", "out", "user", m_repeater, m_reflector);
 				CConnectData connect(CT_LINK1, m_yourAddress, DPLUS_PORT);
 				m_handler->writeConnect(connect);
 				m_linkState = DPLUS_LINKING;

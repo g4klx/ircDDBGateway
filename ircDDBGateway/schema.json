@@ -1,11 +1,11 @@
 {
 	"$defs": {
 		"timestamp": {"type": "string"},
-		"reflector": {"type": "string"},
+		"callsign": {"type": "string"},
 		"action": {"type": "string", "enum": ["linking", "unlinked", "failed", "relinking"]},
-		"protocol": {"type": "string", "enum": ["d-plus", "dextra", "dcs"]},
+		"protocol": {"type": "string", "enum": ["d-plus", "dextra", "dcs", "ccs"]},
 		"direction": {"type": "string", "enum": ["in", "out"]},
-		"reason": {"type": "string", "enum": ["user", "timer", "remote", "startup"]}
+		"reason": {"type": "string", "enum": ["user", "timer", "network"]}
 	},
 
 	"status": {
@@ -20,10 +20,11 @@
 		"timestamp": {"$ref": "#/$defs/timestamp"},
 		"action": {"$ref": "#/$defs/action"},
 		"reason": {"$ref": "#/$defs/reason"},
-		"reflector": {"$ref": "#/defs/reflector"},
+		"local": {"$ref": "#/defs/callsign"},
+		"remote": {"$ref": "#/defs/callsign"},
 		"direction": {"$ref": "#/defs/direction"},
 		"protocol": {"$ref": "#/defs/protocol"},
-		"required": ["timestamp", "action"]
+		"required": ["timestamp", "protocol", "action", "local", "remote"]
 	}
 }
 

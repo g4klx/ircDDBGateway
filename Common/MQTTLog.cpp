@@ -17,6 +17,7 @@
  */
 
 #include "MQTTLog.h"
+#include "Utils.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -49,5 +50,47 @@ void WriteJSON(const std::string& topLevel, nlohmann::json& json)
 
 		m_mqtt->publish("json", top.dump());
 	}
+}
+
+void WriteJSONLinking(const std::string& protocol, const std::string& direction, const std::string& reason, const wxString& local, const wxString& remote)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["action"]    = "linking";
+	json["reason"]    = reason;
+	json["remote"]    = remote.char_str();
+	json["local"]     = local.char_str();
+	json["protocol"]  = protocol;
+	json["direction"] = direction;
+
+	WriteJSON("link", json);
+}
+
+void WriteJSONUnlinked(const std::string& protocol, const std::string& reason, const wxString& local, const wxString& remote)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["action"]    = "unlinked";
+	json["reason"]    = reason;
+	json["remote"]    = remote.char_str();
+	json["local"]     = local.char_str();
+	json["protocol"]  = protocol;
+
+	WriteJSON("link", json);
+}
+
+void WriteJSONRelinking(const std::string& protocol, const wxString& local, const wxString& remote)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["action"]    = "relinking";
+	json["remote"]    = remote.char_str();
+	json["local"]     = local.char_str();
+	json["protocol"]  = protocol;
+
+	WriteJSON("link", json);
 }
 
