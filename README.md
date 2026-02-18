@@ -19,7 +19,7 @@ This is the ircDDB Gateway. It allows a D-Star Repeater to interface into callsi
 
 There are many external programs that allow for inserting voice or text messages, as well as remote control operation.
 
-They all build on 32-bit and 64-bit Linux as well as on Windows using Visual Studio 2017 on x86 and x64.
+They all build on 32-bit and 64-bit Linux as well as on Windows using Visual Studio 2022 on x86 and x64.
 
 This software is licenced under the GPL v2.
 

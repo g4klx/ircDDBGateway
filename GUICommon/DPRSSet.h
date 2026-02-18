@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2018,2020,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,26 +19,20 @@
 #ifndef	DPRSSet_H
 #define	DPRSSet_H
 
-#include "PortTextCtrl.h"
-
 #include <wx/wx.h>
 
 class CDPRSSet : public wxPanel {
 public:
-	CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& address, unsigned int port);
+	CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled);
 	virtual ~CDPRSSet();
 
 	virtual bool Validate();
 
-	virtual bool         getEnabled() const;
-	virtual wxString     getAddress() const;
-	virtual unsigned int getPort() const;
+	virtual bool getEnabled() const;
 
 private:
 	wxString       m_title;
 	wxChoice*      m_enabled;
-	wxTextCtrl*    m_address;
-	CPortTextCtrl* m_port;
 };
 
 #endif

@@ -194,12 +194,10 @@ m_miscellaneous(NULL)
 	m_ircDDB4 = new CIRCDDBGatewayConfigIrcDDBSet(noteBook, -1, APPLICATION_NAME, ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 	noteBook->AddPage(m_ircDDB4, wxT("ircDDB 4th Network"), false);
 
-	wxString aprsAddress;
-	unsigned int aprsPort;
 	bool aprsEnabled;
-	m_config->getDPRS(aprsEnabled, aprsAddress, aprsPort);
+	m_config->getDPRS(aprsEnabled);
 
-	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled, aprsAddress, aprsPort);
+	m_dprs = new CDPRSSet(noteBook, -1, APPLICATION_NAME, aprsEnabled);
 	noteBook->AddPage(m_dprs, wxT("D-PRS"), false);
 
 	m_dextra = new CDExtraSet(noteBook, -1, APPLICATION_NAME, dextraEnabled, maxDExtraDongles, MAX_DEXTRA_LINKS);
@@ -504,9 +502,7 @@ void CIRCDDBGatewayConfigFrame::onSave(wxCommandEvent&)
 	m_config->setIrcDDB4(ircDDBEnabled, ircDDBHostname, ircDDBUsername, ircDDBPassword);
 
 	bool aprsEnabled      = m_dprs->getEnabled();
-	wxString aprsAddress  = m_dprs->getAddress();
-	unsigned int aprsPort = m_dprs->getPort();
-	m_config->setDPRS(aprsEnabled, aprsAddress, aprsPort);
+	m_config->setDPRS(aprsEnabled);
 
 	bool dextraEnabled            = m_dextra->getEnabled();
 	unsigned int maxDExtraDongles = m_dextra->getMaxDongles();

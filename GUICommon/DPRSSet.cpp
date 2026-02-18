@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2018,2020,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,17 +20,11 @@
 
 const unsigned int BORDER_SIZE    = 5U;
 const unsigned int CONTROL_WIDTH1 = 200U;
-const unsigned int CONTROL_WIDTH2 = 80U;
 
-const unsigned int PORT_LENGTH     = 5U;
-const unsigned int PASSWORD_LENGTH = 5U;
-
-CDPRSSet::CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled, const wxString& address, unsigned int port) :
+CDPRSSet::CDPRSSet(wxWindow* parent, int id, const wxString& title, bool enabled) :
 wxPanel(parent, id),
 m_title(title),
-m_enabled(NULL),
-m_address(NULL),
-m_port(NULL)
+m_enabled(NULL)
 {
 	wxFlexGridSizer* sizer = new wxFlexGridSizer(2);
 
@@ -42,22 +36,6 @@ m_port(NULL)
 	m_enabled->Append(_("Enabled"));
 	sizer->Add(m_enabled, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 	m_enabled->SetSelection(enabled ? 1 : 0);
-
-	wxStaticText* addressLabel = new wxStaticText(this, -1, _("Address"));
-	sizer->Add(addressLabel, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
-
-	m_address = new wxTextCtrl(this, -1, address, wxDefaultPosition, wxSize(CONTROL_WIDTH1, -1));
-	sizer->Add(m_address, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
-
-	wxStaticText* portLabel = new wxStaticText(this, -1, _("Port"));
-	sizer->Add(portLabel, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
-
-	wxString buffer;
-	buffer.Printf(wxT("%u"), port);
-
-	m_port = new CPortTextCtrl(this, -1, buffer, wxDefaultPosition, wxSize(CONTROL_WIDTH2, -1));
-	m_port->SetMaxLength(PORT_LENGTH);
-	sizer->Add(m_port, 0, wxALL | wxALIGN_LEFT, BORDER_SIZE);
 
 	SetAutoLayout(true);
 
@@ -75,18 +53,6 @@ bool CDPRSSet::Validate()
 	if (n == wxNOT_FOUND)
 		return false;
 
-	wxString address = m_address->GetValue();
-	if (address.IsEmpty())
-		return true;
-
-	unsigned int port = getPort();
-
-	if (port == 0U || port > 65535U) {
-		wxMessageDialog dialog(this, _("The Port is not valid"), m_title + _(" Error"), wxICON_ERROR);
-		dialog.ShowModal();
-		return false;
-	}
-
 	return true;
 }
 
@@ -97,18 +63,4 @@ bool CDPRSSet::getEnabled() const
 		return false;
 
 	return c == 1;
-}
-
-wxString CDPRSSet::getAddress() const
-{
-	return m_address->GetValue();
-}
-
-unsigned int CDPRSSet::getPort() const
-{
-	unsigned long n;
-
-	m_port->GetValue().ToULong(&n);
-
-	return n;
 }

@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36930.0 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ircDDBGateway", "ircDDBGateway\ircDDBGateway.vcxproj", "{6DDA3497-66A3-4856-BAD4-1DDCDBDFF959}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ircDDB", "ircDDB\ircDDB.vcxproj", "{276BC54D-5581-4A0C-AFD5-A5BDC947F0AD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Common\Common.vcxproj", "{E793CB8E-2AC9-431A-BBFC-3F52537BB3CF}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StarNetServer", "StarNetServer\StarNetServer.vcxproj", "{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RemoteControl", "RemoteControl\RemoteControl.vcxproj", "{F7756875-1F58-4006-AD55-5C963AB682C0}"
 EndProject
@@ -61,14 +59,6 @@ Global
 		{E793CB8E-2AC9-431A-BBFC-3F52537BB3CF}.Release|Win32.Build.0 = Release|Win32
 		{E793CB8E-2AC9-431A-BBFC-3F52537BB3CF}.Release|x64.ActiveCfg = Release|x64
 		{E793CB8E-2AC9-431A-BBFC-3F52537BB3CF}.Release|x64.Build.0 = Release|x64
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Debug|Win32.ActiveCfg = Debug|Win32
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Debug|Win32.Build.0 = Debug|Win32
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Debug|x64.ActiveCfg = Debug|x64
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Debug|x64.Build.0 = Debug|x64
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Release|Win32.ActiveCfg = Release|Win32
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Release|Win32.Build.0 = Release|Win32
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Release|x64.ActiveCfg = Release|x64
-		{4E9989C8-80D4-4F6E-BCA1-754DCED3AF5F}.Release|x64.Build.0 = Release|x64
 		{F7756875-1F58-4006-AD55-5C963AB682C0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F7756875-1F58-4006-AD55-5C963AB682C0}.Debug|Win32.Build.0 = Debug|Win32
 		{F7756875-1F58-4006-AD55-5C963AB682C0}.Debug|x64.ActiveCfg = Debug|x64
