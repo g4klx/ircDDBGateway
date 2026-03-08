@@ -298,7 +298,7 @@ void CDExtraHandler::process(const CPollData& poll)
 
 	// An unmatched poll indicates the need for a new entry
 	wxLogMessage(wxT("New incoming DExtra Dongle from %s"), reflector.c_str());
-	WriteJSONLinking("dextra", "in", "network", m_callsign, reflector);
+	WriteJSONLinking(m_callsign.ToStdString(), "network", "dextra", reflector.ToStdString());
 
 	CDExtraHandler* handler = new CDExtraHandler(m_incoming, reflector, yourAddress, yourPort, DIR_INCOMING);
 
@@ -374,7 +374,7 @@ void CDExtraHandler::process(CConnectData& connect)
 
 	// A new connect packet indicates the need for a new entry
 	wxLogMessage(wxT("New incoming DExtra link to %s from %s"), reflectorCallsign.c_str(), repeaterCallsign.c_str());
-	WriteJSONLinking("dextra", "in", "network", repeaterCallsign, reflectorCallsign);
+	WriteJSONLinking(repeaterCallsign.ToStdString(), "network", "dextra", reflectorCallsign.ToStdString());
 
 	CDExtraHandler* dextra = new CDExtraHandler(handler, repeaterCallsign, reflectorCallsign, m_incoming, yourAddress, yourPort, DIR_INCOMING);
 
@@ -442,7 +442,7 @@ void CDExtraHandler::unlink(IReflectorCallback* handler, const wxString& callsig
 			if (exclude) {
 				if (reflector->m_direction == DIR_OUTGOING && reflector->m_destination == handler && !reflector->m_reflector.IsSameAs(callsign)) {
 					wxLogMessage(wxT("Removing outgoing DExtra link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
-					WriteJSONUnlinked("dextra", "network", reflector->m_repeater, reflector->m_reflector);
+					WriteJSONUnlinked(reflector->m_repeater.ToStdString(), "network");
 
 					if (reflector->m_linkState == DEXTRA_LINKING || reflector->m_linkState == DEXTRA_LINKED) {
 						CConnectData connect(reflector->m_repeater, reflector->m_yourAddress, reflector->m_yourPort);
@@ -458,7 +458,7 @@ void CDExtraHandler::unlink(IReflectorCallback* handler, const wxString& callsig
 			} else {
 				if (reflector->m_destination == handler && reflector->m_reflector.IsSameAs(callsign)) {
 					wxLogMessage(wxT("Removing DExtra link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
-					WriteJSONUnlinked("dextra", "network", reflector->m_repeater, reflector->m_reflector);
+					WriteJSONUnlinked(reflector->m_repeater.ToStdString(), "network");
 
 					if (reflector->m_linkState == DEXTRA_LINKING || reflector->m_linkState == DEXTRA_LINKED) {
 						CConnectData connect(reflector->m_repeater, reflector->m_yourAddress, reflector->m_yourPort);
@@ -506,7 +506,7 @@ void CDExtraHandler::unlink()
 		if (reflector != NULL) {
 			if (!reflector->m_repeater.IsEmpty()) {
 				wxLogMessage(wxT("Unlinking from DExtra reflector %s"), reflector->m_reflector.c_str());
-				WriteJSONUnlinked("dextra", "user", reflector->m_repeater, reflector->m_reflector);
+				WriteJSONUnlinked(reflector->m_repeater.ToStdString(), "user");
 
 				CConnectData connect(reflector->m_repeater, reflector->m_yourAddress, reflector->m_yourPort);
 				reflector->m_handler->writeConnect(connect);
@@ -815,15 +815,15 @@ bool CDExtraHandler::clockInt(unsigned int ms)
 		switch (m_linkState) {
 			case DEXTRA_LINKING:
 				wxLogMessage(wxT("DExtra link to %s has failed to connect"), m_reflector.c_str());
-				WriteJSONUnlinked("dextra", "network", m_repeater, m_reflector);
+				WriteJSONUnlinked(m_repeater.ToStdString(), "network");
 				break;
 			case DEXTRA_LINKED:
 				wxLogMessage(wxT("DExtra link to %s has failed (poll inactivity)"), m_reflector.c_str());
-				WriteJSONUnlinked("dextra", "timer", m_repeater, m_reflector);
+				WriteJSONUnlinked(m_repeater.ToStdString(), "timer");
 				break;
 			case DEXTRA_UNLINKING:
 				wxLogMessage(wxT("DExtra link to %s has failed to disconnect cleanly"), m_reflector.c_str());
-				WriteJSONUnlinked("dextra", "network", m_repeater, m_reflector);
+				WriteJSONUnlinked(m_repeater.ToStdString(), "network");
 				break;
 			default:
 				break;
@@ -832,7 +832,7 @@ bool CDExtraHandler::clockInt(unsigned int ms)
 		if (m_direction == DIR_OUTGOING) {
 			bool reconnect = m_destination->linkFailed(DP_DEXTRA, m_reflector, true);
 			if (reconnect) {
-				WriteJSONLinking("dextra", "out", "user", m_repeater, m_reflector);
+				WriteJSONLinking(m_repeater.ToStdString(), "user", "dextra", m_reflector.ToStdString());
 				CConnectData reply(m_repeater, m_reflector, CT_LINK1, m_yourAddress, m_yourPort);
 				m_handler->writeConnect(reply);
 				m_linkState = DEXTRA_LINKING;

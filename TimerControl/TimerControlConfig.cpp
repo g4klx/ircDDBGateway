@@ -109,7 +109,7 @@ m_y(DEFAULT_WINDOW_Y)
 	wxString str = file.GetFirstLine();
 
 	while (!file.Eof()) {
-		if (str.GetChar(0U) == wxT('#')) {
+		if (str.IsEmpty() || str.GetChar(0U) == wxT('#')) {
 			str = file.GetNextLine();
 			continue;
 		}

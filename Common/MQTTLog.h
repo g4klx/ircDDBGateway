@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2020,2022,2023 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2020,2022,2023,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,8 +21,6 @@
 
 #include "MQTTConnection.h"
 
-#include <wx/wx.h>
-
 #include <string>
 
 #include <nlohmann/json.hpp>
@@ -32,8 +30,10 @@ extern void MQTTLogFinalise();
 
 extern void WriteJSON(const std::string& topLevel, nlohmann::json& json);
 
-extern void WriteJSONLinking(const std::string& protocol, const std::string& direction, const std::string& reason, const wxString& local, const wxString& remote);
-extern void WriteJSONUnlinked(const std::string& protocol, const std::string& reason, const wxString& local, const wxString& remote);
-extern void WriteJSONRelinking(const std::string& protocol, const wxString& local, const wxString& remote);
+extern void WriteJSONStatus(const std::string& status);
+extern void WriteJSONLinking(const std::string& repeater, const std::string& reason, const std::string& protocol, const std::string& reflector);
+extern void WriteJSONUnlinked(const std::string& repeater, const std::string& reason);
+extern void WriteJSONFailed(const std::string& repeater);
+extern void WriteJSONRelinking(const std::string& repeater, const std::string& protocol, const std::string& reflector);
 
 #endif

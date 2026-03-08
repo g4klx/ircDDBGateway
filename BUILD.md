@@ -83,3 +83,15 @@ This would build and install all the programs in this repo using 4 threads
 (parallel build jobs), in release mode (no debug symbols) with a modified
 configuration directory.
 
+### MQTT Dependency
+
+MQTT support is always compiled in. Install `libmosquitto-dev` before
+building:
+
+```sh
+sudo apt install libmosquitto-dev
+```
+
+See [MQTT.md](MQTT.md) for configuration, topic structure, and JSON format.
+To disable MQTT at runtime, leave `mqttAddress` empty in the config file.
+

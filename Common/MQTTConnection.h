@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2022,2023 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2022,2023,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,8 +19,6 @@
 #if !defined(MQTTPUBLISHER_H)
 #define	MQTTPUBLISHER_H
 
-#include <wx/wx.h>
-
 #include <mosquitto.h>
 
 #include <vector>
@@ -34,7 +32,7 @@ enum MQTT_QOS {
 
 class CMQTTConnection {
 public:
-	CMQTTConnection(const wxString& host, unsigned short port, const wxString& name, const std::vector<std::pair<wxString, void (*)(const unsigned char*, unsigned int)>>& subs, unsigned int keepalive, MQTT_QOS qos = MQTT_QOS_EXACTLY_ONCE);
+	CMQTTConnection(const std::string& host, unsigned short port, const std::string& name, const bool authEnabled, const std::string& username, const std::string& password, const std::vector<std::pair<std::string, void (*)(const unsigned char*, unsigned int)>>& subs, unsigned int keepalive, MQTT_QOS qos = MQTT_QOS_EXACTLY_ONCE);
 	~CMQTTConnection();
 
 	bool open();
@@ -46,10 +44,13 @@ public:
 	void close();
 
 private:
-	wxString       m_host;
+	std::string    m_host;
 	unsigned short m_port;
-	wxString       m_name;
-	std::vector<std::pair<wxString, void (*)(const unsigned char*, unsigned int)>> m_subs;
+	std::string    m_name;
+	bool           m_authEnabled;
+	std::string    m_username;
+	std::string    m_password;
+	std::vector<std::pair<std::string, void (*)(const unsigned char*, unsigned int)>> m_subs;
 	unsigned int   m_keepalive;
 	MQTT_QOS       m_qos;
 	mosquitto*     m_mosq;
@@ -62,4 +63,3 @@ private:
 };
 
 #endif
-

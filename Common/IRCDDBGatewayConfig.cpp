@@ -204,6 +204,10 @@ const wxString  KEY_GPSD_PORT                = wxT("gpsdPort");
 const wxString  KEY_MQTT_ADDRESS             = wxT("mqttAddress");
 const wxString  KEY_MQTT_PORT                = wxT("mqttPort");
 const wxString  KEY_MQTT_KEEPALIVE           = wxT("mqttKeepalive");
+const wxString  KEY_MQTT_AUTH                = wxT("mqttAuth");
+const wxString  KEY_MQTT_USERNAME            = wxT("mqttUsername");
+const wxString  KEY_MQTT_PASSWORD            = wxT("mqttPassword");
+const wxString  KEY_MQTT_NAME                = wxT("mqttName");
 const wxString  KEY_WINDOW_X                 = wxT("windowX");
 const wxString  KEY_WINDOW_Y                 = wxT("windowY");
 
@@ -289,6 +293,10 @@ const wxString     DEFAULT_GPSD_PORT             = wxT("2947");
 const wxString     DEFAULT_MQTT_ADDRESS          = wxT("127.0.0.1");
 const unsigned short DEFAULT_MQTT_PORT           = 1883U;
 const unsigned int DEFAULT_MQTT_KEEPALIVE        = 60U;
+const bool         DEFAULT_MQTT_AUTH             = false;
+const wxString     DEFAULT_MQTT_USERNAME         = wxT("mmdvm");
+const wxString     DEFAULT_MQTT_PASSWORD         = wxT("mmdvm");
+const wxString     DEFAULT_MQTT_NAME             = wxT("ircddb-gateway");
 const int          DEFAULT_WINDOW_X              = -1;
 const int          DEFAULT_WINDOW_Y              = -1;
 
@@ -483,6 +491,10 @@ m_gpsdPort(DEFAULT_GPSD_PORT),
 m_mqttAddress(DEFAULT_MQTT_ADDRESS),
 m_mqttPort(DEFAULT_MQTT_PORT),
 m_mqttKeepalive(DEFAULT_MQTT_KEEPALIVE),
+m_mqttAuth(DEFAULT_MQTT_AUTH),
+m_mqttUsername(DEFAULT_MQTT_USERNAME),
+m_mqttPassword(DEFAULT_MQTT_PASSWORD),
+m_mqttName(DEFAULT_MQTT_NAME),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -906,6 +918,14 @@ m_y(DEFAULT_WINDOW_Y)
 	m_config->Read(m_name + KEY_MQTT_KEEPALIVE, &temp, long(DEFAULT_MQTT_KEEPALIVE));
 	m_mqttKeepalive = (unsigned int)temp;
 
+	m_config->Read(m_name + KEY_MQTT_AUTH, &m_mqttAuth, DEFAULT_MQTT_AUTH);
+
+	m_config->Read(m_name + KEY_MQTT_USERNAME, &m_mqttUsername, DEFAULT_MQTT_USERNAME);
+
+	m_config->Read(m_name + KEY_MQTT_PASSWORD, &m_mqttPassword, DEFAULT_MQTT_PASSWORD);
+
+	m_config->Read(m_name + KEY_MQTT_NAME, &m_mqttName, DEFAULT_MQTT_NAME);
+
 	m_config->Read(m_name + KEY_WINDOW_X, &temp, long(DEFAULT_WINDOW_X));
 	m_x = int(temp);
 
@@ -1106,6 +1126,10 @@ m_gpsdPort(DEFAULT_GPSD_PORT),
 m_mqttAddress(DEFAULT_MQTT_ADDRESS),
 m_mqttPort(DEFAULT_MQTT_PORT),
 m_mqttKeepalive(DEFAULT_MQTT_KEEPALIVE),
+m_mqttAuth(DEFAULT_MQTT_AUTH),
+m_mqttUsername(DEFAULT_MQTT_USERNAME),
+m_mqttPassword(DEFAULT_MQTT_PASSWORD),
+m_mqttName(DEFAULT_MQTT_NAME),
 m_x(DEFAULT_WINDOW_X),
 m_y(DEFAULT_WINDOW_Y)
 {
@@ -1135,7 +1159,7 @@ m_y(DEFAULT_WINDOW_Y)
 	wxString str = file.GetFirstLine();
 
 	while (!file.Eof()) {
-		if (str.GetChar(0U) == wxT('#')) {
+		if (str.IsEmpty() || str.GetChar(0U) == wxT('#')) {
 			str = file.GetNextLine();
 			continue;
 		}
@@ -1591,6 +1615,15 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_MQTT_KEEPALIVE)) {
 			val.ToULong(&temp2);
 			m_mqttKeepalive = (unsigned int)temp2;
+		} else if (key.IsSameAs(KEY_MQTT_AUTH)) {
+			val.ToLong(&temp1);
+			m_mqttAuth = temp1 == 1L;
+		} else if (key.IsSameAs(KEY_MQTT_USERNAME)) {
+			m_mqttUsername = val;
+		} else if (key.IsSameAs(KEY_MQTT_PASSWORD)) {
+			m_mqttPassword = val;
+		} else if (key.IsSameAs(KEY_MQTT_NAME)) {
+			m_mqttName = val;
 		} else if (key.IsSameAs(KEY_WINDOW_X)) {
 			val.ToLong(&temp1);
 			m_x = int(temp1);
@@ -2218,11 +2251,15 @@ void CIRCDDBGatewayConfig::setGPSD(bool enabled, const wxString& address, const 
 	m_gpsdPort    = port;
 }
 
-void CIRCDDBGatewayConfig::getMQTT(wxString& address, unsigned short& port, unsigned int& keepalive) const
+void CIRCDDBGatewayConfig::getMQTT(wxString& address, unsigned short& port, unsigned int& keepalive, bool& auth, wxString& username, wxString& password, wxString& name) const
 {
 	address   = m_mqttAddress;
 	port      = m_mqttPort;
 	keepalive = m_mqttKeepalive;
+	auth      = m_mqttAuth;
+	username  = m_mqttUsername;
+	password  = m_mqttPassword;
+	name      = m_mqttName;
 }
 
 void CIRCDDBGatewayConfig::getPosition(int& x, int& y) const
@@ -2467,6 +2504,10 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_MQTT_ADDRESS, m_mqttAddress);
 	m_config->Write(m_name + KEY_MQTT_PORT, long(m_mqttPort));
 	m_config->Write(m_name + KEY_MQTT_KEEPALIVE, long(m_mqttKeepalive));
+	m_config->Write(m_name + KEY_MQTT_AUTH, m_mqttAuth);
+	m_config->Write(m_name + KEY_MQTT_USERNAME, m_mqttUsername);
+	m_config->Write(m_name + KEY_MQTT_PASSWORD, m_mqttPassword);
+	m_config->Write(m_name + KEY_MQTT_NAME, m_mqttName);
 	m_config->Write(m_name + KEY_WINDOW_X, long(m_x));
 	m_config->Write(m_name + KEY_WINDOW_Y, long(m_y));
 	m_config->Flush();
@@ -2677,6 +2718,10 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf(wxT("%s=%s"), KEY_MQTT_ADDRESS.c_str(), m_mqttAddress.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_MQTT_PORT.c_str(), m_mqttPort); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_MQTT_KEEPALIVE.c_str(), m_mqttKeepalive); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%d"), KEY_MQTT_AUTH.c_str(), m_mqttAuth ? 1 : 0); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_MQTT_USERNAME.c_str(), m_mqttUsername.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_MQTT_PASSWORD.c_str(), m_mqttPassword.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_MQTT_NAME.c_str(), m_mqttName.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_X.c_str(), m_x); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_WINDOW_Y.c_str(), m_y); file.AddLine(buffer);
 

@@ -23,6 +23,7 @@
 #include "IRCDDBGatewayAppD.h"
 #include "IRCDDBGatewayDefs.h"
 #include "MQTTConnection.h"
+#include "MQTTLog.h"
 #include "CallsignList.h"
 #include "APRSWriter.h"
 #include "Version.h"
@@ -194,9 +195,11 @@ bool CIRCDDBGatewayAppD::init()
 	wxString mqttAddress;
 	unsigned short mqttPort;
 	unsigned int mqttKeepalive;
-	config.getMQTT(mqttAddress, mqttPort, mqttKeepalive);
-	std::vector<std::pair<wxString, void (*)(const unsigned char*, unsigned int)>> subscriptions;
-	m_mqtt = new CMQTTConnection(mqttAddress, mqttPort, "ircddb-gateway", subscriptions, mqttKeepalive);
+	bool mqttAuth;
+	wxString mqttUsername, mqttPassword, mqttName;
+	config.getMQTT(mqttAddress, mqttPort, mqttKeepalive, mqttAuth, mqttUsername, mqttPassword, mqttName);
+	std::vector<std::pair<std::string, void (*)(const unsigned char*, unsigned int)>> subscriptions;
+	m_mqtt = new CMQTTConnection(std::string(mqttAddress.mb_str()), mqttPort, std::string(mqttName.mb_str()), mqttAuth, std::string(mqttUsername.mb_str()), std::string(mqttPassword.mb_str()), subscriptions, mqttKeepalive);
 	bool ret = m_mqtt->open();
 	if (!ret)
 		return false;
@@ -264,6 +267,8 @@ void CIRCDDBGatewayAppD::run()
 	delete m_checker;
 
 	wxLogInfo(APPLICATION_NAME + wxT(" is exiting"));
+
+	MQTTLogFinalise();
 }
 
 bool CIRCDDBGatewayAppD::createThread()

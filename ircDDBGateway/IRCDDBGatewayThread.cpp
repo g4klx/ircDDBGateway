@@ -1430,11 +1430,6 @@ void CIRCDDBGatewayThread::readStatusFile(const wxString& filename, unsigned int
 
 void CIRCDDBGatewayThread::writeJSONStatus(const std::string& status)
 {
-	nlohmann::json json;
-
-	json["timestamp"] = CUtils::createTimestamp();
-	json["message"]   = status;
-
-	WriteJSON("status", json);
+	WriteJSONStatus(status);
 }
 
