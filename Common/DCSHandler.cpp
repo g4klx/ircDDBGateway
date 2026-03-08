@@ -291,7 +291,7 @@ void CDCSHandler::process(CConnectData& connect)
 
 	// A new connect packet indicates the need for a new entry
 	wxLogMessage(wxT("New incoming DCS link to %s from %s"), reflectorCallsign.c_str(), repeaterCallsign.c_str());
-	WriteJSONLinking("dcs", "in", "network", repeaterCallsign, reflectorCallsign);
+	WriteJSONLinking(repeaterCallsign.ToStdString(), "network", "dcs", reflectorCallsign.ToStdString());
 
 	CDCSHandler* dcs = new CDCSHandler(handler, repeaterCallsign, reflectorCallsign, m_incoming, yourAddress, yourPort, DIR_INCOMING);
 
@@ -361,7 +361,7 @@ void CDCSHandler::unlink(IReflectorCallback* handler, const wxString& callsign, 
 			if (exclude) {
 				if (reflector->m_direction == DIR_OUTGOING && reflector->m_destination == handler && !reflector->m_reflector.IsSameAs(callsign)) {
 					wxLogMessage(wxT("Removing outgoing DCS link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
-					WriteJSONUnlinked("dcs", "user", reflector->m_repeater, reflector->m_reflector);
+					WriteJSONUnlinked(reflector->m_repeater.ToStdString(), "user");
 
 					if (reflector->m_linkState == DCS_LINKING || reflector->m_linkState == DCS_LINKED) {
 						CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddress, reflector->m_yourPort);
@@ -377,7 +377,7 @@ void CDCSHandler::unlink(IReflectorCallback* handler, const wxString& callsign, 
 			} else {
 				if (reflector->m_destination == handler && reflector->m_reflector.IsSameAs(callsign)) {
 					wxLogMessage(wxT("Removing DCS link %s, %s"), reflector->m_repeater.c_str(), reflector->m_reflector.c_str());
-					WriteJSONUnlinked("dcs", "user", reflector->m_repeater, reflector->m_reflector);
+					WriteJSONUnlinked(reflector->m_repeater.ToStdString(), "user");
 
 					if (reflector->m_linkState == DCS_LINKING || reflector->m_linkState == DCS_LINKED) {
 						CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddress, reflector->m_yourPort);
@@ -422,7 +422,7 @@ void CDCSHandler::unlink()
 		if (reflector != NULL) {
 			if (!reflector->m_repeater.IsEmpty()) {
 				wxLogMessage(wxT("Unlinking from DCS reflector %s"), reflector->m_reflector.c_str());
-				WriteJSONUnlinked("dcs", "user", reflector->m_repeater, reflector->m_reflector);
+				WriteJSONUnlinked(reflector->m_repeater.ToStdString(), "user");
 
 				CConnectData connect(reflector->m_repeater, reflector->m_reflector, CT_UNLINK, reflector->m_yourAddress, reflector->m_yourPort);
 				reflector->m_handler->writeConnect(connect);
@@ -719,15 +719,15 @@ bool CDCSHandler::clockInt(unsigned int ms)
 		switch (m_linkState) {
 			case DCS_LINKING:
 				wxLogMessage(wxT("DCS link to %s has failed to connect"), GET_DISP_REFLECTOR(this).c_str());
-				WriteJSONUnlinked("dcs", "network", m_repeater, m_reflector);
+				WriteJSONUnlinked(m_repeater.ToStdString(), "network");
 				break;
 			case DCS_LINKED:
 				wxLogMessage(wxT("DCS link to %s has failed (poll inactivity)"), GET_DISP_REFLECTOR(this).c_str());
-				WriteJSONUnlinked("dcs", "timer", m_repeater, m_reflector);
+				WriteJSONUnlinked(m_repeater.ToStdString(), "timer");
 				break;
 			case DCS_UNLINKING:
 				wxLogMessage(wxT("DCS link to %s has failed to disconnect cleanly"), GET_DISP_REFLECTOR(this).c_str());
-				WriteJSONUnlinked("dcs", "network", m_repeater, m_reflector);
+				WriteJSONUnlinked(m_repeater.ToStdString(), "network");
 				break;
 			default:
 				break;
@@ -736,7 +736,7 @@ bool CDCSHandler::clockInt(unsigned int ms)
 		if (m_direction == DIR_OUTGOING) {
 			bool reconnect = m_destination->linkFailed(DP_DCS, GET_DISP_REFLECTOR(this), true);
 			if (reconnect) {
-				WriteJSONLinking("dcs", "out", "user", m_repeater, m_reflector);
+				WriteJSONLinking(m_repeater.ToStdString(), "user", "dcs", m_reflector.ToStdString());
 				CConnectData reply(m_gatewayType, m_repeater, m_reflector, CT_LINK1, m_yourAddress, m_yourPort);
 				m_handler->writeConnect(reply);
 				m_linkState = DCS_LINKING;

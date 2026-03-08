@@ -1,0 +1,20 @@
+# TimeServer example configuration
+# See CONFIGURATION.md for a full reference of all settings.
+#
+# Gateway
+callsign=
+sendA=0
+sendB=0
+sendC=0
+sendD=0
+sendE=0
+address=127.0.0.1
+#
+# Announcements
+language=0
+format=0
+interval=0
+#
+# Window Position (GUI only)
+windowX=-1
+windowY=-1

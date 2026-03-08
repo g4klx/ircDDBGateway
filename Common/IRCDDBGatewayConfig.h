@@ -118,7 +118,7 @@ public:
 	void getPosition(int& x, int& y) const;
 	void setPosition(int x, int y);
 
-	void getMQTT(wxString& address, unsigned short& port, unsigned int& keepalive) const;
+	void getMQTT(wxString& address, unsigned short& port, unsigned int& keepalive, bool& auth, wxString& username, wxString& password, wxString& name) const;
 
 	bool write();
 
@@ -313,6 +313,10 @@ private:
 	wxString      m_mqttAddress;
 	unsigned short m_mqttPort;
 	unsigned int  m_mqttKeepalive;
+	bool          m_mqttAuth;
+	wxString      m_mqttUsername;
+	wxString      m_mqttPassword;
+	wxString      m_mqttName;
 	int           m_x;
 	int           m_y;
 };

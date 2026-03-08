@@ -24,6 +24,7 @@
 #include "IRCDDBGatewayDefs.h"
 #include "IRCDDBGatewayApp.h"
 #include "MQTTConnection.h"
+#include "MQTTLog.h"
 #include "CallsignList.h"
 #include "APRSWriter.h"
 #include "Version.h"
@@ -90,12 +91,14 @@ bool CIRCDDBGatewayApp::OnInit()
 	m_config = new CIRCDDBGatewayConfig(m_confDir, CONFIG_FILE_NAME, m_name);
 #endif
 
-	std::string mqttAddress;
+	wxString mqttAddress;
 	unsigned short mqttPort;
 	unsigned int mqttKeepalive;
-	m_config->getMQTT(mqttAddress, mqttPort, mqttKeepalive);
-	std::vector<std::pair<wxString, void (*)(const unsigned char*, unsigned int)>> subscriptions;
-	m_mqtt = new CMQTTConnection(mqttAddress, mqttPort, "ircddb-gateway", subscriptions, mqttKeepalive);m_conf.getMQTTKeepalive());
+	bool mqttAuth;
+	wxString mqttUsername, mqttPassword, mqttName;
+	m_config->getMQTT(mqttAddress, mqttPort, mqttKeepalive, mqttAuth, mqttUsername, mqttPassword, mqttName);
+	std::vector<std::pair<std::string, void (*)(const unsigned char*, unsigned int)>> subscriptions;
+	m_mqtt = new CMQTTConnection(std::string(mqttAddress.mb_str()), mqttPort, std::string(mqttName.mb_str()), mqttAuth, std::string(mqttUsername.mb_str()), std::string(mqttPassword.mb_str()), subscriptions, mqttKeepalive);
 	bool ret = m_mqtt->open();
 	if (!ret)
 		return false;
@@ -186,6 +189,9 @@ int CIRCDDBGatewayApp::OnExit()
 	wxLogInfo(APPLICATION_NAME + wxT(" is exiting"));
 
 	m_thread->kill();
+
+	MQTTLogFinalise();
+
 	wxWindow * topWin = wxGetApp().GetTopWindow();
 	if (topWin != NULL)
 		topWin->Close();

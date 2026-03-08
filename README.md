@@ -1,80 +1,125 @@
-This is the ircDDB Gateway. It allows a D-Star Repeater to interface into callsign routing via ircDDB and all of the different reflector types. It includes many facilities, including:
+# ircDDBGateway
 
-* Supports Icom stacks.
-* Supports homebrew repeaters.
-* Icom DD mode under Linux with Internet access.
-* Callsign routing via ircDDB.
-* D-Plus REF reflectors.
-* DExtra XRF reflectors.
-* DCS reflectors.
-* XLX reflectors.
-* CCS7 routing.
-* D-RATS data transfers.
-* Gateway DPRS data to APRS-IS.
-* Full multi lingual text and voice announcements.
-* DTMF or UR call control.
-* Remote control interface.
-* StarNet server.
-* Ability to set policies for reflector usage.
+> **Note:** For new installations, consider using [DStarGateway](https://github.com/F4FXL/DStarGateway) instead. DStarGateway is an actively developed, wxWidgets-free rewrite of ircDDBGateway with additional features such as NAT traversal, RS-MS1A message forwarding, and automatic host file downloads. ircDDBGateway remains fully functional and is still in use at many sites, but DStarGateway is the recommended path forward for new deployments.
 
-There are many external programs that allow for inserting voice or text messages, as well as remote control operation.
+ircDDBGateway allows a D-Star repeater to interface into callsign routing via ircDDB and all of the different reflector types. It works with both [DStarRepeater](https://github.com/g4klx/DStarRepeater) (homebrew hardware) and Icom repeater stacks (ID-RP2C).
 
-They all build on 32-bit and 64-bit Linux as well as on Windows using Visual Studio 2022 on x86 and x64.
+## Features
 
-This software is licenced under the GPL v2.
+- Callsign routing via ircDDB (up to 4 networks simultaneously)
+- D-Plus REF reflectors
+- DExtra XRF reflectors
+- DCS reflectors
+- XLX reflectors
+- CCS7 routing
+- Supports Icom repeater stacks and homebrew repeaters
+- Up to 4 repeater modules per gateway
+- Icom DD mode under Linux with Internet access
+- D-RATS data transfers
+- DPRS to APRS-IS gateway
+- Full multi-lingual text and voice announcements
+- DTMF or UR call control
+- Remote control interface
+- STARnet digital voice server (up to 5 groups)
+- Reflector usage policies
+- MQTT telemetry publishing (log messages, link status events)
 
-# Build and installing
-## Regular build
-```shell
+## Building
+
+Builds on 32-bit and 64-bit Linux as well as on Windows using Visual Studio 2022 (x86 and x64).
+
+### Standard Build
+
+```
 make
-make -f MakefileGUI #only required if you want to build the GUI programs
 sudo make install
 ```
-## Drop-in replacement for dl5di OpenDV packages
-This will conpile the program to be used as a drop in replacement for the no longer maintained DL5DI OpenDV packages. Systemd files to run ircddbgatewayd as daemon will also be installed.
-```shell
+
+### With GUI Programs
+
+```
+make -f MakefileGUI
+```
+
+### MQTT Dependency
+
+MQTT telemetry is always compiled in. Install `libmosquitto-dev` before building:
+
+```
+sudo apt-get install libmosquitto-dev
+make
+sudo make install
+```
+
+To disable MQTT at runtime, leave `mqttAddress` empty in the config file. See [MQTT.md](MQTT.md) for full configuration details, topic structure, and JSON format.
+
+### Drop-in Replacement for dl5di OpenDV Packages
+
+This compiles the program to be used as a drop-in replacement for the no longer maintained DL5DI OpenDV packages. Systemd unit files for running `ircddbgatewayd` as a daemon are also installed.
+
+```
 export TARGET=opendv
 make
-make -f MakefileGUI #only required if you want to build the GUI programs
 sudo make install
 ```
-Note that you may need to use `sudo -E make install` to pass the environment variables, or just `sudo TARGET=opendv make install` to correctly create the opendv user/directories, depending on your system configuration.
 
-Now you should edit the configuration in the file /etc/ircddbgateway to match your needs.
+You may need `sudo -E make install` or `sudo TARGET=opendv make install` to pass the environment variable, depending on your system configuration.
 
-When building in TARGET=opendv mode, the necessary systemd unit files will be installed. To ensure ircddbgatewayd starts at system boot, and then immediately start it, use:
-```shell
+Enable and start the service:
+
+```
 sudo systemctl enable ircddbgatewayd.service
-sudo service ircddbgatewayd start
+sudo systemctl start ircddbgatewayd.service
 ```
 
-If you wish to remove the manually installed files you may use `sudo make uninstall`.
-Note that this will remove the systemd unit, but will not first stop or disable the service. To do so, first use:
-```shell
-sudo systemctl disable --now ircddbgateway.service
+To uninstall:
+
 ```
-It will also not remove your /etc/ircddbgateway configuration file.
-
-# Setup
-
-Only the ircddbgatewayd service is required for basic usage, all other compiled applications are optional.
-
-## ICOM repeater configuration
-If using an ICOM ID-RP2C you will need to use the ICOM utility to configure the repeater. By default the ID-RP2C uses the IP address 172.16.0.1, and expects the device controlling it (either your computer, or the computer running ircddbgatewayd) to be using the IP address 172.16.0.20, and uses the default password "PASSWORD". It may not be advisable to change this password as performing a hardware reset is not a documented feature. Ideally the ID-RP2C is connected directly to a secondary ethernet port on the device running ircddbgatewayd and configured with a static IP address, other configurations may prove problematic.
-
-When configuring the repeater using the ICOM utility you will need to change the port in the "Communication Settings" section to use the same port as is used in the "Gateway" section (20000 by default), and then go into the Options/Network Setup menu of the ICOM app to change the port to match what you put into the "Communication Settings" section.
-
-Once both of those fields are set to the same port number, ensure that the "Local RPT" section is set correctly for whichever physical plug your ID-RP2D is plugged into on the back of the ID-RP2C. Whichever number you have plugged in to should be set to "Voice", and have the correct band entered in the text box. ("B" for 70cm, for example.)
-
-In your /etc/ircddbgateway config file the following options are important:
+sudo systemctl disable --now ircddbgatewayd.service
+sudo make uninstall
 ```
+
+The uninstall will not remove your `/etc/ircddbgateway` configuration file.
+
+## Configuration
+
+Edit `/etc/ircddbgateway` (or `/etc/ircddbgateway_<name>` when using the `-name` option) to match your setup. An example configuration is provided in [linux/ircddbgateway.example](linux/ircddbgateway.example).
+
+See [CONFIGURATION.md](CONFIGURATION.md) for a complete reference of all settings, defaults, and allowed values.
+
+## ICOM Repeater Setup
+
+If using an ICOM ID-RP2C, configure the repeater using the ICOM utility. By default the ID-RP2C uses IP address `172.16.0.1` and expects the controlling device at `172.16.0.20` with the default password `PASSWORD`. Ideally the ID-RP2C is connected directly to a secondary ethernet port on the device running `ircddbgatewayd`.
+
+In the ICOM utility, set the port in "Communication Settings" to match the "Gateway" section port (20000 by default), then match it in Options > Network Setup.
+
+Example configuration for a 70cm repeater on Repeater 1:
+
+```
+gatewayType=0
 icomAddress=172.16.0.20
 icomPort=20000
-repeaterCall1=REPEATERCALLSIGN
+repeaterCall1=GB7XX
 repeaterBand1=B
 repeaterType1=1
-repeaterAddress=172.16.0.1
+repeaterAddress1=172.16.0.1
 repeaterPort1=20000
 ```
-Note that this assumes you're configuring "Repeater 1".
-The repeaterAdress is the address of the ID-RP2C controller, and "icomAddress" is the address of the device running ircddbgatewayd. The "Type" being 1 indicates an ICOM repeater. The Band should be set to whichever band you entered in the "Local RPT" section of the ICOM configuration software, and the callsign should match the call used in in the ICOM software.
+
+## Companion Programs
+
+Only `ircddbgatewayd` is required for basic operation. The following companion programs are also included:
+
+| Program | Description |
+|---------|-------------|
+| `ircddbgatewayconfig` | GUI configuration editor |
+| `texttransmit` | Send a text message via the gateway |
+| `voicetransmit` | Send a voice announcement via the gateway |
+| `timercontrol` | Scheduled reflector linking control |
+| `timeserver` | Transmit time announcements |
+| `remotecontrol` | Remote control client |
+| `aprstransmit` | Send APRS data via the gateway |
+
+## Licence
+
+This software is licenced under the GPL v2.

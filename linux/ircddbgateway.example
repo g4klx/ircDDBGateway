@@ -1,0 +1,232 @@
+# ircDDBGateway example configuration
+# See CONFIGURATION.md for a full reference of all settings.
+#
+# Gateway
+gatewayType=0
+gatewayCallsign=
+gatewayAddress=
+icomAddress=172.16.0.20
+icomPort=20000
+hbAddress=127.0.0.1
+hbPort=20010
+latitude=0.000000
+longitude=0.000000
+description1=
+description2=
+url=
+#
+# Repeater 1
+repeaterCall1=
+repeaterBand1=
+repeaterType1=0
+repeaterAddress1=127.0.0.1
+repeaterPort1=20011
+reflector1=
+atStartup1=0
+reconnect1=0
+frequency1=0.00000
+offset1=0.0000
+rangeKms1=0.000
+latitude1=0.000000
+longitude1=0.000000
+agl1=0.000
+description1_1=
+description1_2=
+url1=
+band1_1=0
+band1_2=0
+band1_3=0
+#
+# Repeater 2
+repeaterCall2=
+repeaterBand2=
+repeaterType2=0
+repeaterAddress2=127.0.0.1
+repeaterPort2=20012
+reflector2=
+atStartup2=0
+reconnect2=0
+frequency2=0.00000
+offset2=0.0000
+rangeKms2=0.000
+latitude2=0.000000
+longitude2=0.000000
+agl2=0.000
+description2_1=
+description2_2=
+url2=
+band2_1=0
+band2_2=0
+band2_3=0
+#
+# Repeater 3
+repeaterCall3=
+repeaterBand3=
+repeaterType3=0
+repeaterAddress3=127.0.0.1
+repeaterPort3=20013
+reflector3=
+atStartup3=0
+reconnect3=0
+frequency3=0.00000
+offset3=0.0000
+rangeKms3=0.000
+latitude3=0.000000
+longitude3=0.000000
+agl3=0.000
+description3_1=
+description3_2=
+url3=
+band3_1=0
+band3_2=0
+band3_3=0
+#
+# Repeater 4
+repeaterCall4=
+repeaterBand4=
+repeaterType4=0
+repeaterAddress4=127.0.0.1
+repeaterPort4=20014
+reflector4=
+atStartup4=0
+reconnect4=0
+frequency4=0.00000
+offset4=0.0000
+rangeKms4=0.000
+latitude4=0.000000
+longitude4=0.000000
+agl4=0.000
+description4_1=
+description4_2=
+url4=
+band4_1=0
+band4_2=0
+band4_3=0
+#
+# ircDDB Network 1
+ircddbEnabled=1
+ircddbHostname=group1-irc.ircddb.net
+ircddbUsername=
+ircddbPassword=
+#
+# ircDDB Network 2
+ircddbEnabled2=1
+ircddbHostname2=rr.openquad.net
+ircddbUsername2=
+ircddbPassword2=
+#
+# ircDDB Network 3
+ircddbEnabled3=0
+ircddbHostname3=
+ircddbUsername3=
+ircddbPassword3=
+#
+# ircDDB Network 4
+ircddbEnabled4=0
+ircddbHostname4=
+ircddbUsername4=
+ircddbPassword4=
+#
+# Protocol and Service Settings
+aprsEnabled=0
+dextraEnabled=1
+dextraMaxDongles=5
+dplusEnabled=0
+dplusMaxDongles=5
+dplusLogin=
+dcsEnabled=1
+ccsEnabled=1
+ccsHost=CCS704
+xlxEnabled=1
+xlxHostsFileUrl=http://xlxapi.rlx.lu/api.php?do=GetXLXDMRMaster
+#
+# STARnet Group 1
+starNetBand1=
+starNetCallsign1=
+starNetLogoff1=
+starNetInfo1=
+starNetPermanent1=
+starNetUserTimeout1=300
+starNetGroupTimeout1=300
+starNetCallsignSwitch1=0
+starNetTXMsgSwitch1=1
+starNetReflector1=
+#
+# STARnet Group 2
+starNetBand2=
+starNetCallsign2=
+starNetLogoff2=
+starNetInfo2=
+starNetPermanent2=
+starNetUserTimeout2=300
+starNetGroupTimeout2=300
+starNetCallsignSwitch2=0
+starNetTXMsgSwitch2=1
+starNetReflector2=
+#
+# STARnet Group 3
+starNetBand3=
+starNetCallsign3=
+starNetLogoff3=
+starNetInfo3=
+starNetPermanent3=
+starNetUserTimeout3=300
+starNetGroupTimeout3=300
+starNetCallsignSwitch3=0
+starNetTXMsgSwitch3=1
+starNetReflector3=
+#
+# STARnet Group 4
+starNetBand4=
+starNetCallsign4=
+starNetLogoff4=
+starNetInfo4=
+starNetPermanent4=
+starNetUserTimeout4=300
+starNetGroupTimeout4=300
+starNetCallsignSwitch4=0
+starNetTXMsgSwitch4=1
+starNetReflector4=
+#
+# STARnet Group 5
+starNetBand5=
+starNetCallsign5=
+starNetLogoff5=
+starNetInfo5=
+starNetPermanent5=
+starNetUserTimeout5=300
+starNetGroupTimeout5=300
+starNetCallsignSwitch5=0
+starNetTXMsgSwitch5=1
+starNetReflector5=
+#
+# Remote Control
+remoteEnabled=0
+remotePassword=
+remotePort=0
+#
+# Miscellaneous
+language=0
+infoEnabled=1
+echoEnabled=1
+logEnabled=0
+dratsEnabled=0
+dtmfEnabled=1
+#
+# GPSD
+gpsdEnabled=0
+gpsdAddress=127.0.0.1
+gpsdPort=2947
+#
+# MQTT (leave mqttAddress empty to disable)
+mqttAddress=127.0.0.1
+mqttPort=1883
+mqttKeepalive=60
+mqttAuth=0
+mqttUsername=mmdvm
+mqttPassword=mmdvm
+mqttName=ircddb-gateway
+#
+# Window Position (GUI only)
+windowX=-1
+windowY=-1
